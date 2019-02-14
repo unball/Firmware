@@ -44,7 +44,7 @@ namespace Control {
         Motor::stop();
     }
 
-//verifica e imprime o tempo de duração de um ciclo
+    //verifica e imprime o tempo de duração de um ciclo
     void TimeOfCicle(){
         cicle_time = millis() - cicle_time;
         Serial.print("TIME: ");
@@ -54,14 +54,14 @@ namespace Control {
 
     linAng vel;
     void computVel(){
-        vel.ang = imu::values.z_gyro/32.8;
-        vel.lin = vel.lin + (((cos(imu::values.roll)*2*9.807*imu::values.y_accel/16384.0) - 0.09785)*cicle_time/1000);
+        vel.ang = Imu::values.z_gyro/32.8;
+        vel.lin = vel.lin + (((cos(Imu::values.roll)*2*9.807*Imu::values.y_accel/16384.0) - 0.09785)*cicle_time/1000);
     }
 
     void control(double velocidadeA, double velocidadeB){
         if(velocidadeA || velocidadeB){
             TimeOfCicle();
-            imu::imuRead();
+            Imu::imuRead();
             computVel();
             if(DEBUG_CONTROl){
                 TimeOfCicle();
