@@ -1,1 +1,8 @@
 Libraries/UnballLibraries/.vscode/
+Libraries/UnballLibraries/Control/.vscode/
+Libraries/UnballLibraries/Encoder/.vscode/
+Libraries/UnballLibraries/Imu/.vscode/
+Libraries/UnballLibraries/LedRGB/.vscode/
+Libraries/UnballLibraries/Motor/.vscode/
+Libraries/UnballLibraries/Pins/.vscode/
+Libraries/UnballLibraries/Radio/.vscode/
