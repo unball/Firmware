@@ -11,6 +11,7 @@ void setup(void) {
   Radio::Setup();
   Motor::Setup();
   Encoder::Setup();
+  Imu::Setup();
   Control::acc = 0;
 }
 
