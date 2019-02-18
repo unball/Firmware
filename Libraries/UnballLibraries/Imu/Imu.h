@@ -3,7 +3,7 @@
 
 #define IMU_DEBUG false
 
-#define IMU_I2C_ADDRESS              0x68    // addres to read from IMU
+#define IMU_I2C_ADDRESS              0x68    // endereçõ de comunicação com IMU
 #define IMU_ACCEL_START              0x3B    // R
 #define IMU_GYRO_START               0x43    // R
 #define IMU_TEMP_START               0x41    // R
@@ -12,11 +12,6 @@
 #define IMU_ACELL_CONFIG             0x1C    // Configure the accelerometer scale
 #define IMU_GYRO_CONFIG              0x1B    // Configure the gyroscope scale
 
-// Default I2C address for the MPU-6050 is 0x68.
-// But only if the AD0 pin is low.
-// Some sensor boards have AD0 high, and the
-// I2C address thus becomes 0x69.
-#define MPU6050_I2C_ADDRESS 0x68
 
 #include <i2c_t3.h>
 #include <math.h>
