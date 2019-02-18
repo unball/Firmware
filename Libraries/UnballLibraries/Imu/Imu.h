@@ -148,6 +148,7 @@ namespace Imu{
             sqrt(sq(imuData.accel.z)+sq(imuData.accel.x)));*/
     }
 
+    //configura o IMU para leitura
     void Setup(){
 
         // Initialize the 'Wire' class for the I2C-bus.
@@ -164,6 +165,7 @@ namespace Imu{
         imuGyroScale(3);
     }
 
+    //chama a leitura do acelerômetro e giroscópio
     void imuRead(){
         accelRead(0);
         gyroRead(3);
