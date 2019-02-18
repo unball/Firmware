@@ -49,6 +49,7 @@ namespace Imu{
     float accelScale[4] = {16384.0, 8192.0, 4096.0, 2048.0}
     float gyroScale[4] = {131.0, 65.5, 32.8, 16.4}
 
+    //zera o sleep bit do registrador de power management
     void imuStart(){
         Wire.beginTransmission(IMU_I2C_ADDRESS);
         Wire.write(PWR_MGMT_1);     
@@ -80,6 +81,7 @@ namespace Imu{
             Serial.printf("gyro config: %d\n", error);
     }
 
+    //lê size bytes a partir do endereço address e salva em buffer
     void imuRegRead(uint8_t address, size_t size, int8_t *buffer){
         Wire.beginTransmission(IMU_I2C_ADDRESS);
         Wire.write(0x41);
@@ -92,11 +94,13 @@ namespace Imu{
             buffer[i] = Wire.read();
     }
 
+    //concatena size bytes, em pares, de from e salva em to
     void to16(int16_t *to, int8_t *from, int size){
         for(int i = 0; i < size; i++)
             to[i] = from[i*2]<<8 | from[(i*2)+1]
     }
 
+    //faz a leitura do acelerômetro e calcula o valor em m/s usando accelScale[scale]
     void accelRead(int scale){
         int8_t regBuffer[6];
         int16_t rawBuffer[3];
@@ -107,6 +111,7 @@ namespace Imu{
         accel.z = (rawBuffer*9.81)[2]/accelScale[scale];
     }
 
+    //faz a leitura do giroscópio e calcula o valor em graus/s usando gyroScale[scale]
     void gyroRead(int scale){
         int8_t regBuffer[6];
         int16_t rawBuffer[3];
@@ -117,6 +122,7 @@ namespace Imu{
         gyro.z = rawBuffer[2]/gyroScale[scale];
     }
 
+    //retorna temperatura lida em celcius
     double tempRead(){
         int8_t regBuffer[2];
         int16_t rawBuffer[1];
