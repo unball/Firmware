@@ -28,8 +28,38 @@ namespace led{
         digitalWrite(Pins::red, LOW);
         digitalWrite(Pins::green, LOW);
         digitalWrite(Pins::blue, HIGH);
-
     }
+
+    void magenta(){
+        digitalWrite(Pins::green, LOW);
+        digitalWrite(Pins::red, HIGH);
+        digitalWrite(Pins::blue, HIGH);
+    }
+
+    void yellow(){
+        digitalWrite(Pins::blue, LOW);
+        digitalWrite(Pins::green, HIGH);
+        digitalWrite(Pins::red, HIGH);
+    }
+
+    void cian(){
+        digitalWrite(Pins::red, LOW);
+        digitalWrite(Pins::blue, HIGH);
+        digitalWrite(Pins::green, HIGH);
+    }
+
+    void white(){
+        digitalWrite(Pins::red, HIGH);
+        digitalWrite(Pins::blue, HIGH);
+        digitalWrite(Pins::green, HIGH);
+    }
+
+    void off(){
+        digitalWrite(Pins::red, LOW);
+        digitalWrite(Pins::blue, LOW);
+        digitalWrite(Pins::green, LOW);
+    }
+
 }
 
 
