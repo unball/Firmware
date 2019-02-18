@@ -21,72 +21,29 @@
 namespace Imu{
 
     typedef struct{
-        double x_accel;
-        double y_accel;
-        double z_accel;
-        double x_gyro;
-        double y_gyro;
-        double z_gyro;
+        double x;
+        double y;
+        double z;
+    } imuAccel;
+
+    typedef struct{
+        double x;
+        double y;
+        double z;
+    } imuGyro;
+
+    typedef struct{
+        imuAccel accel;
+        imuGyro gyro;
+        double temp;
         double roll;
         double pitch;
-    } accel;
+    } imuAll;
 
     volatile accel values;
 
-    // Documentation:
-    // - The InvenSense documents:
-    //   - "MPU-6000 and MPU-6050 Product Specification",
-    //     PS-MPU-6000A.pdf
-    //   - "MPU-6000 and MPU-6050 Register Map and Descriptions",
-    //     RM-MPU-6000A.pdf or RS-MPU-6000A.pdf
-    //   - "MPU-6000/MPU-6050 9-Axis Evaluation Board User Guide"
-    //     AN-MPU-6000EVB.pdf
-    //
-    // The accuracy is 16-bits.
-    //
-    // Temperature sensor from -40 to +85 degrees Celsius
-    //   340 per degrees, -512 at 35 degrees.
-    //
-    // At power-up, all registers are zero, except these two:
-    //      Register 0x6B (PWR_MGMT_2) = 0x40  (I read zero).
-    //      Register 0x75 (WHO_AM_I)   = 0x68.
-    //
-    // The name of the sensor is "MPU-6050".
-    // For program code, I omit the '-',
-    // therefor I use the name "MPU6050....".
+    
 
-
-    // Register names according to the datasheet.
-    // According to the InvenSense document
-    // "MPU-6000 and MPU-6050 Register Map
-    // and Descriptions Revision 3.2", there are no registers
-    // at 0x02 ... 0x18, but according other information
-    // the registers in that unknown area are for gain
-    // and offsets.
-    //
-    // Declaring an union for the registers and the axis values.
-    // The byte order does not match the byte order of
-    // the compiler and AVR chip.
-    // The AVR chip (on the Arduino board) has the Low Byte
-    // at the lower address.
-    // But the MPU-6050 has a different order: High Byte at
-    // lower address, so that has to be corrected.
-    // The register part "reg" is only used internally,
-    // and are swapped in code.
-
-    // --------------------------------------------------------
-    // MPU6050_read
-    //
-    // This is a common function to read multiple bytes
-    // from an I2C device.
-    //
-    // It uses the boolean parameter for Wire.endTransMission()
-    // to be able to hold or release the I2C-bus.
-    // This is implemented in Arduino 1.0.1.
-    //
-    // Only this function is used to read.
-    // There is no function for a single byte.
-    //
     int MPU6050_read(int start, uint8_t *buffer, int size){
         int i, n;
 
