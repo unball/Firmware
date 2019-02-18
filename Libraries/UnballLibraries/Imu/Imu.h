@@ -133,6 +133,7 @@ namespace Imu{
         return temp;
     }
 
+    //filtro de leitura do acelerômetro e giroscópio
     void mediaMovel(){
         double alpha = 0.9;
         imuData.accel.x = (alpha*imuData.accel.x) + (1-alpha)*accel.x;
