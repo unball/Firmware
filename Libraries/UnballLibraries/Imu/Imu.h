@@ -45,6 +45,7 @@ namespace Imu{
 
     imuAccel accel;
     imuGyro gyro;
+    imuAll imuData;
     float accelScale[4] = {16384.0, 8192.0, 4096.0, 2048.0}
     float gyroScale[4] = {131.0, 65.5, 32.8, 16.4}
 
@@ -126,37 +127,21 @@ namespace Imu{
         return temp;
     }
 
-    union accel_t_gyro_union{
-        struct{
-            uint8_t x_accel_h;
-            uint8_t x_accel_l;
-            uint8_t y_accel_h;
-            uint8_t y_accel_l;
-            uint8_t z_accel_h;
-            uint8_t z_accel_l;
-            uint8_t t_h;
-            uint8_t t_l;
-            uint8_t x_gyro_h;
-            uint8_t x_gyro_l;
-            uint8_t y_gyro_h;
-            uint8_t y_gyro_l;
-            uint8_t z_gyro_h;
-            uint8_t z_gyro_l;
-        } reg;
-        struct{
-            int16_t x_accel;
-            int16_t y_accel;
-            int16_t z_accel;
-            int16_t temperature;
-            int16_t x_gyro;
-            int16_t y_gyro;
-            int16_t z_gyro;
-        } value;
-    };
+    void mediaMovel(){
+        double alpha = 0.9;
+        imuData.accel.x = (alpha*imuData.accel.x) + (1-alpha)*accel.x;
+        imuData.accel.y = (alpha*imuData.accel.y) + (1-alpha)*accel.y;
+        imuData.accel.z = (alpha*imuData.accel.z) + (1-alpha)*accel.z;
+        imuData.gyro.x = (alpha*imuData.gyro.x) + (1-alpha)*gyro.x;
+        imuData.gyro.y = (alpha*imuData.gyro.y) + (1-alpha)*gyro.y;
+        imuData.gyro.z = (alpha*imuData.gyro.z) + (1-alpha)*gyro.z;
+        /*imuData.pitch = atan2(imuData.accel.x,
+            sqrt(sq(imuData.accel.z)+sq(imuData.accel.y)));
+        imuData.roll = atan2(imuData.accel.y,
+            sqrt(sq(imuData.accel.z)+sq(imuData.accel.x)));*/
+    }
 
     void Setup(){
-        int error;
-        uint8_t c;
 
         // Initialize the 'Wire' class for the I2C-bus.
         Wire.begin();
@@ -172,41 +157,10 @@ namespace Imu{
         imuGyroScale(3);
     }
 
-
-    void mediaMovel(accel_t_gyro_union newData){
-        double alpha = 0.9;
-        values.x_accel = (alpha*values.x_accel) + (1-alpha)*newData.value.x_accel;
-        values.y_accel = (alpha*values.y_accel) + (1-alpha)*newData.value.y_accel;
-        values.z_accel = (alpha*values.z_accel) + (1-alpha)*newData.value.z_accel;
-        values.x_gyro = (alpha*values.x_gyro) + (1-alpha)*newData.value.x_gyro;
-        values.y_gyro = (alpha*values.y_gyro) + (1-alpha)*newData.value.y_gyro;
-        values.z_gyro = (alpha*values.z_gyro) + (1-alpha)*newData.value.z_gyro;
-        values.pitch = atan2(values.x_accel,
-            sqrt(sq(values.z_accel)+sq(values.y_accel)));
-        values.roll = atan2(values.y_accel,
-            sqrt(sq(values.z_accel)+sq(values.x_accel)));
-        return;
-    }
-
     void imuRead(){
-        accel_t_gyro_union accel_t_gyro;
-
-        MPU6050_read (MPU6050_ACCEL_XOUT_H, (uint8_t *) &accel_t_gyro, sizeof(accel_t_gyro));
-
-        uint8_t swap;
-        #define SWAP(x,y) swap = x; x = y; y = swap
-
-        SWAP (accel_t_gyro.reg.x_accel_h, accel_t_gyro.reg.x_accel_l);
-        SWAP (accel_t_gyro.reg.y_accel_h, accel_t_gyro.reg.y_accel_l);
-        SWAP (accel_t_gyro.reg.z_accel_h, accel_t_gyro.reg.z_accel_l);
-        SWAP (accel_t_gyro.reg.t_h, accel_t_gyro.reg.t_l);
-        SWAP (accel_t_gyro.reg.x_gyro_h, accel_t_gyro.reg.x_gyro_l);
-        SWAP (accel_t_gyro.reg.y_gyro_h, accel_t_gyro.reg.y_gyro_l);
-        SWAP (accel_t_gyro.reg.z_gyro_h, accel_t_gyro.reg.z_gyro_l);
-
+        accelRead(0);
+        gyroRead(3);
         mediaMovel(accel_t_gyro);
-
-        return;
     }
 
 }
