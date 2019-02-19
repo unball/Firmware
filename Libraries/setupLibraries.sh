@@ -1,7 +1,11 @@
 #installs the needed libraries for the robot firmware
 
 #unball libraries
-sh UnballLibraries/setupUnballLibraries.sh
+cd UnballLibraries
+sh setupUnballLibraries.sh
+cd ..
 
 #extra libraries
-sh ExtraLibraries/setupExtraLibraries.sh
+cd ExtraLibraries
+sh setupExtraLibraries.sh
+cd ..
