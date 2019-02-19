@@ -54,8 +54,8 @@ namespace Control {
 
     linAng vel;
     void computVel(){
-        vel.ang = Imu::values.z_gyro/32.8;
-        vel.lin = vel.lin + (((cos(Imu::values.roll)*2*9.807*Imu::values.y_accel/16384.0) - 0.09785)*cicle_time/1000);
+        vel.ang = Imu::imuData.gyro.z;
+        vel.lin = vel.lin + (((cos(Imu::imuData.roll)*2*Imu::imuData.accel.y) - 0.09785)*cicle_time/1000);
     }
 
     void control(double velocidadeA, double velocidadeB){

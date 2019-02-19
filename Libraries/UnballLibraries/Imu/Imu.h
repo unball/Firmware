@@ -40,8 +40,8 @@ namespace Imu{
     imuAccel accel;
     imuGyro gyro;
     imuAll imuData;
-    double accelScale[4] = {16384.0, 8192.0, 4096.0, 2048.0}
-    double gyroScale[4] = {131.0, 65.5, 32.8, 16.4}
+    double accelScale[4] = {16384.0, 8192.0, 4096.0, 2048.0};
+    double gyroScale[4] = {131.0, 65.5, 32.8, 16.4};
 
     //zera o sleep bit do registrador de power management
     void imuStart(){
@@ -51,7 +51,7 @@ namespace Imu{
         Wire.write(0);              //writes 0 to wake the imu
         error = Wire.endTransmission();
         if(IMU_DEBUG)
-            Serial.printf("start: %d\n", error);
+            Serial.print("start: ");Serial.println(error);
     }
 
     // Configuring accel scale
@@ -63,7 +63,7 @@ namespace Imu{
         Wire.write(scale<<3);
         error = Wire.endTransmission();
         if(IMU_DEBUG)
-            Serial.printf("accel config: %d\n", error);
+            Serial.print("accel config: ");Serial.println(error);
     }
 
     // Configuring gyro scale
@@ -75,7 +75,7 @@ namespace Imu{
         Wire.write(scale<<3);
         error = Wire.endTransmission();
         if(IMU_DEBUG)
-            Serial.printf("gyro config: %d\n", error);
+            Serial.print("gyro config: ");Serial.println(error);
     }
 
     //lê size bytes a partir do endereço address e salva em buffer
@@ -85,17 +85,17 @@ namespace Imu{
         Wire.write(0x41);
         error = Wire.endTransmission();
         if(IMU_DEBUG)
-            Serial.printf("imuRegRead: %d\n", error);
+            Serial.print("imuRegRead: ");Serial.println(error);
 
         Wire.requestFrom(address, size); 
-        for(int i = 0; i < size; i++)
+        for(uint16_t i = 0; i < size; i++)
             buffer[i] = Wire.read();
     }
 
     //concatena size bytes, em pares, de from e salva em to
     void to16(int16_t *to, int8_t *from, uint8_t size){
         for(uint8_t i = 0; i < size; i++)
-            to[i] = from[i*2]<<8 | from[(i*2)+1]
+            to[i] = from[i*2]<<8 | from[(i*2)+1];
     }
 
     //faz a leitura do acelerômetro e calcula o valor em m/s usando accelScale[scale]
@@ -104,9 +104,9 @@ namespace Imu{
         int16_t rawBuffer[3];
         imuRegRead(IMU_ACCEL_START, 6, regBuffer);
         to16(rawBuffer, regBuffer, 3);
-        accel.x = (rawBuffer*9.81)[0]/accelScale[scale];
-        accel.y = (rawBuffer*9.81)[1]/accelScale[scale];
-        accel.z = (rawBuffer*9.81)[2]/accelScale[scale];
+        accel.x = (rawBuffer[0]*9.81)/accelScale[scale];
+        accel.y = (rawBuffer[1]*9.81)/accelScale[scale];
+        accel.z = (rawBuffer[2]*9.81)/accelScale[scale];
     }
 
     //faz a leitura do giroscópio e calcula o valor em graus/s usando gyroScale[scale]
