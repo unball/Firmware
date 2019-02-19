@@ -2,7 +2,7 @@
 user=$(whoami)
 
 #remove bibliotecas da UnBall da pasta do arduino
-sudo rm -r /home/$user/Arduino/libraries/UnballLibraries
+sudo rm -r -f /home/$user/Arduino/libraries/UnballLibraries
 #cria a pasta da biblioteca na pasta do Arduino
 mkdir /home/$user/Arduino/libraries/UnballLibraries
 ln setupUnballLibraries.sh /home/$user/Arduino/libraries/UnballLibraries/
