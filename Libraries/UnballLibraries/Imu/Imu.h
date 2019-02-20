@@ -3,14 +3,15 @@
 
 #define IMU_DEBUG false
 
-#define IMU_I2C_ADDRESS              0x68    // endereçõ de comunicação com IMU
-#define IMU_ACCEL_START              0x3B    // R
-#define IMU_GYRO_START               0x43    // R
-#define IMU_TEMP_START               0x41    // R
-#define PWR_MGMT_1                   0x6B    // R/W
-#define MPU6050_WHO_AM_I             0x75    // R
-#define IMU_ACELL_CONFIG             0x1C    // Configure the accelerometer scale
-#define IMU_GYRO_CONFIG              0x1B    // Configure the gyroscope scale
+#define IMU_NUMBER                  0       //numero gravado no IMU
+#define IMU_I2C_ADDRESS             0x68    // endereçõ de comunicação com IMU
+#define IMU_ACCEL_START             0x3B    // R
+#define IMU_GYRO_START              0x43    // R
+#define IMU_TEMP_START              0x41    // R
+#define PWR_MGMT_1                  0x6B    // R/W
+#define MPU6050_WHO_AM_I            0x75    // R
+#define IMU_ACELL_CONFIG            0x1C    // Configure the accelerometer scale
+#define IMU_GYRO_CONFIG             0x1B    // Configure the gyroscope scale
 
 #include <i2c_t3.h>
 #include <math.h>
@@ -21,24 +22,17 @@ namespace Imu{
         double x;
         double y;
         double z;
-    } imuAccel;
+    } axis;
 
     typedef struct{
-        double x;
-        double y;
-        double z;
-    } imuGyro;
-
-    typedef struct{
-        imuAccel accel;
-        imuGyro gyro;
+        axis accel;
+        axis gyro;
         double temp;
         double roll;
         double pitch;
     } imuAll;
 
-    imuAccel accel;
-    imuGyro gyro;
+    axis accel, gyro, accelOffset, gyroOffset;
     imuAll imuData;
     double accelScale[4] = {16384.0, 8192.0, 4096.0, 2048.0};
     double gyroScale[4] = {131.0, 65.5, 32.8, 16.4};
