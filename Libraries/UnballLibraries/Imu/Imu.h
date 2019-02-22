@@ -118,9 +118,9 @@ namespace Imu{
         int16_t rawBuffer[3];
         imuRegRead(IMU_ACCEL_START, 6, regBuffer);
         to16(rawBuffer, regBuffer, 3);
-        accel.x = (rawBuffer[0]*9.81)/accelScale[1];
-        accel.y = (rawBuffer[1]*9.81)/accelScale[1];
-        accel.z = (rawBuffer[2]*9.81)/accelScale[1];
+        accel.x = (rawBuffer[0]*9.81)/accelScale[scale];
+        accel.y = (rawBuffer[1]*9.81)/accelScale[scale];
+        accel.z = (rawBuffer[2]*9.81)/accelScale[scale];
     }
 
     //faz a leitura do giroscópio e calcula o valor em graus/s usando gyroScale[scale]
