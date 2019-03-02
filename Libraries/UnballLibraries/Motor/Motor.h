@@ -13,19 +13,19 @@ namespace Motor {
         pinMode(Pins::AIN1, OUTPUT);
         pinMode(Pins::AIN2, OUTPUT);
 
-        pinMode(Pins::STBY, OUTPUT);
+        //pinMode(Pins::STBY, OUTPUT);
 
         pinMode(Pins::PWMB, OUTPUT);
         pinMode(Pins::BIN1, OUTPUT);
         pinMode(Pins::BIN2, OUTPUT);
 
-        analogWriteFrequency(Pins::PWMA, 35156.25);  //ideal frequency for 10 bits resolution
-        analogWriteFrequency(Pins::PWMB, 35156.25);
-        analogWriteResolution(10); //0 - 1023
+        //analogWriteFrequency(Pins::PWMA, 35156.25);  //ideal frequency for 10 bits resolution
+        //analogWriteFrequency(Pins::PWMB, 35156.25);
+        //analogWriteResolution(10); //0 - 1023
     }
 
-    void move(uint8_t motor, uint16_t power) {
-        digitalWrite(Pins::STBY, HIGH);
+    void move(uint8_t motor, int32_t power) {
+        //digitalWrite(Pins::STBY, HIGH);
         uint8_t pin1, pin2;
         uint8_t PWM;
         if (motor == 0) {
@@ -40,21 +40,17 @@ namespace Motor {
         }
 
         //power = map(power,-100,100,-255,255);
-        if(power > 1023) {
-        power = 1023;
-        if(DEBUG_MOTOR)
-            Serial.print("SATURADO!");
+        if(power > 255) {
+            power = 255;
         }
-        if(power < -1023){
-        power = -1023;
-        if(DEBUG_MOTOR)
-            Serial.print("SATURADO!");
+        if(power < -255){
+            power = -255;
         }
 
-        boolean  motor_direction = (power > 0 ? 0:1);
+        int  motor_direction = (power > 0 ? -1:1);
         boolean inPin1 = LOW;
         boolean inPin2 = HIGH;
-        if (motor_direction == 0) {
+        if (motor_direction == -1) {
             inPin1 = HIGH;
             inPin2 = LOW;
         }
@@ -68,8 +64,9 @@ namespace Motor {
         analogWrite(PWM, abs(power));
     }
 
-    void stop() {
-        digitalWrite(Pins::STBY, LOW);
+    void stop(int motorNumber) {
+        //digitalWrite(Pins::STBY, LOW);
+        move(motorNumber, 0);
     }
 }
 

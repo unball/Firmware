@@ -181,6 +181,7 @@ namespace Imu{
     void imuRead(){
         accelRead(0);
         gyroRead(3);
+        imuData.temp = tempRead();
         mediaMovel();
     }
 

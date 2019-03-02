@@ -4,28 +4,28 @@
 
 namespace Pins {
 	//**Encoder pins**
-	int channelA = 2;
-	int channelB = 20;
+	int channelA = 3;	//7
+	int channelB = 2;	//17
 
 	//**Motor pins**
-	int PWMA = 3;
-	int AIN1 = 4;
-	int AIN2 = 5;
+	int PWMA = 9;		//3
+	int AIN1 = 7;		//4
+	int AIN2 = 8;		//5
 
-	int PWMB = 21;
-	int BIN1 = 22;
-	int BIN2 = 23;
+	int PWMB = 6;		//21
+	int BIN1 = 5;		//22
+	int BIN2 = 4;		//23
 
-	int STBY = 6;
+	//int STBY = 6;		//6
 
 	//**Radio pins**
-	int CE = 9;
-	int CS = 10;
+	int CE = A0;		//9
+	int CS = 10;		//10
 
 	//**Led pins**
-	int red = 2;
-	int green = 1;
-	int blue = 0;
+	//int red = 2;
+	//int green = 1;
+	//int blue = 0;
 }
 
 #endif

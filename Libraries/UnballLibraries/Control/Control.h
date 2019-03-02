@@ -4,8 +4,8 @@
 #include <Motor/Motor.h>
 #include <Encoder/Encoder.h>
 #include <Radio/Radio.h>
-#include <LedRGB/LedRGB.h>
-#include <Imu/Imu.h>
+//#include <LedRGB/LedRGB.h>
+//#include <Imu/Imu.h>
 
 #define MOTOR_TEST false    //define se está ou não fazendo o teste nos motores
 #define DEBUG_CONTROl false
@@ -41,18 +41,21 @@ namespace Control {
 
 
     void stopRobot() {
-        Motor::stop();
+        Motor::stop(0);
+        Motor::stop(1);
     }
 
+    long timer=0;
     //verifica e imprime o tempo de duração de um ciclo
     void TimeOfCicle(){
         cicle_time = millis() - cicle_time;
-        Serial.print("TIME: ");
+        //timer = timer + cicle_time;
+        //Serial.print("TIME: ");
         Serial.println(cicle_time);
         cicle_time = millis();
     }
 
-    linAng vel;
+    /*linAng vel;
     void computVel(){
         vel.ang = Imu::imuData.gyro.z;
         vel.lin = vel.lin + (((cos(Imu::imuData.roll)*2*Imu::imuData.accel.y) - 0.09785)*cicle_time/1000);
@@ -74,7 +77,6 @@ namespace Control {
                 Serial.print("//");
                 //Serial.print(Encoder::contadorB_media);
             }
-;
             double errorLin = velocidadeA - vel.lin;
             double errorAng = velocidadeB - vel.ang;
 
@@ -165,7 +167,7 @@ namespace Control {
             commandA_media = km*commandA_media + (1-km)*commandA;
             commandB_media = km*commandB_media + (1-km)*commandB;
             commandA = commandA_media;
-            commandB = commandB_media;*/
+            commandB = commandB_media;*-/
 
 
             //Teste para verificação dos motores
@@ -204,7 +206,7 @@ namespace Control {
             //Encoder::resetEncoders();
             stopRobot();
         }
-  }
+    }*/
 
   bool radioNotAvailableFor(int numberOfCicles) {
     if(acc<numberOfCicles+10)
@@ -270,26 +272,75 @@ namespace Control {
     }
   }
 
+    int ea1=0, ea2=0, ua1=0, ua2=0;
+    void id(int16_t v1, int16_t v2){
+        Encoder::encoder();
+
+        int e1 = v1 - Encoder::contadorA*Motor::motorA_direction;
+        int e2 = v2 - Encoder::contadorB*Motor::motorB_direction;
+        int32_t power1 = ((19207*e1 - 12439*ea1)>>10) + ua1;
+        ea1 = e1;
+        ua1 = power1;
+
+        int32_t  power2 = ((19207*e2 - 12439*ea2)>>10) + ua2;
+        ea2 = e2;
+        ua2 = power2;
+
+        //Serial.print("power1: ");Serial.println(p1);
+        //Serial.print("power2: ");Serial.println(p2);
+        /*
+        timer = millis();
+        for(int16_t i=0; i<2800; i++){
+            Encoder::encoder();
+            Serial.println("$");
+            Serial.println(100);
+            Serial.println(Encoder::contadorA_media);
+            Serial.println(Encoder::contadorB_media);
+            Motor::move(0, 100);
+            Motor::move(1, 100);
+            TimeOfCicle();
+        }
+        for(int16_t i=0; i<100; i++){
+            Encoder::encoder();
+            Serial.println("$");
+            Serial.println(0);
+            Serial.println(Encoder::contadorA_media);
+            Serial.println(Encoder::contadorB_media);
+            Motor::move(0, 0);
+            Motor::move(1, 0);
+            TimeOfCicle();
+            delay(10);
+        }
+        Serial.println("#");
+        */
+        Serial.print(Encoder::contadorA_media);Serial.print("\t");
+        Serial.println(Encoder::contadorB_media);
+        Motor::move(0, 100);
+        Motor::move(1, power2);
+        //TimeOfCicle();
+  }
+
   void stand() {
-      Serial.println("stand");
+      //Serial.println("stand");
     if(Radio::receivedata(&velocidades)) {
-        Serial.println("radioAvailable");
+        //Serial.println("radioAvailable");
        acc=0;
        if(frame_rate()){
            //Radio::reportMessage(2);
       }
     }
     //procedimento para indicar que o robo nao recebe mensagens nas ultimas 20000 iteracoes
-    if(radioNotAvailableFor(20000)){
+    if(radioNotAvailableFor(5000)){
         //Serial.println("radioNotAvailable");
         //Radio::reportMessage(1);
         //led::green();
-        double vA=0.5, vB=-0.5;
+        double vA=500, vB=500;
         if(MOTOR_TEST){
             TestWave(&vA, &vB);
             //led::blue();
         }
-        control(vA, vB);
+        //control(vA, vB);
+        id(20, 20);
     }
     else {
       //control(500, 500);
@@ -298,11 +349,11 @@ namespace Control {
             start_flag = false;
 
             //Radio::reportMessage(2);
-            Serial.println("aqui");
+            //Serial.println("aqui");
         }
 
-        control(velocidades.A, velocidades.B);
-        led::red();
+        //control(velocidades.A, velocidades.B);
+        //led::red();
     }
   }
 
