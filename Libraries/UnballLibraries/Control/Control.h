@@ -9,7 +9,7 @@
 
 #define MOTOR_TEST false    //define se está ou não fazendo o teste nos motores
 #define DEBUG_CONTROl false
-#define wave 2              // sine = 1 -- square = 2 -- step = 3
+#define wave 1              // sine = 1 -- square = 2 -- step = 3
 
 typedef struct{
     double lin;
@@ -17,19 +17,7 @@ typedef struct{
 } linAng;
 
 namespace Control {
-    long errorA_i=0;
-    long errorB_i=0;
-    double errorLinI = 0;
-    double errorAngI = 0;
-    double errorLinDAnt = 0;
-    double errorAngDAnt = 0;
-    long errorA_d_ant=0;
-    long errorB_d_ant=0;
-    long commandA_media=0;
-    long commandB_media=0;
-    int sat_count = 0;
-    unsigned long cicle_time=0;
-    bool bateria_fraca;
+    //unsigned long cicle_time=0;
     int acc = 0;
     int ctr = 0;
     bool start_flag = true;
@@ -45,302 +33,159 @@ namespace Control {
         Motor::stop(1);
     }
 
-    long timer=0;
+    uint32_t timer=0;
     //verifica e imprime o tempo de duração de um ciclo
     void TimeOfCicle(){
+        static uint32_t cicle_time = millis();
         cicle_time = millis() - cicle_time;
-        //timer = timer + cicle_time;
+        timer = timer + cicle_time;
         //Serial.print("TIME: ");
-        Serial.println(cicle_time);
+        Serial.println(timer);
         cicle_time = millis();
     }
 
-    /*linAng vel;
-    void computVel(){
-        vel.ang = Imu::imuData.gyro.z;
-        vel.lin = vel.lin + (((cos(Imu::imuData.roll)*2*Imu::imuData.accel.y) - 0.09785)*cicle_time/1000);
+    bool radioNotAvailableFor(int numberOfCicles) {
+        if(acc<numberOfCicles+10)
+            acc++;
+        return acc>numberOfCicles;
     }
 
-    void control(double velocidadeA, double velocidadeB){
-        if(velocidadeA || velocidadeB){
-            TimeOfCicle();
-            Imu::imuRead();
-            computVel();
-            if(DEBUG_CONTROl){
-                TimeOfCicle();
-                Serial.print("motor0: ");
-                //Serial.print(Encoder::presentVelA);
-                Serial.print("//");
-                //Serial.print(Encoder::contadorA_media);
-                Serial.print("  motor1: ");
-                //Serial.print(Encoder::presentVelB);
-                Serial.print("//");
-                //Serial.print(Encoder::contadorB_media);
+    void TestWave(double *v1, double *v2){
+        if(wave == 1){
+            angulo++;
+            if(angulo>720*4){
+            //Serial.println("#");
             }
-            double errorLin = velocidadeA - vel.lin;
-            double errorAng = velocidadeB - vel.ang;
-
-            errorLinI += errorLin;
-            errorAngI += errorAng;
-
-            double errorLinD = errorLin - errorLinDAnt;
-            double errorAngD = errorAng - errorAngDAnt;
-            errorLinDAnt = errorLin;
-            errorAngDAnt = errorAng;
-
-            if(DEBUG_CONTROl){
-                Serial.print(" error:");
-                //Serial.print(errorA);
-                Serial.print("||");
-                //Serial.print(errorB);
+            *v1 = 40*sin(angulo*(PI/180)*2);
+            *v2 = *v1;
+        }
+        else if(wave == 2){
+            cont+=1;
+            if(square_cont > 8){
+            Serial.println("#");
             }
-
-            long kp_a;
-            long ki_a;
-            long kd_a;
-
-            long kp_b;
-            long ki_b;
-            long kd_b;
-
-            if(robot_number == 0){
-                kp_a=1100;            //placa 2 = 1100;      //placa 6 = 1100      //placa 3 = 1100
-                ki_a=35;              //placa 2 = 35;        //placa 6 = 38        //placa 3 = 40
-                kd_a=2000;            //placa 2 = 2000;      //placa 6 =1800;      //placa 3 = 1500
-
-                kp_b=1100;            //placa 2 = 1100;       //placa 6 = 1200     //placa 3 = 1100
-                ki_b=35;              //placa 2 = 35;         //placa 6 = 40       //placa 3 = 40
-                kd_b=2500;            //placa 2 = 2500;       //placa 6 = 1800     //placa 3 = 1500
+            if(cont>200){
+            wave_flag = -1*wave_flag;
+            cont = 0;
+            square_cont+=1;
             }
-            else if(robot_number == 1){
-                kp_a=1100;            //placa 2 = 1100;      //placa 6 = 1100      //placa 3 = 1100
-                ki_a=40;              //placa 2 = 35;        //placa 6 = 38        //placa 3 = 40
-                kd_a=1500;            //placa 2 = 2000;      //placa 6 =1800;      //placa 3 = 1500
+            *v1 = (*v1)*wave_flag;
+            *v2 = -1*(*v2)*wave_flag;
+        }
+        else if(wave == 3){
+            *v1 = 70;
+            *v2 = 70;
+        }
+    }
 
-                kp_b=1100;            //placa 2 = 1100;       //placa 6 = 1200     //placa 3 = 1100
-                ki_b=40;              //placa 2 = 35;         //placa 6 = 40       //placa 3 = 40
-                kd_b=1500;            //placa 2 = 2500;       //placa 6 = 1800     //placa 3 = 1500
-            }
-            else if(robot_number == 2){
-                kp_a=1100;            //placa 2 = 1100;      //placa 6 = 1100      //placa 3 = 1100
-                ki_a=38;              //placa 2 = 35;        //placa 6 = 38        //placa 3 = 40
-                kd_a=1800;            //placa 2 = 2000;      //placa 6 =1800;      //placa 3 = 1500
+    bool frame_rate(){
+        ctr++;
+        if(ctr == 100){
+            ctr = 0;
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
 
-                kp_b=1200;            //placa 2 = 1100;       //placa 6 = 1200     //placa 3 = 1100
-                ki_b=40;              //placa 2 = 35;         //placa 6 = 40       //placa 3 = 40
-                kd_b=1800;            //placa 2 = 2500;       //placa 6 = 1800     //placa 3 = 1500
-            }
+    void Turbo(int turboA, int turboB){
+        if(turboA>0 && turboB>0){
+            Motor::move(0, 255);
+            Motor::move(1, 255);
+        }
+        else if(turboA<0 && turboB<0){
+            Motor::move(0, -255);
+            Motor::move(1, -255);
+        }
+        else if(turboA>0 && turboB<0){
+            Motor::move(0, 255);
+            Motor::move(1, -255);
+        }
+        else{
+            Motor::move(0, -255);
+            Motor::move(1, 255);
+        }
+    }
 
-            //Saturação do errorA_i
-            double Saturacao_erroA_i = 200000/ki_a;
-            if(errorLinI > Saturacao_erroA_i){
-                errorLinI = Saturacao_erroA_i;
-            }
-            else if(errorLinI < (-1)*Saturacao_erroA_i){
-                errorLinI = (-1)*Saturacao_erroA_i;
-            }
-            //Saturação do errorB_i
-            double Saturacao_erroB_i = 200000/ki_b;
-            if(errorAngI > Saturacao_erroB_i){
-                errorAngI = Saturacao_erroB_i;
-            }
-            else if(errorAngI < (-1)*Saturacao_erroB_i){
-                errorAngI = (-1)*Saturacao_erroB_i;
-            }
+    volatile int16_t ea1=0, ea2=0, ua1=0, ua2=0;
+    void control(int32_t v1, int32_t v2){
+        if(v1 || v2){
+            Encoder::encoder();
 
-                                   //Proporcional     Integrativo       Derivativo
-            double lin = ( (kp_a*errorLin) + (ki_a*errorLinI) + (kd_a*errorLinD) )/1000;
-            double ang = ( (kp_b*errorAng) + (ki_b*errorAngI) + (kd_b*errorAngD) )/1000;
+            int32_t e1 = v1 - Encoder::contadorA_media;
+            int32_t e2 = v2 - Encoder::contadorB_media;
 
+            int32_t power1 = ((2809*e1 - 2317*ea1)>>10) + ua1;
+            ea1 = e1;
+            ua1 = power1;
 
-            if(DEBUG_CONTROl){
-                //Serial.print("  errorA_i: ");Serial.print(errorA_i);
-                //Serial.print("  errorB_i: ");Serial.print(errorB_i);
-            }
+            int32_t power2 = ((2809*e2 - 2317*ea2)>>10) + ua2;
+            ea2 = e2;
+            ua2 = power2;
 
-
-            long commandA = (long) (lin - 0.5*ang*0.075)/0.035;
-            long commandB = (long) (lin + 0.5*ang*0.075)/0.035;
-
-            //testar filtro passa baixa
-            /*float km = 0.9;
-            commandA_media = km*commandA_media + (1-km)*commandA;
-            commandB_media = km*commandB_media + (1-km)*commandB;
-            commandA = commandA_media;
-            commandB = commandB_media;*-/
-
-
-            //Teste para verificação dos motores
-            if(MOTOR_TEST){
-                Serial.println("$");
-                Serial.println(velocidadeA);
-                //Serial.println(Encoder::contadorA_media);
-                //Serial.println(Encoder::contadorB_media);
-                //Serial.println(errorA);
-                //Serial.println(errorB);
-            }
-
-            if(commandA > 255){
-                commandA = 255;
-            }
-            else if(commandA < -255){
-                commandA = -255;
-            }
-            if(commandB > 255){
-                commandB = 255;
-            }
-            else if(commandB < -255){
-                commandB = -255;
-            }
-
-            Motor::move(0, commandA);
-            Motor::move(1, commandB);
-
-            if(DEBUG_CONTROl){
-                Serial.print("   commands ");
-                Serial.print(commandA);Serial.print("//");
-                Serial.print(" ");Serial.println(commandB);
-            }
-
-        }else{
-            //Encoder::resetEncoders();
+            //Encoder::encoder();
+            //Serial.println("$");
+            //Serial.println(v1);
+            //Serial.println(Encoder::contadorA_media);
+            //Serial.println(Encoder::contadorB_media);
+            Motor::move(0, power1);
+            Motor::move(1, power2);
+            //TimeOfCicle();
+        }
+        else{
+            Encoder::resetEncoders();
             stopRobot();
+            //Serial.print(Encoder::contadorA_media);Serial.print("\t");
+            //Serial.println(Encoder::contadorB_media);Serial.print("\t");
         }
-    }*/
-
-  bool radioNotAvailableFor(int numberOfCicles) {
-    if(acc<numberOfCicles+10)
-        acc++;
-    return acc>numberOfCicles;
   }
 
-  void TestWave(double *v1, double *v2){
-    if(wave == 1){
-        angulo++;
-        if(angulo>720*4){
-        Serial.println("#");
-        }
-        *v1 = 700*sin(angulo*(PI/180)*2);
-        *v2 = 700*sin(angulo*(PI/180)*2);
+    //method for motor identification
+    void motorId(){
+        for(uint16_t i = 0; i < 2901; i++){
+                    Encoder::encoder();
+                    Serial.println("$");
+                    Serial.println(100);
+                    Serial.println(Encoder::contadorA);
+                    Serial.println(Encoder::contadorB);
+                    Motor::move(0, 100);
+                    Motor::move(1, 100);
+                    TimeOfCicle();
+                }
+        for(uint16_t i = 0; i < 100; i++){
+                    Encoder::encoder();
+                    Serial.println("$");
+                    Serial.println(100);
+                    Serial.println(Encoder::contadorA);
+                    Serial.println(Encoder::contadorB);
+                    Motor::move(0, 100);
+                    Motor::move(1, 100);
+                    TimeOfCicle();
+                }
+                Serial.println("#");
     }
-    else if(wave == 2){
-        cont+=1;
-        if(square_cont > 8){
-        Serial.println("#");
-        }
-        if(cont>200){
-        wave_flag = -1*wave_flag;
-        cont = 0;
-        square_cont+=1;
-        }
-        *v1 = (*v1)*wave_flag;
-        *v2 = -1*(*v2)*wave_flag;
-    }
-    else if(wave == 3){
-        *v1 = 500;
-        *v2 = 500;
-    }
-  }
-
-  bool frame_rate(){
-    ctr++;
-    if(ctr == 100){
-        ctr = 0;
-        return true;
-    }
-    else{
-        return false;
-    }
-  }
-
-  void Turbo(int turboA, int turboB){
-    if(turboA>0 && turboB>0){
-        Motor::move(0, 255);
-        Motor::move(1, 255);
-    }
-    else if(turboA<0 && turboB<0){
-        Motor::move(0, -255);
-        Motor::move(1, -255);
-    }
-    else if(turboA>0 && turboB<0){
-        Motor::move(0, 255);
-        Motor::move(1, -255);
-    }
-    else{
-        Motor::move(0, -255);
-        Motor::move(1, 255);
-    }
-  }
-
-    int ea1=0, ea2=0, ua1=0, ua2=0;
-    void id(int16_t v1, int16_t v2){
-        Encoder::encoder();
-
-        int e1 = v1 - Encoder::contadorA*Motor::motorA_direction;
-        int e2 = v2 - Encoder::contadorB*Motor::motorB_direction;
-        int32_t power1 = ((19207*e1 - 12439*ea1)>>10) + ua1;
-        ea1 = e1;
-        ua1 = power1;
-
-        int32_t  power2 = ((19207*e2 - 12439*ea2)>>10) + ua2;
-        ea2 = e2;
-        ua2 = power2;
-
-        //Serial.print("power1: ");Serial.println(p1);
-        //Serial.print("power2: ");Serial.println(p2);
-        /*
-        timer = millis();
-        for(int16_t i=0; i<2800; i++){
-            Encoder::encoder();
-            Serial.println("$");
-            Serial.println(100);
-            Serial.println(Encoder::contadorA_media);
-            Serial.println(Encoder::contadorB_media);
-            Motor::move(0, 100);
-            Motor::move(1, 100);
-            TimeOfCicle();
-        }
-        for(int16_t i=0; i<100; i++){
-            Encoder::encoder();
-            Serial.println("$");
-            Serial.println(0);
-            Serial.println(Encoder::contadorA_media);
-            Serial.println(Encoder::contadorB_media);
-            Motor::move(0, 0);
-            Motor::move(1, 0);
-            TimeOfCicle();
-            delay(10);
-        }
-        Serial.println("#");
-        */
-        Serial.print(Encoder::contadorA_media);Serial.print("\t");
-        Serial.println(Encoder::contadorB_media);
-        Motor::move(0, 100);
-        Motor::move(1, power2);
-        //TimeOfCicle();
-  }
 
   void stand() {
-      //Serial.println("stand");
-    if(Radio::receivedata(&velocidades)) {
+    if(Radio::receivedata(&velocidades)) {      //velocidades vem de Radio.h
         //Serial.println("radioAvailable");
        acc=0;
        if(frame_rate()){
            //Radio::reportMessage(2);
       }
     }
-    //procedimento para indicar que o robo nao recebe mensagens nas ultimas 20000 iteracoes
-    if(radioNotAvailableFor(5000)){
+    //procedimento para indicar que o robo nao recebe mensagens nas ultimas 2500 iteracoes
+    if(radioNotAvailableFor(2500)){
         //Serial.println("radioNotAvailable");
         //Radio::reportMessage(1);
         //led::green();
-        double vA=500, vB=500;
+        double vA=40, vB=-40;
         if(MOTOR_TEST){
             TestWave(&vA, &vB);
             //led::blue();
         }
-        //control(vA, vB);
-        id(20, 20);
+        control(vA, vB);
+        //motorId();
     }
     else {
       //control(500, 500);
@@ -352,7 +197,8 @@ namespace Control {
             //Serial.println("aqui");
         }
 
-        //control(velocidades.A, velocidades.B);
+        //motorId();
+        control(velocidades.A, velocidades.B);
         //led::red();
     }
   }

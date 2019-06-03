@@ -48,7 +48,7 @@ namespace Encoder {
 
     void encoder() {
 
-        int8_t a = 9; // SEMPRE 0 <= a <= 1
+        int8_t a = 5; // SEMPRE 0 <= a <= 10
         //unsigned long t = timeCounter();
         //presentVelA = (float) (contadorA/t);
         //presentVelB = (float) (contadorB/t);
@@ -56,9 +56,9 @@ namespace Encoder {
         contadorB = interruptEncoderPins(Pins::channelB);
         //contadorA_media = a*contadorA_media + (1 - a)*Motor::motorA_direction*contadorA;
         //contadorB_media = a*contadorB_media + (1 - a)*Motor::motorB_direction*contadorB;
-        contadorA_media = a*contadorA_media + (10 - a)*contadorA;
+        contadorA_media = (10 - a)*contadorA_media + a*contadorA*Motor::motor_direction[0];
         contadorA_media = contadorA_media/10;
-        contadorB_media = a*contadorB_media + (10 - a)*contadorB;
+        contadorB_media = (10 - a)*contadorB_media + a*contadorB*Motor::motor_direction[1];
         contadorB_media = contadorB_media/10;
         //contadorA = 0;
         //contadorB = 0;

@@ -4,17 +4,17 @@
 
 namespace Pins {
 	//**Encoder pins**
-	int channelA = 3;	//7
-	int channelB = 2;	//17
+	int channelA = 2;	//7
+	int channelB = 3;	//17
 
 	//**Motor pins**
-	int PWMA = 9;		//3
-	int AIN1 = 7;		//4
-	int AIN2 = 8;		//5
+	int PWMA = 6;		//3
+	int AIN1 = 5;		//4
+	int AIN2 = 4;		//5
 
-	int PWMB = 6;		//21
-	int BIN1 = 5;		//22
-	int BIN2 = 4;		//23
+	int PWMB = 9;		//21
+	int BIN1 = 7;		//22
+	int BIN2 = 8;		//23
 
 	//int STBY = 6;		//6
 

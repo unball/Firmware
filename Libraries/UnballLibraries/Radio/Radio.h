@@ -7,8 +7,8 @@
 #include <RF24.h>
 
 struct dataStruct{
-    int16_t A=0;
-    int16_t B=0;
+    int32_t A=0;
+    int32_t B=0;
 };
 
 dataStruct velocidades, report;

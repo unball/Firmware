@@ -5,8 +5,7 @@
 
 
 namespace Motor {
-    long motorA_direction=0;
-    long motorB_direction=0;
+    int8_t motor_direction[2] = {0, 0};
 
     void Setup(){
         pinMode(Pins::PWMA, OUTPUT);
@@ -26,20 +25,10 @@ namespace Motor {
 
     void move(uint8_t motor, int32_t power) {
         //digitalWrite(Pins::STBY, HIGH);
-        uint8_t pin1, pin2;
-        uint8_t PWM;
-        if (motor == 0) {
-        pin1 = Pins::AIN1;
-        pin2 = Pins::AIN2;
-        PWM = Pins::PWMA;
-        }
-        else {
-        pin1 = Pins::BIN1;
-        pin2 = Pins::BIN2;
-        PWM = Pins::PWMB;
-        }
+        uint8_t pin1[2] = {Pins::AIN1, Pins::BIN1};
+        uint8_t pin2[2] = {Pins::AIN2, Pins::BIN2};
+        uint8_t PWM[2] = {Pins::PWMA, Pins::PWMB};
 
-        //power = map(power,-100,100,-255,255);
         if(power > 255) {
             power = 255;
         }
@@ -47,10 +36,10 @@ namespace Motor {
             power = -255;
         }
 
-        int  motor_direction = (power > 0 ? -1:1);
-        boolean inPin1 = LOW;
-        boolean inPin2 = HIGH;
-        if (motor_direction == -1) {
+        motor_direction[motor] = (power > 0 ? 1:-1);
+        int inPin1;
+        int inPin2;
+        if (motor_direction[motor] == -1) {
             inPin1 = HIGH;
             inPin2 = LOW;
         }
@@ -59,9 +48,9 @@ namespace Motor {
             inPin2 = HIGH;
         }
 
-        digitalWrite(pin1, inPin1);
-        digitalWrite(pin2, inPin2);
-        analogWrite(PWM, abs(power));
+        digitalWrite(pin1[motor], inPin1);
+        digitalWrite(pin2[motor], inPin2);
+        analogWrite(PWM[motor], abs(power));
     }
 
     void stop(int motorNumber) {
