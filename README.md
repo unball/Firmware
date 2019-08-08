@@ -16,4 +16,4 @@ instructions on how to install the teensy loader can be found in the [pjrc - off
 ## Uploading
 **IF USING A EXTERNAL POWER SUPLY, USE THE ADAPTED NO POWER USB CABLE**
 
-Using the platformIO extention options to build and upload the code (pressing the teensy config button may be needed).
+Use the platformIO extention options to build and upload the code (pressing the teensy config button may be needed).
