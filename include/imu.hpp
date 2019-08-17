@@ -1,6 +1,6 @@
-#pragma once
 #ifndef IMU_HPP
 #define IMU_HPP
+
 #include <Arduino.h>
 #include <stdint-gcc.h>
 #include <cstdio>
