@@ -2,14 +2,13 @@
 
 namespace Control {
 
-    int acc = 0;
-    int ctr = 0;
-    bool start_flag = true;
+    int32_t acc = 0;
+    int32_t ctr = 0;
 
     //variaveis de teste
-    int wave_flag=1;
-    int angulo=0;
-    long square_cont=0, cont=0;
+    int8_t wave_flag=1;
+    int16_t angulo=0;
+    int64_t square_cont=0, cont=0;
 
     uint32_t timer=0;
     
@@ -39,9 +38,11 @@ namespace Control {
     void TestWave(double *v1, double *v2){
         if(wave == 1){
             angulo++;
+            #if CONTROL_DEBUG
             if(angulo>720*4){
-            //Serial.println("#");
+                Serial.println("#");
             }
+            #endif
             *v1 = 40*sin(angulo*(PI/180)*2);
             *v2 = *v1;
         }
@@ -113,59 +114,57 @@ namespace Control {
             ea2 = e2;
             ua2 = power2;
 
-            //Encoder::encoder();
-            //Serial.println("$");
-            //Serial.println(v1);
-            //Serial.println(Encoder::contadorA_media);
-            //Serial.println(Encoder::contadorB_media);
             Motor::move(0, power1);
             Motor::move(1, power2);
-            //TimeOfCicle();
+            #if CONTROL_DEBUG
+            Encoder::encoder();
+            Serial.println("$");
+            Serial.println(v1);
+            Serial.println(Encoder::contadorA_media);
+            Serial.println(Encoder::contadorB_media);
+            TimeOfCicle();
+            #endif
         }
         else{
             Encoder::resetEncoders();
             stopRobot();
-            //Serial.print(Encoder::contadorA_media);Serial.print("\t");
-            //Serial.println(Encoder::contadorB_media);Serial.print("\t");
+            #if CONTROL_DEBUG
+            Serial.print(Encoder::contadorA_media);Serial.print("\t");
+            Serial.println(Encoder::contadorB_media);Serial.print("\t");
+            #endif
         }
-  }
-
-  void stand() {
-    static Radio::dataStruct velocidades;    
-    if(Radio::receiveData(&velocidades)) {
-        //Serial.println("radioAvailable");
-       acc=0;
-       if(frame_rate()){
-           //Radio::reportMessage(2);
-      }
     }
-    //procedimento para indicar que o robo nao recebe mensagens nas ultimas 2500 iteracoes
-    if(radioNotAvailableFor(2500)){
-        //Serial.println("radioNotAvailable");
-        //Radio::reportMessage(1);
-        //led::green();
-        double vA=40, vB=-40;
-        if(MOTOR_TEST){
-            TestWave(&vA, &vB);
-            //led::blue();
+
+    void stand() {
+        static Radio::dataStruct velocidades;    
+        if(Radio::receiveData(&velocidades)) {
+            acc=0;
+            #if CONTROL_DEBUG
+            Serial.println("radioAvailable");
+            if(frame_rate()){
+                Radio::reportMessage(2);
+            }
+            #endif
         }
-        control(vA, vB);
-        //motorId();
-    }
-    else {
-      //control(500, 500);
-
-        if(start_flag){
-            start_flag = false;
-
-            //Radio::reportMessage(2);
-            //Serial.println("aqui");
+        //procedimento para indicar que o robo nao recebe mensagens nas ultimas 2500 iteracoes
+        if(radioNotAvailableFor(2500)){
+            #if CONTROL_DEBUG
+            Serial.println("radioNotAvailable");
+            Radio::reportMessage(1);
+            #endif
+            double vA=40, vB=-40;
+            if(MOTOR_TEST){
+                TestWave(&vA, &vB);
+                Led::blue();
+            }
+            control(vA, vB);
+            //motorId();
         }
-
-        //motorId();
-        control(velocidades.A, velocidades.B);
-        //led::red();
+        else {
+            //motorId();
+            control(velocidades.A, velocidades.B);
+            Led::red();
+        }
     }
-  }
 
 }//end namespace
