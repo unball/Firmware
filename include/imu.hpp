@@ -30,10 +30,16 @@ namespace Imu{
         double y;
         double z;
     } axis;
+    
+    typedef struct{
+        double lin;
+        double ang;
+    } vel;
 
     typedef struct{
         axis accel;
         axis gyro;
+        vel velocidades;
         double temp;
         double roll;
         double pitch;
@@ -50,5 +56,7 @@ namespace Imu{
     void mediaMovel();
     void Setup();
     imuAll imuRead();
+    uint64_t deltaT();
+    double linearVel();
 }
 #endif

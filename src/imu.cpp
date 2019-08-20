@@ -7,6 +7,21 @@ namespace Imu{
     double accelScale[4] = {16384.0, 8192.0, 4096.0, 2048.0};
     double gyroScale[4] = {131.0, 65.5, 32.8, 16.4};
 
+	uint64_t deltaT(){
+		static uint64_t delta = 0;
+		delta = millis() - delta;
+		return delta;
+	}
+
+	/*retorna velocidade linear
+	  velocidade linear calculada através de integração trapezoidal*/
+	double linearVel(){
+		static double vel = 0, oldAccel = 0;
+		vel = vel + ((imuData.accel.y + oldAccel)/2)*deltaT();
+		oldAccel = imuData.accel.y;
+		return vel;
+	}
+
     //zera o sleep bit do registrador de power management
     void imuStart(){
 
@@ -25,41 +40,41 @@ namespace Imu{
         Wire.write(IMU_FIFO_EN);     
         Wire.write(0xF8);              //writes 0 to wake the imu
         #if IMU_DEBUG
-        error = Wire.endTransmission();
-        Serial.print("start: ");
-        Serial.println(error);
+		error = Wire.endTransmission();
+		Serial.print("start: ");
+		Serial.println(error);
         #else
         Wire.endTransmission();
         #endif
     }
 
-    // Configuring accel scale
-    // 0 -> +/-2g; 1 -> +/-4g; 2 -> +/-8g; 3 -> +/-16g
+    /* Configuring accel scale
+       0 -> +/-2g; 1 -> +/-4g; 2 -> +/-8g; 3 -> +/-16g */
     void imuAccelScale(uint8_t scale){
         scale = scale << 3;
         Wire.beginTransmission(IMU_I2C_ADDRESS);
         Wire.write(IMU_ACELL_CONFIG);
         Wire.write(scale);
         #if IMU_DEBUG
-            uint8_t error = Wire.endTransmission();
-            Serial.print("accel config: ");
-            Serial.println(error);
+		uint8_t error = Wire.endTransmission();
+		Serial.print("accel config: ");
+		Serial.println(error);
         #else
             Wire.endTransmission();
         #endif
     }
 
-    // Configuring gyro scale
-    // 0 -> +/-250; 1 -> +/-500; 2 -> +/-1000; 3 -> +/-2000
+    /* Configuring gyro scale
+       0 -> +/-250; 1 -> +/-500; 2 -> +/-1000; 3 -> +/-2000 */
     void imuGyroScale(uint8_t scale){
         scale = scale << 3;
         Wire.beginTransmission(IMU_I2C_ADDRESS);
         Wire.write(IMU_GYRO_CONFIG);
         Wire.write(scale);
         #if IMU_DEBUG
-            uint8_t error = Wire.endTransmission();
-            Serial.print("gyro config: ");
-            Serial.println(error);
+		uint8_t error = Wire.endTransmission();
+		Serial.print("gyro config: ");
+		Serial.println(error);
         #else
             Wire.endTransmission();
         #endif
@@ -70,11 +85,11 @@ namespace Imu{
         Wire.beginTransmission(IMU_I2C_ADDRESS);
         Wire.write(address);
         #if IMU_DEBUG
-            uint8_t error = Wire.endTransmission();
-            Serial.print("imuRegRead: ");
-            Serial.println(error);
+		uint8_t error = Wire.endTransmission();
+		Serial.print("imuRegRead: ");
+		Serial.println(error);
         #else
-            Wire.endTransmission();
+		Wire.endTransmission();
         #endif
 
         Wire.requestFrom((uint8_t)IMU_I2C_ADDRESS, size); 
@@ -130,23 +145,11 @@ namespace Imu{
         imuData.gyro.x = (alpha*imuData.gyro.x) + (1-alpha)*gyro.x;
         imuData.gyro.y = (alpha*imuData.gyro.y) + (1-alpha)*gyro.y;
         imuData.gyro.z = (alpha*imuData.gyro.z) + (1-alpha)*gyro.z;
-        /*imuData.pitch = atan2(imuData.accel.x,
-            sqrt(sq(imuData.accel.z)+sq(imuData.accel.y)));
-        imuData.roll = atan2(imuData.accel.y,
-            sqrt(sq(imuData.accel.z)+sq(imuData.accel.x)));*/
     }
 
     //configura o IMU para leitura
     void Setup(){
-
-        // Initialize the 'Wire' class for the I2C-bus.
         Wire.begin();
-
-        // default at power-up:
-        //    Gyro at 250 degrees second
-        //    Acceleration at 2g
-        //    Clock source at internal 8MHz
-        //    The device is in sleep mode.
 
         imuStart();
         imuAccelScale(0);
@@ -155,17 +158,14 @@ namespace Imu{
 
     //chama a leitura do acelerômetro e giroscópio
     imuAll imuRead(){
-        //Serial.println("read entered");
         accelRead(0);
-        imuData.accel = accel;
-        //Serial.println("accel ok");
         gyroRead(3);
+        imuData.accel = accel;
         imuData.gyro = gyro;
-        //Serial.println("gyro ok");
         imuData.temp = tempRead();
-        //Serial.println("temp ok");
+		imuData.velocidades.lin = linearVel();
+		imuData.velocidades.ang = gyro.z;
         //mediaMovel();
-        //Serial.println("media ok");
         return imuData;
     }
 
