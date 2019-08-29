@@ -1,6 +1,7 @@
 #include <Arduino.h>
 
 #define TEENSY_DEBUG false
+#define ROBOT_NUMBER 0
 
 #include "radio.hpp"
 #include "imu.hpp"
@@ -12,7 +13,7 @@
 Radio::dataStruct vel;
 Imu::imuAll imuData;
 void setup() {
-	#if TEENSY_DEBUG
+	#if (TEENSY_DEBUG || CONTROL_DEBUG || IMU_DEBUG || MOTOR_DEBUG)
 	Serial.begin(9600);
 	while(!Serial);
 	Serial.println("SETUP!");
