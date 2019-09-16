@@ -4,7 +4,7 @@ namespace Encoder {
 
     volatile int32_t contadorA = 0;
     volatile int32_t contadorB = 0;
-    unsigned long timeAnt = 0;
+    double timeAnt = 0;
     float presentVelA;
     float presentVelB;
     
@@ -25,22 +25,25 @@ namespace Encoder {
         contadorB = 0;
     }
 
-    int32_t timeCounter(){
-        int32_t deltaT = millis() - timeAnt;
-        timeAnt = millis();
+    double timeCounter(){
+        double deltaT = micros()/1000.0 - timeAnt;
         return deltaT;
     }
 
     vel encoder() {
         //TODO: low-pass filter
         //int8_t a = 5; // SEMPRE 0 <= a <= 10
-        int32_t t = timeCounter();
+        double t = timeCounter();
         vel enc;
+        Serial.println("+++++++++++++++++++");
+        Serial.print(contadorA); Serial.print("\t"); Serial.print(contadorB); Serial.print("\t"); Serial.println(t);
+        Serial.println("+++++++++++++++++++");
         presentVelA = (float) (contadorA/t)*Motor::getMotorDirection(0);
         presentVelB = (float) (contadorB/t)*Motor::getMotorDirection(1);
 
         enc.motorA = presentVelA;
         enc.motorB = presentVelB;
+        timeAnt = micros()/1000.0;
         contadorA = 0;
         contadorB = 0;
         return enc;

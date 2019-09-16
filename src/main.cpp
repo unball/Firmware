@@ -13,9 +13,9 @@
 Radio::dataStruct vel;
 Imu::imuAll imuData;
 void setup() {
-	#if (TEENSY_DEBUG || CONTROL_DEBUG || IMU_DEBUG || MOTOR_DEBUG)
 	Serial.begin(9600);
-	while(!Serial);
+	//while(!Serial);
+	#if (TEENSY_DEBUG || CONTROL_DEBUG || IMU_DEBUG || MOTOR_DEBUG)
 	Serial.println("SETUP!");
 	#endif
 	Radio::setup(1, 3);
@@ -65,5 +65,6 @@ void loop() {
 	delay(100);
 	#else
 	Control::stand();
+	delay(1);
 	#endif
 }

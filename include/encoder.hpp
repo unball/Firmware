@@ -14,7 +14,7 @@ namespace Encoder{
     void somaA();
     void somaB();
     void resetEncoders();
-    int32_t timeCounter();
+    double timeCounter();
     vel encoder();
 }
 #endif

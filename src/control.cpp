@@ -100,23 +100,39 @@ namespace Control {
     volatile int16_t ea1=0, ea2=0, ua1=0, ua2=0;
     void control(int32_t v1, int32_t v2){
         if(v1 || v2){
+            Serial.println("+++++++++++++++++++");
+            Serial.print(v1); Serial.print("\t"); Serial.println(v2);
+            Serial.println("+++++++++++++++++++");
             Encoder::vel enc;
             enc = Encoder::encoder();
 
-            int32_t e1 = v1 - enc.motorA;
-            int32_t e2 = v2 - enc.motorB;
+            double e1 = v1 - enc.motorA;
+            double e2 = v2 - enc.motorB;
 
-            int32_t power1 = ((2809*e1 - 2317*ea1)>>10) + ua1;
+            Serial.println("------------------");
+            Serial.print(e1); Serial.print("\t"); Serial.println(e2);
+            Serial.println("------------------");
+
+            int32_t power1 = 0;// = ((2809*e1 - 2317*ea1)>>10) + ua1;
             ea1 = e1;
             ua1 = power1;
 
-            int32_t power2 = ((2809*e2 - 2317*ea2)>>10) + ua2;
+            int32_t power2 = 0;// = ((2809*e2 - 2317*ea2)>>10) + ua2;
             ea2 = e2;
             ua2 = power2;
+            power1 = (int32_t)e1*10;
+            power2 = (int32_t)e2*10;
+            if(power1 > 255) power1 = 255;
+            if(power1 < -255) power1 = -255;
+            if(power2 > 255) power2 = 255;
+            if(power2 < -255) power2 = -255;
+            Serial.println("+++++++++++++++++++");
+            Serial.print(power1); Serial.print("\t"); Serial.println(power2);
+            Serial.println("+++++++++++++++++++");
 
             Motor::move(0, power1);
             Motor::move(1, power2);
-            #if CONTROL_DEBUG
+            #if false //CONTROL_DEBUG
             Encoder::encoder();
             Serial.println("$");
             Serial.println(v1);
@@ -142,7 +158,7 @@ namespace Control {
             #if CONTROL_DEBUG
             Serial.println("radioAvailable");
             if(frame_rate()){
-                Radio::reportMessage(2);
+                //Radio::reportMessage(2);
             }
             #endif
         }
@@ -150,11 +166,11 @@ namespace Control {
         if(radioNotAvailableFor(2500)){
             #if CONTROL_DEBUG
             Serial.println("radioNotAvailable");
-            Radio::reportMessage(1);
+            //Radio::reportMessage(1);
             #endif
-            double vA=40, vB=-40;
+            int32_t vA=20, vB=20;
             if(MOTOR_TEST){
-                TestWave(&vA, &vB);
+                //TestWave(&vA, &vB);
                 Led::blue();
             }
             control(vA, vB);
