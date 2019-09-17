@@ -22,8 +22,8 @@ namespace Control {
         static uint32_t cicle_time = millis();
         cicle_time = millis() - cicle_time;
         timer = timer + cicle_time;
-        //Serial.print("TIME: ");
         #if CONTROL_DEBUG
+        Serial.print("TIME: ");
         Serial.println(timer);
         #endif
         cicle_time = millis();
@@ -35,18 +35,25 @@ namespace Control {
         return acc>numberOfCicles;
     }
 
-    void TestWave(double *v1, double *v2){
-        if(wave == 1){
+    //checks if received any message from radio in the last threshold us
+    bool isRadioLost(bool received, uint32_t threshold = 200000){
+        static uint32_t lastReceived = micros();
+        if(received) lastReceived = micros();
+        else if((micros() - lastReceived) > threshold) return true;
+        return false;
+    }
+
+    void TestWave(int32_t *v1, int32_t *v2){
+        #if (wave == 1)
             angulo++;
             #if CONTROL_DEBUG
             if(angulo>720*4){
                 Serial.println("#");
             }
             #endif
-            *v1 = 40*sin(angulo*(PI/180)*2);
+            *v1 = (uint32_t)40*sin(angulo*(PI/180)*2);
             *v2 = *v1;
-        }
-        else if(wave == 2){
+        #elif (wave == 2)
             cont+=1;
             #if CONTROL_DEBUG
             if(square_cont > 8){
@@ -60,11 +67,10 @@ namespace Control {
             }
             *v1 = (*v1)*wave_flag;
             *v2 = -1*(*v2)*wave_flag;
-        }
-        else if(wave == 3){
+        #elif (wave == 3)
             *v1 = 70;
             *v2 = 70;
-        }
+        #endif
     }
 
     bool frame_rate(){
@@ -100,18 +106,12 @@ namespace Control {
     volatile int16_t ea1=0, ea2=0, ua1=0, ua2=0;
     void control(int32_t v1, int32_t v2){
         if(v1 || v2){
-            Serial.println("+++++++++++++++++++");
-            Serial.print(v1); Serial.print("\t"); Serial.println(v2);
-            Serial.println("+++++++++++++++++++");
             Encoder::vel enc;
             enc = Encoder::encoder();
 
             double e1 = v1 - enc.motorA;
             double e2 = v2 - enc.motorB;
 
-            Serial.println("------------------");
-            Serial.print(e1); Serial.print("\t"); Serial.println(e2);
-            Serial.println("------------------");
 
             int32_t power1 = 0;// = ((2809*e1 - 2317*ea1)>>10) + ua1;
             ea1 = e1;
@@ -122,13 +122,6 @@ namespace Control {
             ua2 = power2;
             power1 = (int32_t)e1*10;
             power2 = (int32_t)e2*10;
-            if(power1 > 255) power1 = 255;
-            if(power1 < -255) power1 = -255;
-            if(power2 > 255) power2 = 255;
-            if(power2 < -255) power2 = -255;
-            Serial.println("+++++++++++++++++++");
-            Serial.print(power1); Serial.print("\t"); Serial.println(power2);
-            Serial.println("+++++++++++++++++++");
 
             Motor::move(0, power1);
             Motor::move(1, power2);
@@ -154,26 +147,26 @@ namespace Control {
     void stand() {
         static Radio::dataStruct velocidades;    
         if(Radio::receiveData(&velocidades)) {
-            acc=0;
+            isRadioLost(true);
             #if CONTROL_DEBUG
             Serial.println("radioAvailable");
-            if(frame_rate()){
-                //Radio::reportMessage(2);
-            }
             #endif
         }
-        //procedimento para indicar que o robo nao recebe mensagens nas ultimas 2500 iteracoes
-        if(radioNotAvailableFor(2500)){
+        //procedimento para indicar que o robo nao recebe mensagens nos ultimos 2 segundos
+        if(isRadioLost(false)){
             #if CONTROL_DEBUG
             Serial.println("radioNotAvailable");
-            //Radio::reportMessage(1);
+            Radio::reportMessage(1);
             #endif
-            int32_t vA=20, vB=20;
-            if(MOTOR_TEST){
-                //TestWave(&vA, &vB);
-                Led::blue();
-            }
-            control(vA, vB);
+            velocidades.A=20;
+            velocidades.B=20;
+
+            TestWave(&velocidades.A, &velocidades.B);
+            #if MOTOR_TEST
+            Led::blue();
+            #endif
+
+            control(velocidades.A, velocidades.B);
             //motorId();
         }
         else {

@@ -27,12 +27,13 @@ namespace Control{
     void stopRobot();
     void TimeOfCicle();
     bool radioNotAvailableFor(int);
-    void TestWave(double*, double*);
+    void TestWave(int32_t*, int32_t*);
     bool frame_rate();
     void Turbo(int, int);
     void control(int32_t, int32_t);
     void motorId();
     void stand();
+    bool isRadioLost(bool, uint32_t);
 }
 
 #endif

@@ -35,9 +35,6 @@ namespace Encoder {
         //int8_t a = 5; // SEMPRE 0 <= a <= 10
         double t = timeCounter();
         vel enc;
-        Serial.println("+++++++++++++++++++");
-        Serial.print(contadorA); Serial.print("\t"); Serial.print(contadorB); Serial.print("\t"); Serial.println(t);
-        Serial.println("+++++++++++++++++++");
         presentVelA = (float) (contadorA/t)*Motor::getMotorDirection(0);
         presentVelB = (float) (contadorB/t)*Motor::getMotorDirection(1);
 
