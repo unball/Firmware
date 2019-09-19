@@ -26,7 +26,6 @@ namespace Control{
 
     void stopRobot();
     void TimeOfCicle();
-    bool radioNotAvailableFor(int);
     void TestWave(int32_t*, int32_t*);
     bool frame_rate();
     void Turbo(int, int);

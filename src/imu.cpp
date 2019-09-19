@@ -9,7 +9,7 @@ namespace Imu{
 
 	uint64_t deltaT(){
 		static uint64_t delta = 0;
-		delta = millis() - delta;
+		delta = micros() - delta;
 		return delta;
 	}
 

@@ -29,14 +29,8 @@ namespace Control {
         cicle_time = millis();
     }
 
-    bool radioNotAvailableFor(int numberOfCicles) {
-        if(acc<numberOfCicles+10)
-            acc++;
-        return acc>numberOfCicles;
-    }
-
     //checks if received any message from radio in the last threshold us
-    bool isRadioLost(bool received, uint32_t threshold = 200000){
+    bool isRadioLost(bool received, uint32_t threshold = 2000000){
         static uint32_t lastReceived = micros();
         if(received) lastReceived = micros();
         else if((micros() - lastReceived) > threshold) return true;
@@ -152,7 +146,7 @@ namespace Control {
             Serial.println("radioAvailable");
             #endif
         }
-        //procedimento para indicar que o robo nao recebe mensagens nos ultimos 2 segundos
+        //procedimento para indicar que o robo nao recebe mensagens nos ultimos 2 segundos(customizavel)
         if(isRadioLost(false)){
             #if CONTROL_DEBUG
             Serial.println("radioNotAvailable");
