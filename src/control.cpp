@@ -10,6 +10,23 @@ namespace Control {
     int16_t angulo=0;
     int64_t square_cont=0, cont=0;
 
+    //variáveis do controlador
+    double Kp1 = 10;
+    double Ki1 = 10;
+    double Kd1 = 10;
+    double derivated_e1 = 0;
+    double integrated_e1 = 0;
+    double last_e1 = 0;
+
+    double Kp2 = 10;
+    double Ki2 = 10;
+    double Kd2 = 10;
+    double derivated_e2 = 0;
+    double integrated_e2 = 0;
+    double last_e2 = 0;
+
+    double lastT = 0;
+
     uint32_t timer=0;
     
     void stopRobot() {
@@ -110,12 +127,19 @@ namespace Control {
             int32_t power1 = 0;// = ((2809*e1 - 2317*ea1)>>10) + ua1;
             ea1 = e1;
             ua1 = power1;
+            derivated_e1 = e1-last_e1;
+            integrated_e1 += e1;
 
             int32_t power2 = 0;// = ((2809*e2 - 2317*ea2)>>10) + ua2;
             ea2 = e2;
             ua2 = power2;
-            power1 = (int32_t)e1*10;
-            power2 = (int32_t)e2*10;
+            derivated_e2 = e2-last_e2;
+            integrated_e2 += e2;
+
+            double T = (double)(micros()-lastT);
+
+            power1 = (int32_t)(e1*Kd1+integrated_e1*Ki1*T+derivated_e1*Kd1/T);
+            power2 = (int32_t)(e2*Kd2+integrated_e2*Ki2*T+derivated_e2*Kd2/T);
 
             Motor::move(0, power1);
             Motor::move(1, power2);
