@@ -138,8 +138,8 @@ namespace Control {
 
             double T = (double)(micros()-lastT);
 
-            power1 = (int32_t)(e1*Kd1+integrated_e1*Ki1*T+derivated_e1*Kd1/T);
-            power2 = (int32_t)(e2*Kd2+integrated_e2*Ki2*T+derivated_e2*Kd2/T);
+            power1 = (int32_t)(e1*Kp1+integrated_e1*Ki1*T+derivated_e1*Kd1/T);
+            power2 = (int32_t)(e2*Kp2+integrated_e2*Ki2*T+derivated_e2*Kd2/T);
 
             Motor::move(0, power1);
             Motor::move(1, power2);
@@ -160,6 +160,15 @@ namespace Control {
             Serial.println(Encoder::contadorB_media);Serial.print("\t");
             #endif
         }
+    }
+
+    void updateControlParams(double Kp[], double Ki[], double Kd[]){
+        Kp1 = Kp[0];
+        Ki1 = Ki[0];
+        Kd1 = Kd[0];
+        Kp2 = Kp[1];
+        Ki2 = Ki[1];
+        Kd2 = Kd[1];
     }
 
     void stand() {
@@ -189,6 +198,7 @@ namespace Control {
         }
         else {
             //motorId();
+            updateControlParams(velocidades.Kp, velocidades.Ki, velocidades.Kd);
             control(velocidades.A, velocidades.B);
             Led::red();
         }
