@@ -123,23 +123,25 @@ namespace Control {
             double e1 = v1 - enc.motorA;
             double e2 = v2 - enc.motorB;
 
+            double T = (double)(micros()-lastT);
 
             int32_t power1 = 0;// = ((2809*e1 - 2317*ea1)>>10) + ua1;
             ea1 = e1;
             ua1 = power1;
-            derivated_e1 = e1-last_e1;
-            integrated_e1 += e1;
+            derivated_e1 = (e1-last_e1)/T;
+            integrated_e1 += e1*T;
+            last_e1 = e1;
 
             int32_t power2 = 0;// = ((2809*e2 - 2317*ea2)>>10) + ua2;
             ea2 = e2;
             ua2 = power2;
-            derivated_e2 = e2-last_e2;
-            integrated_e2 += e2;
+            derivated_e2 = (e2-last_e2)/T;
+            integrated_e2 += e2*T;
+            last_e2 = e2;
 
-            double T = (double)(micros()-lastT);
 
-            power1 = (int32_t)(e1*Kp1+integrated_e1*Ki1*T+derivated_e1*Kd1/T);
-            power2 = (int32_t)(e2*Kp2+integrated_e2*Ki2*T+derivated_e2*Kd2/T);
+            power1 = (int32_t)(e1*Kp1+integrated_e1*Ki1+derivated_e1*Kd1);
+            power2 = (int32_t)(e2*Kp2+integrated_e2*Ki2+derivated_e2*Kd2);
 
             Motor::move(0, power1);
             Motor::move(1, power2);
