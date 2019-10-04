@@ -1,5 +1,7 @@
 #include <control.hpp>
 
+#define BUFFER_SIZE 2000
+
 namespace Control {
 
     int32_t acc = 0;
@@ -9,6 +11,7 @@ namespace Control {
     int8_t wave_flag=1;
     int16_t angulo=0;
     int64_t square_cont=0, cont=0;
+    int64_t tri_cont=0;
 
     //variáveis do controlador
     double Kp1 = 10;
@@ -24,6 +27,9 @@ namespace Control {
     double derivated_e2 = 0;
     double integrated_e2 = 0;
     double last_e2 = 0;
+
+    Radio::vel buffer[BUFFER_SIZE];
+    uint16_t counter = 0;
 
     double lastT = 0;
 
@@ -62,7 +68,7 @@ namespace Control {
                 Serial.println("#");
             }
             #endif
-            *v1 = (uint32_t)40*sin(angulo*(PI/180)*2);
+            *v1 = (uint32_t)40*sin(angulo*(PI/180)*0.5);
             *v2 = *v1;
         #elif (wave == 2)
             cont+=1;
@@ -81,6 +87,20 @@ namespace Control {
         #elif (wave == 3)
             *v1 = 70;
             *v2 = 70;
+        #elif (wave == 4)
+            cont+=1;
+            #if CONTROL_DEBUG
+            if(square_cont > 8){
+                Serial.println("#");
+            }
+            #endif
+            if(cont>200){
+            wave_flag = -1*wave_flag;
+            cont = 0;
+            square_cont+=1;
+            }
+            *v1 = cont;
+            *v2 = cont;
         #endif
     }
 
@@ -117,8 +137,18 @@ namespace Control {
     volatile int16_t ea1=0, ea2=0, ua1=0, ua2=0;
     void control(int32_t v1, int32_t v2){
         if(v1 || v2){
+
             Encoder::vel enc;
             enc = Encoder::encoder();
+
+            /*if(counter >= BUFFER_SIZE){
+                Motor::stop();
+                return;
+            }
+            buffer[counter].vel_A = enc.motorA;
+            buffer[counter].vel_B = enc.motorB;
+            buffer[counter].time = micros();
+            counter++;*/
 
             double e1 = v1 - enc.motorA;
             double e2 = v2 - enc.motorB;
@@ -142,7 +172,7 @@ namespace Control {
 
             power1 = (int32_t)(e1*Kp1+integrated_e1*Ki1+derivated_e1*Kd1);
             power2 = (int32_t)(e2*Kp2+integrated_e2*Ki2+derivated_e2*Kd2);
-
+            
             Motor::move(0, power1);
             Motor::move(1, power2);
             #if false //CONTROL_DEBUG
@@ -183,16 +213,23 @@ namespace Control {
         }
         //procedimento para indicar que o robo nao recebe mensagens nos ultimos 2 segundos(customizavel)
         if(isRadioLost(false)){
+            if(counter >= BUFFER_SIZE){
+                Serial.println("Transmitindo buffer");
+                //Radio::reportMessage(buffer, BUFFER_SIZE);
+                counter = 0;
+            }
+
+
             #if CONTROL_DEBUG
             Serial.println("radioNotAvailable");
             Radio::reportMessage(1);
             #endif
             velocidades.A=20;
-            velocidades.B=20;
+            velocidades.B=-20;
 
-            TestWave(&velocidades.A, &velocidades.B);
             #if MOTOR_TEST
-            Led::blue();
+            TestWave(&velocidades.A, &velocidades.B);
+            //Led::blue();
             #endif
 
             control(velocidades.A, velocidades.B);
@@ -200,7 +237,13 @@ namespace Control {
         }
         else {
             //motorId();
-            updateControlParams(velocidades.Kp, velocidades.Ki, velocidades.Kd);
+            
+            #if MOTOR_TEST
+            TestWave(&velocidades.A, &velocidades.B);
+            //Led::blue();
+            #endif
+            //Serial.println("Rodando controle");
+            //updateControlParams(velocidades.Kp, velocidades.Ki, velocidades.Kd);
             control(velocidades.A, velocidades.B);
             Led::red();
         }

@@ -20,13 +20,63 @@ void setup() {
 	#if (TEENSY_DEBUG || CONTROL_DEBUG || IMU_DEBUG || MOTOR_DEBUG)
 	Serial.println("SETUP!");
 	#endif
-	Radio::setup(1, 3);
+	Radio::setup(0, 3);
 	Imu::Setup();
 	Motor::setup();
 	Encoder::setup();
 }
 
+int8_t wave_flag = 1;
+int8_t triangular_incrementer = 1;
+
+void triangular_wave(int32_t *v1, int32_t *v2){
+	static int32_t triangular_wave_cont;
+	if(triangular_wave_cont >= 1000){
+		triangular_incrementer = -10;
+	}
+	else if(triangular_wave_cont <= -1000){
+		triangular_incrementer = 10;
+	}
+	triangular_wave_cont += triangular_incrementer;
+	*v1 = triangular_wave_cont*64/1000;
+	*v2 = triangular_wave_cont*64/1000;
+}
+
+void square_wave(int32_t *v1, int32_t *v2){
+	static uint32_t square_wave_cont;
+	if(square_wave_cont > 200){
+		wave_flag = -1*wave_flag;
+		square_wave_cont = 0;
+	}
+	*v1 = 64*wave_flag;
+	*v2 = 64*wave_flag;
+	square_wave_cont++;
+}
+
+void run_straight(int32_t *v1, int32_t *v2){
+	*v1 = 64;
+	*v2 = 64;
+}
+
 void loop() {
+	int32_t v1,v2;
+	triangular_wave(&v1, &v2);
+
+	Motor::move(0, v1);
+	Motor::move(1, v2);
+
+	Encoder::vel enc = Encoder::encoder();
+	Radio::vel message;
+	message.vel_A = (int32_t)enc.motorA;
+	message.vel_B = (int32_t)enc.motorB;
+	message.in_A = v1;
+	message.in_B = v2;
+	message.time = micros();
+
+	Radio::reportMessage(message);
+
+	delay(1);
+
 	#if TEENSY_DEBUG
 	Serial.println("LOOP!");
 	
@@ -69,23 +119,6 @@ void loop() {
 	//Control::stand();
 	//delay(1);
 	#endif
-	Imu::imuAll data = Imu::imuRead();
-	static double bias;
-	static bool calibrated = false;
-	if(!calibrated){
-		for(uint16_t i=0; i<5000; i++){
-			data = Imu::imuRead();
-			bias += data.gyro.z;
-		}
-		calibrated = true;
-		bias = (double)bias/5000.0;
-	}
-	//Serial.print("bias: "); Serial.println(bias);
-	//Serial.print("gyro: "); Serial.println(data.gyro.z);
-	//Serial.print("gyro-bias: "); Serial.println(data.gyro.z-bias);
-	double gyro = filter(data.gyro.z-bias);
-	Serial.print("pos: "); Serial.print(pos(gyro));Serial.print("\r");
-	delay(1);
 }
 
 double pos(double angVel){

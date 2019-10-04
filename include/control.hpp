@@ -13,8 +13,8 @@
 #define CONTROL_DEBUG false
 #endif
 
-#define MOTOR_TEST false    //define se está ou não fazendo o teste nos motores
-#define wave 1              // sine = 1 -- square = 2 -- step = 3
+#define MOTOR_TEST true    //define se está ou não fazendo o teste nos motores
+#define wave 2              // sine = 1 -- square = 2 -- step = 3
 //#define PI 3.14159265359
 
 typedef struct{
