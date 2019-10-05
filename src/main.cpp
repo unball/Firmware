@@ -29,13 +29,19 @@ void setup() {
 int8_t wave_flag = 1;
 int8_t triangular_incrementer = 1;
 
+
+#define DEADZONE 5
+int32_t deadzone(int32_t vin){
+	return (vin > 0) ? vin+DEADZONE : vin-DEADZONE;
+}
+
 void triangular_wave(int32_t *v1, int32_t *v2){
 	static int32_t triangular_wave_cont;
 	if(triangular_wave_cont >= 1000){
-		triangular_incrementer = -10;
+		triangular_incrementer = -1;
 	}
 	else if(triangular_wave_cont <= -1000){
-		triangular_incrementer = 10;
+		triangular_incrementer = 0;
 	}
 	triangular_wave_cont += triangular_incrementer;
 	*v1 = triangular_wave_cont*64/1000;
@@ -53,29 +59,51 @@ void square_wave(int32_t *v1, int32_t *v2){
 	square_wave_cont++;
 }
 
+void step(int32_t *v1, int32_t *v2){
+	static uint32_t step_cont;
+	static int8_t step_flag = 0;
+	if(step_cont > 200){
+		step_flag = 1;
+	}
+	else {
+		step_cont++;
+	}
+	*v1 = 64*step_flag;
+	*v2 = 64*step_flag;
+}
+
 void run_straight(int32_t *v1, int32_t *v2){
 	*v1 = 64;
 	*v2 = 64;
 }
 
 void loop() {
-	int32_t v1,v2;
-	triangular_wave(&v1, &v2);
+	static int32_t previous_t;
+	static int32_t t;
 
-	Motor::move(0, v1);
-	Motor::move(1, v2);
+	t = micros();
 
-	Encoder::vel enc = Encoder::encoder();
-	Radio::vel message;
-	message.vel_A = (int32_t)enc.motorA;
-	message.vel_B = (int32_t)enc.motorB;
-	message.in_A = v1;
-	message.in_B = v2;
-	message.time = micros();
+	if(t-previous_t >= 1500){
+		Serial.println(t-previous_t);
+		int32_t v1,v2;
+		step(&v1, &v2);
 
-	Radio::reportMessage(message);
+		previous_t = t;
+		Motor::move(0, deadzone(v1));
+		Motor::move(1, deadzone(v2));
 
-	delay(1);
+		Encoder::vel enc = Encoder::encoder();
+		Radio::vel message;
+		message.vel_A = (int32_t)enc.motorA;
+		message.vel_B = (int32_t)enc.motorB;
+		message.in_A = v1;
+		message.in_B = v2;
+		message.time = t;
+
+		Radio::reportMessage(message);
+	}
+	
+	//delay(1);
 
 	#if TEENSY_DEBUG
 	Serial.println("LOOP!");
