@@ -15,12 +15,12 @@ Imu::imuAll imuData;
 double pos(double angVel);
 double filter(double var);
 void setup() {
+	#if (TEENSY_DEBUG || CONTROL_DEBUG || IMU_DEBUG || MOTOR_DEBUG)
 	Serial.begin(9600);
 	while(!Serial);
-	#if (TEENSY_DEBUG || CONTROL_DEBUG || IMU_DEBUG || MOTOR_DEBUG)
 	Serial.println("SETUP!");
 	#endif
-	Radio::setup(1, 3);
+	Radio::setup(0, 3);
 	Imu::Setup();
 	Motor::setup();
 	Encoder::setup();
@@ -66,26 +66,35 @@ void loop() {
 
 	delay(100);
 	#else
-	//Control::stand();
-	//delay(1);
-	#endif
-	Imu::imuAll data = Imu::imuRead();
-	static double bias;
-	static bool calibrated = false;
-	if(!calibrated){
-		for(uint16_t i=0; i<5000; i++){
-			data = Imu::imuRead();
-			bias += data.gyro.z;
-		}
-		calibrated = true;
-		bias = (double)bias/5000.0;
+	static int32_t previous_t;
+	static int32_t t;
+	t = micros();
+	if(t-previous_t >= 1500){
+		previous_t = t;
+		Control::stand();
+		//delay(1);
 	}
-	//Serial.print("bias: "); Serial.println(bias);
-	//Serial.print("gyro: "); Serial.println(data.gyro.z);
-	//Serial.print("gyro-bias: "); Serial.println(data.gyro.z-bias);
-	double gyro = filter(data.gyro.z-bias);
-	Serial.print("pos: "); Serial.print(pos(gyro));Serial.print("\r");
-	delay(1);
+	#endif
+	// Imu::imuAll data = Imu::imuRead();
+	// static double bias;
+	// static bool calibrated = false;
+	// if(!calibrated){
+	// 	for(uint16_t i=0; i<5000; i++){
+	// 		data = Imu::imuRead();
+	// 		bias += data.gyro.z;
+	// 	}
+	// 	calibrated = true;
+	// 	bias = (double)bias/5000.0;
+	// }
+	// //Serial.print("bias: "); Serial.println(bias);
+	// //Serial.print("gyro: "); Serial.println(data.gyro.z);
+	// //Serial.print("gyro-bias: "); Serial.println(data.gyro.z-bias);
+	// double gyro = filter(data.gyro.z-bias);
+	// Serial.print("pos: "); Serial.print(pos(gyro));Serial.print("\r");
+	// delay(1);
+	//Encoder::vel enc = Encoder::encoder();
+	//Radio:: dataStruct message;
+
 }
 
 double pos(double angVel){
