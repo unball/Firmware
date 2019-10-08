@@ -67,6 +67,59 @@ namespace Control {
         #endif
     }
 
+    #define scale 1000
+    int8_t triangular_incrementer = 1;
+
+    void triangular_wave(int32_t *v1, int32_t *v2){
+        static int32_t triangular_wave_cont;
+        if(triangular_wave_cont >= scale){
+            triangular_incrementer = -1;
+        }
+        else if(triangular_wave_cont <= -scale){
+            triangular_incrementer = 1;
+        }
+        triangular_wave_cont += triangular_incrementer;
+        *v1 = triangular_wave_cont*64/scale;
+        *v2 = triangular_wave_cont*64/scale;
+    }
+
+    void sine_wave(int32_t *v1, int32_t *v2){
+        static int32_t sine_wave_cont;
+        if(sine_wave_cont >= 100000){
+            sine_wave_cont = 0;
+        }
+        sine_wave_cont ++;
+        *v1 = 10*sin(sine_wave_cont/400.0);
+        *v2 = 10*sin(sine_wave_cont/400.0);
+    }
+
+    void square_wave(int32_t *v1, int32_t *v2){
+        static uint32_t square_wave_cont;
+        if(square_wave_cont > 500){
+            wave_flag = -1*wave_flag;
+            square_wave_cont = 0;
+        }
+        *v1 = 20*wave_flag;
+        *v2 = 20*wave_flag;
+        square_wave_cont++;
+    }
+
+    void step(int32_t *v1, int32_t *v2){
+        static uint32_t step_cont;
+        static int8_t step_flag = 0;
+        if(step_cont > 200){
+            step_flag = 1;
+        }
+        
+        if(step_cont>2000){
+            step_flag = 0;
+            
+        }
+        step_cont++;
+        *v1 = 30*step_flag;
+        *v2 = 30*step_flag;
+    }
+
     bool frame_rate(){
         ctr++;
         if(ctr == 100){
@@ -97,8 +150,38 @@ namespace Control {
         }
     }
 
-    volatile int16_t ea1=0, ea2=0, ua1=0, ua2=0;
+    #define DEADZONE 10
+    int32_t deadzone(int32_t vin){
+        if (vin!=0)
+            return (vin > 0) ? vin+DEADZONE : vin-DEADZONE;
+        return 0;
+    }
+
+    double saturation(double vin){
+        return min(max(vin, -255.0), 255.0);
+    }
+
+    double control1(double err){
+        static double old_err;
+        static double old_out;
+        double out = (  1.9077 * (err - 0.9418  *  old_err) + old_out);
+        old_err = err -  (saturation(out)-out);
+        old_out = out; //=  (abs(out) < 255)? out : 0;
+        return out;
+    }
+
+    double control2(double err){
+        static double old_err;
+        static double old_out;
+        double out =  (   1.9077 * (err  - 0.9418 *  old_err) + old_out);
+        old_err = err - (saturation(out)-out);
+        old_out = out; //(abs(out) < 255)? out : 0;;
+        return out;
+    }
+
+    //volatile int16_t ea1=0, ea2=0, ua1=0, ua2=0;
     void control(int32_t v1, int32_t v2){
+        
         if(v1 || v2){
             Encoder::vel enc;
             enc = Encoder::encoder();
@@ -107,18 +190,11 @@ namespace Control {
             double e2 = v2 - enc.motorB;
 
 
-            int32_t power1 = 0;// = ((2809*e1 - 2317*ea1)>>10) + ua1;
-            ea1 = e1;
-            ua1 = power1;
+            int32_t controlA = (int32_t)control1(e1);
+            int32_t controlB = (int32_t)control2(e2);
+            Motor::move(0, deadzone(controlA));
+            Motor::move(1, deadzone(controlB));
 
-            int32_t power2 = 0;// = ((2809*e2 - 2317*ea2)>>10) + ua2;
-            ea2 = e2;
-            ua2 = power2;
-            power1 = (int32_t)e1*10;
-            power2 = (int32_t)e2*10;
-
-            Motor::move(0, power1);
-            Motor::move(1, power2);
             #if false //CONTROL_DEBUG
             Encoder::encoder();
             Serial.println("$");
@@ -155,7 +231,7 @@ namespace Control {
             velocidades.A=20;
             velocidades.B=20;
 
-            TestWave(&velocidades.A, &velocidades.B);
+            sine_wave(&velocidades.A, &velocidades.B);
             #if MOTOR_TEST
             Led::blue();
             #endif
