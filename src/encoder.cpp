@@ -1,5 +1,7 @@
 #include "encoder.hpp"
 
+#define alpha 1
+
 namespace Encoder {
 
     volatile int32_t contadorA = 0;
@@ -31,18 +33,21 @@ namespace Encoder {
     }
 
     vel encoder() {
-        //TODO: low-pass filter
-        //int8_t a = 5; // SEMPRE 0 <= a <= 10
+        static float prevVA, prevVB;
+
         double t = timeCounter();
         vel enc;
         presentVelA = (float) (contadorA/t)*Motor::getMotorDirection(0);
         presentVelB = (float) (contadorB/t)*Motor::getMotorDirection(1);
 
-        enc.motorA = presentVelA;
-        enc.motorB = presentVelB;
+        enc.motorA = alpha* presentVelA + (1-alpha) * prevVA;
+        enc.motorB = alpha* presentVelB + (1-alpha) * prevVB;
+        
         timeAnt = micros()/1000.0;
         contadorA = 0;
         contadorB = 0;
+        prevVA = presentVelA;
+        prevVB = presentVelB;
         return enc;
     }
 }
