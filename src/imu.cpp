@@ -7,18 +7,29 @@ namespace Imu{
     double accelScale[4] = {16384.0, 8192.0, 4096.0, 2048.0};
     double gyroScale[4] = {131.0, 65.5, 32.8, 16.4};
 
-	uint64_t deltaT(){
-		static uint64_t delta = 0;
-		delta = micros() - delta;
+	double deltaT(){
+		static double timeAnt = 0;
+        double delta;
+		delta = (micros() - timeAnt)/1000000.0;
+        timeAnt = micros();
 		return delta;
 	}
 
 	/*retorna velocidade linear
 	  velocidade linear calculada através de integração trapezoidal*/
-	double linearVel(){
-		static double vel = 0, oldAccel = 0;
-		vel = vel + ((imuData.accel.y + oldAccel)/2)*deltaT();
-		oldAccel = imuData.accel.y;
+	double linearVel(double bias){
+		static double vel = 0, Accel[3] = {0.0, 0.0, 0.0}, DeltaT[3] = {0.0, 0.0, 0.0};
+        DeltaT[2] = deltaT();
+        Accel[2] = imuData.accel.y - bias;
+		vel = vel + ((Accel[0] + 4*Accel[1] + Accel[2])*((DeltaT[2] + DeltaT[1] + DeltaT[0])/3.0));
+        //Serial.println(((Accel[0] + 4*Accel[1] + Accel[2])*(DeltaT[2] + DeltaT[1] + DeltaT[0])/3.0), 6);
+        //Serial.print(Accel[0], 6); Serial.print("\t");Serial.print(Accel[1], 6); Serial.print("\t");Serial.println(Accel[2], 6);
+        //vel = vel + (((imuData.accel.y-bias) + oldAccel[1])/2.0)*oldDeltaT[2];
+        //vel = vel +(imuData.accel.y-bias)*oldDeltaT[2];
+		Accel[0] = Accel[1];
+        Accel[1] = Accel[2];
+        DeltaT[0] = DeltaT[1];
+        DeltaT[1] = DeltaT[2];
 		return vel;
 	}
 
@@ -163,7 +174,7 @@ namespace Imu{
         imuData.accel = accel;
         imuData.gyro = gyro;
         imuData.temp = tempRead();
-		imuData.velocidades.lin = linearVel();
+		//imuData.velocidades.lin = linearVel(0);
 		imuData.velocidades.ang = gyro.z;
         //mediaMovel();
         return imuData;

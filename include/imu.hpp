@@ -56,7 +56,7 @@ namespace Imu{
     void mediaMovel();
     void Setup();
     imuAll imuRead();
-    uint64_t deltaT();
-    double linearVel();
+    double deltaT();
+    double linearVel(double bias);
 }
 #endif

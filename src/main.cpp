@@ -12,15 +12,14 @@
 
 Radio::dataStruct vel;
 Imu::imuAll imuData;
-double pos(double angVel);
-double filter(double var);
+
 void setup() {
+	#if (TEENSY_DEBUG || CONTROL_DEBUG || IMU_DEBUG || MOTOR_DEBUG)
 	Serial.begin(9600);
 	while(!Serial);
-	#if (TEENSY_DEBUG || CONTROL_DEBUG || IMU_DEBUG || MOTOR_DEBUG)
 	Serial.println("SETUP!");
 	#endif
-	Radio::setup(1, 3);
+	Radio::setup(0, 3);
 	Imu::Setup();
 	Motor::setup();
 	Encoder::setup();
@@ -66,37 +65,29 @@ void loop() {
 
 	delay(100);
 	#else
-	//Control::stand();
-	//delay(1);
+	Control::stand();
+	delay(1);
 	#endif
-	Imu::imuAll data = Imu::imuRead();
-	static double bias;
+	/*
+	Imu::imuAll data;
+	static double bias, accelAnt;
 	static bool calibrated = false;
 	if(!calibrated){
 		for(uint16_t i=0; i<5000; i++){
 			data = Imu::imuRead();
-			bias += data.gyro.z;
+			bias += data.accel.y;
 		}
 		calibrated = true;
 		bias = (double)bias/5000.0;
+		Imu::deltaT();
 	}
-	//Serial.print("bias: "); Serial.println(bias);
-	//Serial.print("gyro: "); Serial.println(data.gyro.z);
-	//Serial.print("gyro-bias: "); Serial.println(data.gyro.z-bias);
-	double gyro = filter(data.gyro.z-bias);
-	Serial.print("pos: "); Serial.print(pos(gyro));Serial.print("\r");
+	data = Imu::imuRead();
+	double d = deltaT();
+	Serial.print("ds: "); Serial.print(d, 6);
+	Serial.print("\t\tbias: "); Serial.print(bias, 6);
+	Serial.print("\t\ta: "); Serial.print(data.accel.y-bias, 6);
+	Serial.print("\t\tv: "); Serial.print(Imu::linearVel(bias), 6); Serial.print("\r");
+	accelAnt = data.accel.y;
 	delay(1);
-}
-
-double pos(double angVel){
-	static double pos = 0, oldVel = 0;
-	pos = pos + ((angVel + oldVel)/2.0)*(Imu::deltaT()/1000000.0);
-	oldVel = angVel;
-	return pos;
-}
-
-double filter(double var){
-	static double varOld;
-	varOld = 0.05*var + 0.95*varOld;
-	return varOld;
+	*/
 }
