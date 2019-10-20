@@ -20,7 +20,7 @@ void setup() {
 	while(!Serial);
 	Serial.println("SETUP!");
 	#endif
-	Radio::setup(1, 3);
+	Radio::setup(0, 3);
 	Imu::Setup();
 	Motor::setup();
 	Encoder::setup();

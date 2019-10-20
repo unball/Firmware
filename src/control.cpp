@@ -89,8 +89,8 @@ namespace Control {
             sine_wave_cont = 0;
         }
         sine_wave_cont ++;
-        *v1 = 10*sin(sine_wave_cont/400.0);
-        *v2 = 10*sin(sine_wave_cont/400.0);
+        *v1 = 25*sin(sine_wave_cont/400.0);
+        *v2 = 25*sin(sine_wave_cont/400.0);
     }
 
     void square_wave(int32_t *v1, int32_t *v2){
@@ -179,6 +179,10 @@ namespace Control {
         return out;
     }
 
+    double crossCoupledControl(double err){
+        return 1*err;
+    }
+
     //volatile int16_t ea1=0, ea2=0, ua1=0, ua2=0;
     void control(int32_t v1, int32_t v2){
         
@@ -186,12 +190,19 @@ namespace Control {
             Encoder::vel enc;
             enc = Encoder::encoder();
 
-            double e1 = v1 - enc.motorA;
-            double e2 = v2 - enc.motorB;
+            double Cy = 1.0;
+            double Cx = 1.0;
+            double crossCoupledControlOut = crossCoupledControl(Cy*(v2 - enc.motorB)-Cx*(v1 - enc.motorA));
 
+            double vVirt1 = v1 - Cx*crossCoupledControlOut;
+            double vVirt2 = v2 + Cy*crossCoupledControlOut;
+
+            double e1 = vVirt1 - enc.motorA;
+            double e2 = vVirt2 - enc.motorB;
 
             int32_t controlA = (int32_t)control1(e1);
             int32_t controlB = (int32_t)control2(e2);
+
             Motor::move(0, deadzone(controlA));
             Motor::move(1, deadzone(controlB));
 
