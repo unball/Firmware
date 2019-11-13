@@ -83,7 +83,7 @@ namespace Control {
         *v2 = triangular_wave_cont*64/scale;
     }
 
-    void sine_wave(int32_t *v1, int32_t *v2){
+    void sine_wave(int16_t *v1, int16_t *v2){
         static int32_t sine_wave_cont;
         if(sine_wave_cont >= 100000){
             sine_wave_cont = 0;
@@ -226,7 +226,7 @@ namespace Control {
     }
 
     void stand() {
-        static Radio::dataStruct velocidades;    
+        static Radio::vels velocidades;    
         if(Radio::receiveData(&velocidades)) {
             isRadioLost(true);
             #if CONTROL_DEBUG
@@ -253,6 +253,7 @@ namespace Control {
         else {
             //motorId();
             control(velocidades.A, velocidades.B);
+            Radio::radio.flush_rx();
             Led::red();
         }
     }
