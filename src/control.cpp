@@ -100,14 +100,14 @@ namespace Control {
         *v2 = triangular_wave_cont*64/scale;
     }
 
-    void sine_wave(int32_t *v1, int32_t *v2){
+    void sine_wave(int16_t *v1, int16_t *v2){
         static int32_t sine_wave_cont;
         if(sine_wave_cont >= 100000){
             sine_wave_cont = 0;
         }
         sine_wave_cont ++;
-        *v1 = 10*sin(sine_wave_cont/400.0);
-        *v2 = 10*sin(sine_wave_cont/400.0);
+        *v1 = 25*sin(sine_wave_cont/400.0);
+        *v2 = 25*sin(sine_wave_cont/400.0);
     }
 
     void square_wave(int32_t *v1, int32_t *v2){
@@ -196,6 +196,10 @@ namespace Control {
         return out;
     }
 
+    double crossCoupledControl(double err){
+        return 1*err;
+    }
+
     //volatile int16_t ea1=0, ea2=0, ua1=0, ua2=0;
     void control(int32_t v1, int32_t v2){
         
@@ -203,13 +207,19 @@ namespace Control {
             Encoder::vel enc;
             enc = Encoder::encoder();
 
-            double e1 = v1 - enc.motorA;
-            double e2 = v2 - enc.motorB;
+            double Cy = 1.0;
+            double Cx = 1.0;
+            double crossCoupledControlOut = crossCoupledControl(Cy*(v2 - enc.motorB)-Cx*(v1 - enc.motorA));
 
-            double T = (double)(micros()-lastT);
+            double vVirt1 = v1 - Cx*crossCoupledControlOut;
+            double vVirt2 = v2 + Cy*crossCoupledControlOut;
+
+            double e1 = vVirt1 - enc.motorA;
+            double e2 = vVirt2 - enc.motorB;
 
             int32_t controlA = (int32_t)control1(e1);
             int32_t controlB = (int32_t)control2(e2);
+
             Motor::move(0, deadzone(controlA));
             Motor::move(1, deadzone(controlB));
 
@@ -242,7 +252,7 @@ namespace Control {
     }
 
     void stand() {
-        static Radio::dataStruct velocidades;    
+        static Radio::vels velocidades;    
         if(Radio::receiveData(&velocidades)) {
             isRadioLost(true);
             #if CONTROL_DEBUG
@@ -270,6 +280,7 @@ namespace Control {
             //motorId();
             updateControlParams(velocidades.Kp, velocidades.Ki, velocidades.Kd);
             control(velocidades.A, velocidades.B);
+            Radio::radio.flush_rx();
             Led::red();
         }
     }

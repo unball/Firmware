@@ -8,13 +8,19 @@
 namespace Radio{
 
     struct dataStruct{
-        int32_t A;
-        int32_t B;
-        double Kp[2], Ki[2], Kd[2];
+        int16_t A[5];
+        int16_t B[5];
     };
 
+    struct vels{
+        int16_t A;
+        int16_t B;
+    };
+
+    extern RF24 radio;
+
     void setup(uint8_t robot, uint8_t sendChannel);
-    bool receiveData(dataStruct*);
+    bool receiveData(vels *);
     void reportMessage(int);
 }
 

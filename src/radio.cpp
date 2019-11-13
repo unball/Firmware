@@ -15,6 +15,7 @@ namespace Radio {
   
   void setup(uint8_t robot, uint8_t sendChannel){
     //*radio = RF24(9, 10);
+    robotNumber = robot; 
     channelRecebe=channels[robot];
     channelEnvia=channels[sendChannel];
     radio.begin();                           // inicializa radio
@@ -32,19 +33,22 @@ namespace Radio {
     radio.startListening();                 // Start listening
   }
 
-  bool receiveData(dataStruct *data){ // recebe mensagem via radio, se receber uma mensagem retorna true, se não retorna false
+  bool receiveData(vels *ret){ // recebe mensagem via radio, se receber uma mensagem retorna true, se não retorna false
+    dataStruct data;
      if(radio.available()){
       while(radio.available()){
-        radio.read(data,sizeof(dataStruct));
+        radio.read(&data,sizeof(dataStruct));
       }
+      ret->A = data.A[robotNumber];
+      ret->B = data.B[robotNumber];
       return true;
      }
     return false;
   }
 
   void reportMessage(int message){
-    report.A = robotNumber;
-    report.B = message;
+    //report.A = robotNumber;
+    //report.B = message;
     radio.stopListening();
     radio.enableDynamicAck();                 //essa funcao precisa andar colada na função radio.write()
     radio.openWritingPipe(channelEnvia);
