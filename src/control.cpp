@@ -10,23 +10,6 @@ namespace Control {
     int16_t angulo=0;
     int64_t square_cont=0, cont=0;
 
-    //variáveis do controlador
-    double Kp1 = 10;
-    double Ki1 = 10;
-    double Kd1 = 10;
-    double derivated_e1 = 0;
-    double integrated_e1 = 0;
-    double last_e1 = 0;
-
-    double Kp2 = 10;
-    double Ki2 = 10;
-    double Kd2 = 10;
-    double derivated_e2 = 0;
-    double integrated_e2 = 0;
-    double last_e2 = 0;
-
-    double lastT = 0;
-
     uint32_t timer=0;
     
     void stopRobot() {
@@ -242,15 +225,6 @@ namespace Control {
         }
     }
 
-    void updateControlParams(double Kp[], double Ki[], double Kd[]){
-        Kp1 = Kp[0];
-        Ki1 = Ki[0];
-        Kd1 = Kd[0];
-        Kp2 = Kp[1];
-        Ki2 = Ki[1];
-        Kd2 = Kd[1];
-    }
-
     void stand() {
         static Radio::vels velocidades;    
         if(Radio::receiveData(&velocidades)) {
@@ -278,7 +252,6 @@ namespace Control {
         }
         else {
             //motorId();
-            updateControlParams(velocidades.Kp, velocidades.Ki, velocidades.Kd);
             control(velocidades.A, velocidades.B);
             Radio::radio.flush_rx();
             Led::red();
