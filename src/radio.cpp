@@ -36,9 +36,9 @@ namespace Radio {
   bool receiveData(vels *ret){ // recebe mensagem via radio, se receber uma mensagem retorna true, se não retorna false
     dataStruct data;
      if(radio.available()){
-      while(radio.available()){
+      //while(radio.available()){
         radio.read(&data,sizeof(dataStruct));
-      }
+      //}
       ret->A = data.A[robotNumber];
       ret->B = data.B[robotNumber];
       return true;
