@@ -187,6 +187,7 @@ namespace Control {
     void control(int32_t v1, int32_t v2){
         
         if(v1 || v2){
+            Serial.print(v1); Serial.println(v2);
             Encoder::vel enc;
             enc = Encoder::encoder();
 
@@ -210,8 +211,8 @@ namespace Control {
             Encoder::encoder();
             Serial.println("$");
             Serial.println(v1);
-            Serial.println(Encoder::contadorA_media);
-            Serial.println(Encoder::contadorB_media);
+            //Serial.println(Encoder::contadorA_media);
+            //Serial.println(Encoder::contadorB_media);
             TimeOfCicle();
             #endif
         }
@@ -219,8 +220,8 @@ namespace Control {
             Encoder::resetEncoders();
             stopRobot();
             #if CONTROL_DEBUG
-            Serial.print(Encoder::contadorA_media);Serial.print("\t");
-            Serial.println(Encoder::contadorB_media);Serial.print("\t");
+            //Serial.print(Encoder::contadorA_media);Serial.print("\t");
+            //Serial.println(Encoder::contadorB_media);Serial.print("\t");
             #endif
         }
     }
@@ -228,22 +229,27 @@ namespace Control {
     void stand() {
         static Radio::vels velocidades;    
         if(Radio::receiveData(&velocidades)) {
-            isRadioLost(true);
             #if CONTROL_DEBUG
             Serial.println("radioAvailable");
+            Serial.println("Received velocities:");
+            Serial.print("=>\tvA:");Serial.print(velocidades.A);
+            Serial.print("\t");
+            Serial.print("vB:");Serial.println(velocidades.B);
             #endif
+            isRadioLost(true);
         }
         //procedimento para indicar que o robo nao recebe mensagens nos ultimos 2 segundos(customizavel)
         if(isRadioLost(false)){
             #if CONTROL_DEBUG
-            Serial.println("radioNotAvailable");
+            Serial.println("Radio Lost");
             Radio::reportMessage(1);
             #endif
             velocidades.A=20;
-            velocidades.B=20;
+            velocidades.B=-20;
 
             sine_wave(&velocidades.A, &velocidades.B);
             #if MOTOR_TEST
+            TestWave(&velocidades.A, &velocidades.B);
             Led::blue();
             #endif
 
