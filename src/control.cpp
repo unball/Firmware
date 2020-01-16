@@ -179,31 +179,37 @@ namespace Control {
         return out;
     }
 
-    double crossCoupledControl(double err){
-        return 1*err;
-    }
-
     //volatile int16_t ea1=0, ea2=0, ua1=0, ua2=0;
     void control(int32_t v1, int32_t v2){
         
         if(v1 || v2){
-            Serial.print(v1); Serial.println(v2);
             Encoder::vel enc;
             enc = Encoder::encoder();
+            //Serial.printf("%lf\t%lf\n", enc.motorA, enc.motorB);
 
-            double Cy = 1.0;
+            /*double Cy = 1.0;
             double Cx = 1.0;
             double crossCoupledControlOut = crossCoupledControl(Cy*(v2 - enc.motorB)-Cx*(v1 - enc.motorA));
 
             double vVirt1 = v1 - Cx*crossCoupledControlOut;
-            double vVirt2 = v2 + Cy*crossCoupledControlOut;
+            double vVirt2 = v2 + Cy*crossCoupledControlOut;*/
 
-            double e1 = vVirt1 - enc.motorA;
-            double e2 = vVirt2 - enc.motorB;
+            // Erro de cada motor
+            double e1 = v1 - enc.motorA;
+            double e2 = v2 - enc.motorB;
 
-            int32_t controlA = (int32_t)control1(e1);
-            int32_t controlB = (int32_t)control2(e2);
+            // Erro de malha acoplada
+            double cccError = 3.0/sqrt(v1*v1 + v2*v2) * (-v2 * enc.motorA + v1 * enc.motorB);
+            if (v1 < 0 && v2 < 0){
+                cccError *= -1;
+            }
+            //Serial.println(cccError);
 
+            // Controle digital
+            int32_t controlA = (int32_t)control1(e1+cccError);
+            int32_t controlB = (int32_t)control2(e2-cccError);
+
+            // Passa para a planta a saída do controle digital e da malha acoplada
             Motor::move(0, deadzone(controlA));
             Motor::move(1, deadzone(controlB));
 
