@@ -19,6 +19,8 @@ void setup() {
 	while(!Serial);
 	Serial.println("SETUP!");
 	#endif
+	//Serial.begin(9600);
+	//while(!Serial);
 	Radio::setup(0, 3);
 	Imu::Setup();
 	Motor::setup();
