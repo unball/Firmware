@@ -11,6 +11,11 @@ namespace Radio{
         int16_t A[5];
         int16_t B[5];
     };
+    
+    struct reportStruct{
+        int16_t va,vb;
+        int16_t enca, encb;
+    };
 
     struct vels{
         int16_t A;
@@ -21,7 +26,7 @@ namespace Radio{
 
     void setup(uint8_t robot, uint8_t sendChannel);
     bool receiveData(vels *);
-    void reportMessage(int);
+    void reportMessage(reportStruct *);
 }
 
 

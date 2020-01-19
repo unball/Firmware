@@ -70,7 +70,7 @@ namespace Control {
     #define scale 1000
     int8_t triangular_incrementer = 1;
 
-    void triangular_wave(int32_t *v1, int32_t *v2){
+    void triangular_wave(int16_t *v1, int16_t *v2){
         static int32_t triangular_wave_cont;
         if(triangular_wave_cont >= scale){
             triangular_incrementer = -1;
@@ -104,7 +104,7 @@ namespace Control {
         square_wave_cont++;
     }
 
-    void step(int32_t *v1, int32_t *v2){
+    void step(int16_t *v1, int16_t *v2){
         static uint32_t step_cont;
         static int8_t step_flag = 0;
         if(step_cont > 200){
@@ -234,40 +234,70 @@ namespace Control {
 
     void stand() {
         static Radio::vels velocidades;    
-        if(Radio::receiveData(&velocidades)) {
-            #if CONTROL_DEBUG
-            Serial.println("radioAvailable");
-            Serial.println("Received velocities:");
-            Serial.print("=>\tvA:");Serial.print(velocidades.A);
-            Serial.print("\t");
-            Serial.print("vB:");Serial.println(velocidades.B);
-            #endif
-            isRadioLost(true);
-        }
-        //procedimento para indicar que o robo nao recebe mensagens nos ultimos 2 segundos(customizavel)
-        if(isRadioLost(false)){
-            #if CONTROL_DEBUG
-            Serial.println("Radio Lost");
-            Radio::reportMessage(1);
-            #endif
-            velocidades.A=20;
-            velocidades.B=-20;
+        
+        #if CONTROL_ID
 
-            sine_wave(&velocidades.A, &velocidades.B);
-            #if MOTOR_TEST
-            TestWave(&velocidades.A, &velocidades.B);
-            Led::blue();
+            // Escolhe quais serão as entradas da planta
+            #if   CONTROL_ID_MODE == DEADZONE
+                triangular_wave(&velocidades.A, &velocidades.B);
+            #elif CONTROL_ID_MODE == ID
+                square_wave(&velocidades.A, &velocidades.B);
             #endif
 
-            control(velocidades.A, velocidades.B);
-            //motorId();
-        }
-        else {
-            //motorId();
-            control(velocidades.A, velocidades.B);
-            Radio::radio.flush_rx();
-            Led::red();
-        }
+            // Alimenta a planta com as entradas
+            Motor::move(0, velocidades.A);
+            Motor::move(1, velocidades.B);
+            
+            // Obtém velocidades do encoder
+            Encoder::vel enc = Encoder::encoder();
+
+            // Compõe a mensagem a ser enviada pelo rádio
+            Radio::reportStruct message = {
+                .va = velocidades.A, 
+                .vb = velocidades.B, 
+                .enca = enc.motorA, 
+                .encb = enc.motorB
+            };
+
+            // Envia a mensagem pelo rádio
+            Radio::reportMessage(&message);
+            
+        #else
+            if(Radio::receiveData(&velocidades)) {
+                #if CONTROL_DEBUG
+                Serial.println("radioAvailable");
+                Serial.println("Received velocities:");
+                Serial.print("=>\tvA:");Serial.print(velocidades.A);
+                Serial.print("\t");
+                Serial.print("vB:");Serial.println(velocidades.B);
+                #endif
+                isRadioLost(true);
+            }
+            //procedimento para indicar que o robo nao recebe mensagens nos ultimos 2 segundos(customizavel)
+            if(isRadioLost(false)){
+                #if CONTROL_DEBUG
+                Serial.println("Radio Lost");
+                Radio::reportMessage(1);
+                #endif
+                velocidades.A=20;
+                velocidades.B=-20;
+
+                sine_wave(&velocidades.A, &velocidades.B);
+                #if MOTOR_TEST
+                TestWave(&velocidades.A, &velocidades.B);
+                Led::blue();
+                #endif
+
+                control(velocidades.A, velocidades.B);
+                //motorId();
+            }
+            else {
+                //motorId();
+                control(velocidades.A, velocidades.B);
+                Radio::radio.flush_rx();
+                Led::red();
+            }
+        #endif
     }
 
 }//end namespace

@@ -11,6 +11,8 @@
 #define CONTROL_DEBUG true
 #else
 #define CONTROL_DEBUG false
+#define CONTROL_ID true
+#define CONTROL_ID_MODE DEADZONE
 #endif
 
 #define MOTOR_TEST false    //define se está ou não fazendo o teste nos motores

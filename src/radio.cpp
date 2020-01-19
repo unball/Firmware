@@ -1,8 +1,9 @@
 #include "radio.hpp"
+#include "control.hpp"
 
 namespace Radio {
 
-  dataStruct velocidades, report;
+  dataStruct velocidades;
 
   RF24 radio(CE_PIN, CS_PIN);
   //RF24 *radio;
@@ -27,10 +28,19 @@ namespace Radio {
     radio.openReadingPipe(1,channelRecebe);      //escuta pelo pipe1, evitar usar pipe0
 
     radio.enableDynamicPayloads();           //ativa payloads dinamicos(pacote tamamhos diferentes do padrao)
-    radio.setPayloadSize(sizeof(dataStruct));   //ajusta os o tamanho dos pacotes ao tamanho da mensagem
-                                                 //tamanho maximo de payload 32 BYTES
 
-    radio.startListening();                 // Start listening
+    // Põe o rádio para escutar mensagens
+    radio.startListening();
+
+    #if !CONTROL_ID
+      // Ajusta o tamanho dos pacotes ao tamanho da mensagem
+      radio.setPayloadSize(sizeof(dataStruct)); 
+    #else
+      // Ajusta o tamanho dos pacotes ao tamanho da mensagem
+      radio.setPayloadSize(sizeof(reportStruct));
+      // Põe o rádio para enviar mensagens
+      radio.stopListening();
+    #endif
   }
 
   bool receiveData(vels *ret){ // recebe mensagem via radio, se receber uma mensagem retorna true, se não retorna false
@@ -46,15 +56,11 @@ namespace Radio {
     return false;
   }
 
-  void reportMessage(int message){
-    //report.A = robotNumber;
-    //report.B = message;
-    radio.stopListening();
-    radio.enableDynamicAck();                 //essa funcao precisa andar colada na função radio.write()
-    radio.openWritingPipe(channelEnvia);
-    for(int j=0; j<5; j++){
-        radio.write(&report, sizeof(dataStruct), 1);  //lembrar que precisa enableDynamicAck antes
-    }                                          // 1-NOACK, 0-ACK
-    radio.startListening();
+  void reportMessage(reportStruct *message){
+    // Permite que não haja ACK
+    radio.enableDynamicAck();
+
+    // Envia a mensagem sem ACK
+    radio.write(message, sizeof(reportStruct), 1);
   }
 } //end namespace
