@@ -253,6 +253,7 @@ namespace Control {
 
             // Compõe a mensagem a ser enviada pelo rádio
             Radio::reportStruct message = {
+                .time = micros(),
                 .va = velocidades.A, 
                 .vb = velocidades.B, 
                 .enca = enc.motorA, 

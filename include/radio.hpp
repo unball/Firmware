@@ -13,8 +13,9 @@ namespace Radio{
     };
     
     struct reportStruct{
+        uint32_t time;
         int16_t va,vb;
-        int16_t enca, encb;
+        float enca, encb;
     };
 
     struct vels{
