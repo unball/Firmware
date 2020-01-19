@@ -11,7 +11,7 @@
 #define CONTROL_DEBUG true
 #else
 #define CONTROL_DEBUG false
-#define CONTROL_ID true
+#define CONTROL_ID false
 #define CONTROL_ID_MODE DEADZONE
 #endif
 
