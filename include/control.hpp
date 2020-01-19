@@ -11,8 +11,21 @@
 #define CONTROL_DEBUG true
 #else
 #define CONTROL_DEBUG false
+
+/* Definições para o modo de identificação */
 #define CONTROL_ID false
-#define CONTROL_ID_MODE DEADZONE
+
+// Modo de transferência dos dados
+#define CONTROL_ID_TRANSFER CONTROL_ID_TRANSFER_RADIO
+#define CONTROL_ID_TRANSFER_RADIO  1
+#define CONTROL_ID_TRANSFER_SERIAL 2
+
+// Etapa da identificação
+#define CONTROL_ID_MODE CONTROL_ID_MODE_DEADZONE
+#define CONTROL_ID_MODE_DEADZONE 1
+#define CONTROL_ID_MODE_ID       2
+
+
 #endif
 
 #define MOTOR_TEST false    //define se está ou não fazendo o teste nos motores

@@ -93,7 +93,7 @@ namespace Control {
         *v2 = 25*sin(sine_wave_cont/400.0);
     }
 
-    void square_wave(int32_t *v1, int32_t *v2){
+    void square_wave(int16_t *v1, int16_t *v2){
         static uint32_t square_wave_cont;
         if(square_wave_cont > 500){
             wave_flag = -1*wave_flag;
@@ -238,9 +238,9 @@ namespace Control {
         #if CONTROL_ID
 
             // Escolhe quais serão as entradas da planta
-            #if   CONTROL_ID_MODE == DEADZONE
+            #if   (CONTROL_ID_MODE == CONTROL_ID_MODE_DEADZONE)
                 triangular_wave(&velocidades.A, &velocidades.B);
-            #elif CONTROL_ID_MODE == ID
+            #elif (CONTROL_ID_MODE == CONTROL_ID_MODE_ID)
                 square_wave(&velocidades.A, &velocidades.B);
             #endif
 
@@ -259,9 +259,18 @@ namespace Control {
                 .enca = enc.motorA, 
                 .encb = enc.motorB
             };
+            
+            #if   (CONTROL_ID_TRANSFER == CONTROL_ID_TRANSFER_SERIAL)
 
-            // Envia a mensagem pelo rádio
-            Radio::reportMessage(&message);
+                // Reporta mensagem via serial
+                Serial.printf("%d %d %d %lf %lf\n", message.time, message.va, message.vb, message.enca, message.encb);
+
+            #elif (CONTROL_ID_TRANSFER == CONTROL_ID_TRANSFER_RADIO)
+
+                // Envia a mensagem pelo rádio
+                Radio::reportMessage(&message);
+
+            #endif
             
         #else
             if(Radio::receiveData(&velocidades)) {

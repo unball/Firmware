@@ -14,11 +14,17 @@ Radio::dataStruct vel;
 Imu::imuAll imuData;
 
 void setup() {
+
 	#if (TEENSY_DEBUG || CONTROL_DEBUG || IMU_DEBUG || MOTOR_DEBUG)
-	Serial.begin(9600);
-	while(!Serial);
-	Serial.println("SETUP!");
+		Serial.begin(9600);
+		while(!Serial);
+		Serial.println("SETUP!");
 	#endif
+	
+	#if (CONTROL_ID && CONTROL_ID_TRANSFER == CONTROL_ID_TRANSFER_SERIAL)
+		Serial.begin(9600);
+	#endif
+
 	Radio::setup(0, 3);
 	Imu::Setup();
 	Motor::setup();
