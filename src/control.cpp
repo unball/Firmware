@@ -66,20 +66,26 @@ namespace Control {
             *v2 = 70;
         #endif
     }
+    
+    /*
+        Implementa uma onda triangular
 
-    #define scale 500
-
-    void triangular_wave(int16_t *v1, int16_t *v2){
+        @param v1 Ponteiro para a velocidade do motor A
+        @param v2 Ponteiro para a velocidade do motor B
+        @param amplitude Valor em ticks/ms da amplitude da onda
+        @param maxCount Número de chamadas a função necessário para realizar um quarto do ciclo da onda
+    */
+    void triangular_wave(int16_t *v1, int16_t *v2, int32_t amplitude, int32_t maxCount){
         static int32_t triangular_wave_cont;
         static int8_t state = 3, out;
-        if(abs(triangular_wave_cont) >= scale){
+        if(abs(triangular_wave_cont) >= maxCount){
             triangular_wave_cont = 0;
             state = (state+1)%4;
         }
         triangular_wave_cont += 1;
         out = (state % 2) * (state-2);
-        *v1 = out*triangular_wave_cont*64/scale;
-        *v2 = out*triangular_wave_cont*64/scale;
+        *v1 = out*triangular_wave_cont*amplitude/maxCount;
+        *v2 = out*triangular_wave_cont*amplitude/maxCount;
     }
 
     void sine_wave(int16_t *v1, int16_t *v2){
@@ -92,16 +98,24 @@ namespace Control {
         *v2 = 25*sin(sine_wave_cont/400.0);
     }
 
-    void square_wave(int16_t *v1, int16_t *v2){
+    /*
+        Implementa uma onda quadrada
+
+        @param v1 Ponteiro para a velocidade do motor A
+        @param v2 Ponteiro para a velocidade do motor B
+        @param amplitude Valor em ticks/ms da amplitude da onda
+        @param maxCount Número de chamadas a função necessário para realizar um quarto do ciclo da onda
+    */
+    void square_wave(int16_t *v1, int16_t *v2, int32_t amplitude, int32_t maxCount){
         static uint32_t square_wave_cont;
         static int8_t state = 3, out;
-        if(square_wave_cont > 750){
+        if(square_wave_cont > maxCount){
             square_wave_cont = 0;
             state = (state+1)%4;
         }
         out = (state % 2) * (state-2);
-        *v1 = out*20;
-        *v2 = out*20;
+        *v1 = out*amplitude;
+        *v2 = out*amplitude;
         square_wave_cont++;
     }
 
@@ -245,21 +259,22 @@ namespace Control {
 
             // Escolhe quais serão as entradas da planta
             #if   (CONTROL_ID_MODE == CONTROL_ID_MODE_DEADZONE)
-                triangular_wave(&velocidades.A, &velocidades.B);
+                triangular_wave(&velocidades.A, &velocidades.B, 64, 500);
 
                 // Alimenta a planta com as entradas
                 Motor::move(0, velocidades.A);
                 Motor::move(1, velocidades.B);
 
             #elif (CONTROL_ID_MODE == CONTROL_ID_MODE_ID)
-                square_wave(&velocidades.A, &velocidades.B);
+                square_wave(&velocidades.A, &velocidades.B, 20, 750);
 
                 // Alimenta a planta com as entradas
                 Motor::move(0, deadzone(velocidades.A, 7, -7));
                 Motor::move(1, deadzone(velocidades.B, 7, -6));
 
             #elif (CONTROL_ID_MODE == CONTROL_ID_MODE_VALIDATION)
-                square_wave(&velocidades.A, &velocidades.B);
+                square_wave(&velocidades.A, &velocidades.B, 20, 750);
+
                 
                 // Erro de malha acoplada
                 double cccError = 20.0/sqrt(velocidades.A*velocidades.A + velocidades.B*velocidades.B) * (-velocidades.B * enc.motorA + velocidades.A * enc.motorB);
