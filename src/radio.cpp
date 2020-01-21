@@ -1,6 +1,8 @@
 #include "radio.hpp"
 #include "control.hpp"
 
+// TODO: Detectar falhas no rádio com radio.failureDetected e tentar recuperar
+
 namespace Radio {
 
   dataStruct velocidades;
@@ -45,14 +47,12 @@ namespace Radio {
 
   bool receiveData(vels *ret){ // recebe mensagem via radio, se receber uma mensagem retorna true, se não retorna false
     dataStruct data;
-     if(radio.available()){
-      //while(radio.available()){
-        radio.read(&data,sizeof(dataStruct));
-      //}
+    if(radio.available()){
+      radio.read(&data,sizeof(dataStruct));
       ret->A = data.A[robotNumber];
       ret->B = data.B[robotNumber];
       return true;
-     }
+    }
     return false;
   }
 
