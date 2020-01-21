@@ -23,6 +23,7 @@ void setup() {
 	
 	#if (CONTROL_ID && CONTROL_ID_TRANSFER == CONTROL_ID_TRANSFER_SERIAL)
 		Serial.begin(9600);
+		while(!Serial);
 	#endif
 
 	Radio::setup(0, 3);
