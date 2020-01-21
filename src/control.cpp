@@ -67,20 +67,19 @@ namespace Control {
         #endif
     }
 
-    #define scale 1000
-    int8_t triangular_incrementer = 1;
+    #define scale 500
 
     void triangular_wave(int16_t *v1, int16_t *v2){
         static int32_t triangular_wave_cont;
-        if(triangular_wave_cont >= scale){
-            triangular_incrementer = -1;
+        static int8_t state = 3, out;
+        if(abs(triangular_wave_cont) >= scale){
+            triangular_wave_cont = 0;
+            state = (state+1)%4;
         }
-        else if(triangular_wave_cont <= -scale){
-            triangular_incrementer = 1;
-        }
-        triangular_wave_cont += triangular_incrementer;
-        *v1 = triangular_wave_cont*64/scale;
-        *v2 = triangular_wave_cont*64/scale;
+        triangular_wave_cont += 1;
+        out = (state % 2) * (state-2);
+        *v1 = out*triangular_wave_cont*64/scale;
+        *v2 = out*triangular_wave_cont*64/scale;
     }
 
     void sine_wave(int16_t *v1, int16_t *v2){
