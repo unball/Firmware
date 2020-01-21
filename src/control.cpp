@@ -253,6 +253,13 @@ namespace Control {
 
             #elif (CONTROL_ID_MODE == CONTROL_ID_MODE_ID)
                 square_wave(&velocidades.A, &velocidades.B);
+
+                // Alimenta a planta com as entradas
+                Motor::move(0, deadzone(velocidades.A, 7, -7));
+                Motor::move(1, deadzone(velocidades.B, 7, -6));
+
+            #elif (CONTROL_ID_MODE == CONTROL_ID_MODE_VALIDATION)
+                square_wave(&velocidades.A, &velocidades.B);
                 
                 // Erro de malha acoplada
                 double cccError = 20.0/sqrt(velocidades.A*velocidades.A + velocidades.B*velocidades.B) * (-velocidades.B * enc.motorA + velocidades.A * enc.motorB);
