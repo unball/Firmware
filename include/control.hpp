@@ -22,8 +22,6 @@
 
 // Etapa da identificação
 #define CONTROL_ID_MODE CONTROL_ID_MODE_DEADZONE
-#define CONTROL_ID_MODE_DEADZONE 1
-#define CONTROL_ID_MODE_ID       2
 #define CONTROL_ID_MODE_DEADZONE    1
 #define CONTROL_ID_MODE_ID          2
 #define CONTROL_ID_MODE_VALIDATION  3
