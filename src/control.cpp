@@ -94,12 +94,14 @@ namespace Control {
 
     void square_wave(int16_t *v1, int16_t *v2){
         static uint32_t square_wave_cont;
-        if(square_wave_cont > 500){
-            wave_flag = -1*wave_flag;
+        static int8_t state = 3, out;
+        if(square_wave_cont > 750){
             square_wave_cont = 0;
+            state = (state+1)%4;
         }
-        *v1 = 20*wave_flag;
-        *v2 = 20*wave_flag;
+        out = (state % 2) * (state-2);
+        *v1 = out*20;
+        *v2 = out*20;
         square_wave_cont++;
     }
 
