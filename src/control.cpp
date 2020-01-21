@@ -151,10 +151,9 @@ namespace Control {
         }
     }
 
-    #define DEADZONE 10
-    int32_t deadzone(int32_t vin){
+    int32_t deadzone(int32_t vin, int32_t up, int32_t down){
         if (vin!=0)
-            return (vin > 0) ? vin+DEADZONE : vin-DEADZONE;
+            return (vin > 0) ? vin+up : vin-abs(down);
         return 0;
     }
 
@@ -211,8 +210,8 @@ namespace Control {
             int32_t controlB = (int32_t)control2(e2-cccError);
 
             // Passa para a planta a saída do controle digital e da malha acoplada
-            Motor::move(0, deadzone(controlA));
-            Motor::move(1, deadzone(controlB));
+            Motor::move(0, deadzone(controlA, 7, -7));
+            Motor::move(1, deadzone(controlB, 7, -7));
 
             #if false //CONTROL_DEBUG
             Encoder::encoder();
@@ -237,20 +236,19 @@ namespace Control {
         static Radio::vels velocidades;    
         
         #if CONTROL_ID
+            // Obtém velocidades do encoder
+            Encoder::vel enc = Encoder::encoder();
 
             // Escolhe quais serão as entradas da planta
             #if   (CONTROL_ID_MODE == CONTROL_ID_MODE_DEADZONE)
                 triangular_wave(&velocidades.A, &velocidades.B);
             #elif (CONTROL_ID_MODE == CONTROL_ID_MODE_ID)
                 square_wave(&velocidades.A, &velocidades.B);
-            #endif
 
-            // Alimenta a planta com as entradas
-            Motor::move(0, velocidades.A);
-            Motor::move(1, velocidades.B);
-            
-            // Obtém velocidades do encoder
-            Encoder::vel enc = Encoder::encoder();
+                // Alimenta a planta com as entradas
+                Motor::move(0, deadzone((int32_t)control1(velocidades.A-enc.motorA+cccError), 7, -7));
+                Motor::move(1, deadzone((int32_t)control2(velocidades.B-enc.motorB-cccError), 7, -6));
+            #endif
 
             // Compõe a mensagem a ser enviada pelo rádio
             Radio::reportStruct message = {
