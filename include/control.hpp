@@ -28,6 +28,15 @@
 #define CONTROL_ID_MODE_ID          2
 #define CONTROL_ID_MODE_VALIDATION  3
 
+// Tamanho do buffer de velocidades a serem transmitidas
+#if (CONTROL_ID_MODE == CONTROL_ID_MODE_DEADZONE)
+    #define CONTROL_ID_BUFFER_SIZE 3500
+#elif (CONTROL_ID_MODE == CONTROL_ID_MODE_ID)
+    #define CONTROL_ID_BUFFER_SIZE 1000
+#elif (CONTROL_ID_MODE == CONTROL_ID_MODE_VALIDATION)
+    #define CONTROL_ID_BUFFER_SIZE 1000
+#endif
+
 
 #endif
 

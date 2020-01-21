@@ -236,7 +236,7 @@ namespace Control {
         static Radio::vels velocidades;    
         
         #if CONTROL_ID
-            static const size_t size = 1000;
+            static const size_t size = CONTROL_ID_BUFFER_SIZE;
             static Radio::reportStruct messages[size];
             static size_t index = 0;
             
