@@ -61,6 +61,6 @@ namespace Radio {
     radio.enableDynamicAck();
 
     // Envia a mensagem sem ACK
-    radio.write(message, sizeof(reportStruct), 1);
+    radio.write(message, sizeof(reportStruct), 0);
   }
 } //end namespace
