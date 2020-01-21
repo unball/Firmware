@@ -236,14 +236,29 @@ namespace Control {
         static Radio::vels velocidades;    
         
         #if CONTROL_ID
+            static const size_t size = 1000;
+            static Radio::reportStruct messages[size];
+            static size_t index = 0;
+            
             // Obtém velocidades do encoder
             Encoder::vel enc = Encoder::encoder();
 
             // Escolhe quais serão as entradas da planta
             #if   (CONTROL_ID_MODE == CONTROL_ID_MODE_DEADZONE)
                 triangular_wave(&velocidades.A, &velocidades.B);
+
+                // Alimenta a planta com as entradas
+                Motor::move(0, velocidades.A);
+                Motor::move(1, velocidades.B);
+
             #elif (CONTROL_ID_MODE == CONTROL_ID_MODE_ID)
                 square_wave(&velocidades.A, &velocidades.B);
+                
+                // Erro de malha acoplada
+                double cccError = 20.0/sqrt(velocidades.A*velocidades.A + velocidades.B*velocidades.B) * (-velocidades.B * enc.motorA + velocidades.A * enc.motorB);
+                if (velocidades.A < 0 && velocidades.B < 0){
+                    cccError *= -1;
+                }
 
                 // Alimenta a planta com as entradas
                 Motor::move(0, deadzone((int32_t)control1(velocidades.A-enc.motorA+cccError), 7, -7));
@@ -258,7 +273,8 @@ namespace Control {
                 .enca = enc.motorA, 
                 .encb = enc.motorB
             };
-            
+            messages[index] = message;
+
             #if   (CONTROL_ID_TRANSFER == CONTROL_ID_TRANSFER_SERIAL)
 
                 // Reporta mensagem via serial
@@ -267,7 +283,14 @@ namespace Control {
             #elif (CONTROL_ID_TRANSFER == CONTROL_ID_TRANSFER_RADIO)
 
                 // Envia a mensagem pelo rádio
-                Radio::reportMessage(&message);
+                if(index == size-1){
+                    Motor::stop();
+                    for(size_t i=0 ; i<index+1 ; i++){
+                        Radio::reportMessage(&messages[i]);
+                    }
+                    index = 0;
+                }
+                else index++;
 
             #endif
             
