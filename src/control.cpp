@@ -273,18 +273,30 @@ namespace Control {
                 Motor::move(1, deadzone(velocidades.B, 7, -6));
 
             #elif (CONTROL_ID_MODE == CONTROL_ID_MODE_VALIDATION)
-                square_wave(&velocidades.A, &velocidades.B, 20, 750);
+                square_wave(&velocidades.A, &velocidades.B, 40, 400);
 
+                Imu::imuAll imuData = Imu::imuRead();
                 
-                // Erro de malha acoplada
-                double cccError = 20.0/sqrt(velocidades.A*velocidades.A + velocidades.B*velocidades.B) * (-velocidades.B * enc.motorA + velocidades.A * enc.motorB);
-                if (velocidades.A < 0 && velocidades.B < 0){
-                    cccError *= -1;
-                }
+                // // Erro de malha acoplada
+                // double cccError = 20.0/sqrt(velocidades.A*velocidades.A + velocidades.B*velocidades.B) * (-velocidades.B * enc.motorA + velocidades.A * enc.motorB);
+                // if (velocidades.A < 0 && velocidades.B < 0){
+                //     cccError *= -1;
+                // }
+
+                // Erro de cada motor
+                double eA = velocidades.A - enc.motorA;
+                double eB = velocidades.B - enc.motorB;
+
+                double wRef = 0; // [°/s]
+                static double w = imuData.gyro.z;
+                w = imuData.gyro.z * 0.8 + w * 0.2;
+                double imuError = (wRef-w)/2;
 
                 // Alimenta a planta com as entradas
-                Motor::move(0, deadzone((int32_t)control1(velocidades.A-enc.motorA+cccError), 7, -7));
-                Motor::move(1, deadzone((int32_t)control2(velocidades.B-enc.motorB-cccError), 7, -6));
+                Motor::move(0, deadzone((int32_t)control1(eA+imuError), 7, -7));
+                Motor::move(1, deadzone((int32_t)control2(eB-imuError), 7, -6));
+
+
             #endif
 
             // Compõe a mensagem a ser enviada pelo rádio

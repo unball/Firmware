@@ -2,7 +2,7 @@
 
 namespace Imu{
 
-    axis accel, gyro, accelOffset, gyroOffset;
+    axis accel, gyro, accelOffset, gyroOffset = {0};
     imuAll imuData;
     double accelScale[4] = {16384.0, 8192.0, 4096.0, 2048.0};
     double gyroScale[4] = {131.0, 65.5, 32.8, 16.4};
@@ -131,9 +131,9 @@ namespace Imu{
         int16_t rawBuffer[3];
         imuRegRead(IMU_GYRO_START, 6, regBuffer);
         to16(rawBuffer, regBuffer, 3);
-        gyro.x = rawBuffer[0]/gyroScale[scale];
-        gyro.y = rawBuffer[1]/gyroScale[scale];
-        gyro.z = rawBuffer[2]/gyroScale[scale];
+        gyro.x = rawBuffer[0]/gyroScale[scale] - gyroOffset.x;
+        gyro.y = rawBuffer[1]/gyroScale[scale] - gyroOffset.y;
+        gyro.z = rawBuffer[2]/gyroScale[scale] - gyroOffset.z;
     }
 
     //retorna temperatura lida em celcius
@@ -158,19 +158,34 @@ namespace Imu{
         imuData.gyro.z = (alpha*imuData.gyro.z) + (1-alpha)*gyro.z;
     }
 
+    void getGyroBias(){
+        axis offset = {0};
+        for(uint16_t i=0; i<5000; i++){
+			gyroRead(0);
+			offset.x += gyro.x;
+			offset.y += gyro.y;
+			offset.z += gyro.z;
+		}
+        gyroOffset.x = offset.x / 5000.0;
+        gyroOffset.y = offset.y / 5000.0;
+        gyroOffset.z = offset.z / 5000.0;
+    }
+
     //configura o IMU para leitura
     void Setup(){
         Wire.begin();
 
         imuStart();
         imuAccelScale(0);
-        imuGyroScale(3);
+        imuGyroScale(0);
+
+        getGyroBias();
     }
 
     //chama a leitura do acelerômetro e giroscópio
     imuAll imuRead(){
         accelRead(0);
-        gyroRead(3);
+        gyroRead(0);
         imuData.accel = accel;
         imuData.gyro = gyro;
         imuData.temp = tempRead();
