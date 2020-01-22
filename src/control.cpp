@@ -106,7 +106,7 @@ namespace Control {
         @param amplitude Valor em ticks/ms da amplitude da onda
         @param maxCount Número de chamadas a função necessário para realizar um quarto do ciclo da onda
     */
-    void square_wave(int16_t *v1, int16_t *v2, int32_t amplitude, int32_t maxCount){
+    void square_wave(int16_t *v1, int16_t *v2, int32_t amplitude, uint32_t maxCount){
         static uint32_t square_wave_cont;
         static int8_t state = 3, out;
         if(square_wave_cont > maxCount){
