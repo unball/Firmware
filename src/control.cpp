@@ -23,7 +23,7 @@ namespace Control {
     /*
         Função que satura uma entrada para valores entre -255 e 255
     */
-    double saturation(double vin){
+    inline double saturation(double vin){
         return min(max(vin, -255.0), 255.0);
     }
 
@@ -174,7 +174,8 @@ namespace Control {
     */
     void stand_id(){
         // Velocidades de referência que serão compostas de acordo com a onda escolhida
-        Radio::vels velocidades;
+        Radio::vels velocidades = {0};
+        int16_t va=0,vb=0;
 
         // Buffer a ser transmitido pelo rádio
         static const size_t size = CONTROL_ID_BUFFER_SIZE;
@@ -190,18 +191,18 @@ namespace Control {
 
         // Escolhe quais serão as entradas da planta
         #if   (CONTROL_ID_MODE == CONTROL_ID_MODE_DEADZONE)
-            triangular_wave(&velocidades.A, &velocidades.B, 64, 500);
+            triangular_wave(&va, &vb, 64, 500);
 
             // Alimenta a planta com as entradas
-            Motor::move(0, velocidades.A);
-            Motor::move(1, velocidades.B);
+            Motor::move(0, va);
+            Motor::move(1, vb);
 
         #elif (CONTROL_ID_MODE == CONTROL_ID_MODE_ID)
-            square_wave(&velocidades.A, &velocidades.B, 20, 750);
+            square_wave(&va, &vb, 20, 750);
 
             // Alimenta a planta com as entradas
-            Motor::move(0, deadzone(velocidades.A, 7, -7));
-            Motor::move(1, deadzone(velocidades.B, 7, -6));
+            Motor::move(0, deadzone(va, 7, -7));
+            Motor::move(1, deadzone(vb, 7, -6));
 
         #elif (CONTROL_ID_MODE == CONTROL_ID_MODE_VALIDATION)
             velocidades.v = square_wave(1.2, 400);
@@ -216,6 +217,8 @@ namespace Control {
             .time = micros(),
             .v = velocidades.v, 
             .w = velocidades.w, 
+            .va = va,
+            .vb = vb,
             .enca = enc.motorA, 
             .encb = enc.motorB,
             .imuw = (float)imuW
@@ -225,7 +228,7 @@ namespace Control {
         #if   (CONTROL_ID_TRANSFER == CONTROL_ID_TRANSFER_SERIAL)
 
             // Reporta mensagem via serial
-            Serial.printf("%d %lf %lf %lf %lf %lf\n", message.time, message.v, message.w, message.enca, message.encb, message.imuw);
+            Serial.printf("%d %lf %lf %d %d %lf %lf %lf\n", message.time, message.v, message.w, va, vb, message.enca, message.encb, message.imuw);
 
         #elif (CONTROL_ID_TRANSFER == CONTROL_ID_TRANSFER_RADIO)
 

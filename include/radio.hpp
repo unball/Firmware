@@ -17,6 +17,7 @@ namespace Radio{
     struct reportStruct{
         uint32_t time;
         float v,w;
+        int16_t va,vb;
         float enca, encb;
         float imuw;
     };
