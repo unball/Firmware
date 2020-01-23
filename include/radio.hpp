@@ -8,19 +8,19 @@
 namespace Radio{
 
     struct dataStruct{
-        int16_t A[5];
-        int16_t B[5];
+        int16_t v[5];
+        int16_t w[5];
     };
     
     struct reportStruct{
         uint32_t time;
-        int16_t va,vb;
+        float v,w;
         float enca, encb;
     };
 
     struct vels{
-        int16_t A;
-        int16_t B;
+        float v;
+        float w;
     };
 
     extern RF24 radio;

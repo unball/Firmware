@@ -49,8 +49,8 @@ namespace Radio {
     dataStruct data;
     if(radio.available()){
       radio.read(&data,sizeof(dataStruct));
-      ret->A = data.A[robotNumber];
-      ret->B = data.B[robotNumber];
+      ret->v = data.v[robotNumber] * 2.0 / ((1<<15)-1);
+      ret->w = data.w[robotNumber] * 64.0 / ((1<<15)-1);
       return true;
     }
     return false;

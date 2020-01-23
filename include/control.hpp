@@ -55,7 +55,7 @@ namespace Control{
     void TestWave(int32_t*, int32_t*);
     bool frame_rate();
     void Turbo(int, int);
-    void control(int32_t, int32_t);
+    void control(double, double);
     void motorId();
     void stand();
     bool isRadioLost(bool, uint32_t);

@@ -2,6 +2,8 @@
 
 namespace Control {
 
+    const double TICKS2METER = 2*PI*0.03*1000/(512*19);
+
     int32_t acc = 0;
     int32_t ctr = 0;
 
@@ -98,6 +100,15 @@ namespace Control {
         *v2 = 25*sin(sine_wave_cont/400.0);
     }
 
+    float sine_wave(){
+        static int32_t sine_wave_cont;
+        if(sine_wave_cont >= 100000){
+            sine_wave_cont = 0;
+        }
+        sine_wave_cont ++;
+        return 0.2*sin(sine_wave_cont/400.0);
+    }
+
     /*
         Implementa uma onda quadrada
 
@@ -117,6 +128,24 @@ namespace Control {
         *v1 = out*amplitude;
         *v2 = out*amplitude;
         square_wave_cont++;
+    }
+
+    /*
+        Implementa uma onda quadrada
+
+        @param amplitude Valor em m/s da amplitude da onda
+        @param maxCount Número de chamadas a função necessário para realizar um quarto do ciclo da onda
+    */
+    double square_wave(double amplitude, uint32_t maxCount){
+        static uint32_t square_wave_cont;
+        static int8_t state = 3, out;
+        if(square_wave_cont > maxCount){
+            square_wave_cont = 0;
+            state = (state+1)%4;
+        }
+        out = (state % 2) * (state-2);
+        square_wave_cont++;
+        return out*amplitude;
     }
 
     void step(int16_t *v1, int16_t *v2){
@@ -194,34 +223,31 @@ namespace Control {
     }
 
     //volatile int16_t ea1=0, ea2=0, ua1=0, ua2=0;
-    void control(int32_t v1, int32_t v2){
+    void control(double v, double w){
         
-        if(v1 || v2){
-            Encoder::vel enc;
-            enc = Encoder::encoder();
-            //Serial.printf("%lf\t%lf\n", enc.motorA, enc.motorB);
+        //if(!(v == 0 && w == 0)){
+            // Lê do encoders
+            Encoder::vel enc = Encoder::encoder();
 
-            /*double Cy = 1.0;
-            double Cx = 1.0;
-            double crossCoupledControlOut = crossCoupledControl(Cy*(v2 - enc.motorB)-Cx*(v1 - enc.motorA));
+            // Lê do IMU
+            Imu::imuAll imuData = Imu::imuRead();
+            static double wcur = imuData.gyro.z;
+            wcur = imuData.gyro.z * 0.8 + wcur * 0.2;
 
-            double vVirt1 = v1 - Cx*crossCoupledControlOut;
-            double vVirt2 = v2 + Cy*crossCoupledControlOut;*/
+            // Erro velocidade linear
+            double eV = v-(enc.motorA+enc.motorB)/2 * TICKS2METER;
 
-            // Erro de cada motor
-            double e1 = v1 - enc.motorA;
-            double e2 = v2 - enc.motorB;
-
-            // Erro de malha acoplada
-            double cccError = 3.0/sqrt(v1*v1 + v2*v2) * (-v2 * enc.motorA + v1 * enc.motorB);
-            if (v1 < 0 && v2 < 0){
-                cccError *= -1;
-            }
-            //Serial.println(cccError);
+            // Erro velocidade angular
+            double eW = w-wcur*PI/180;
+            
+            // Erro nos controladores
+            double eA = eV + .3 * eW;
+            double eB = eV - .3 * eW;
 
             // Controle digital
-            int32_t controlA = (int32_t)control1(e1+cccError);
-            int32_t controlB = (int32_t)control2(e2-cccError);
+            int32_t controlA = (int32_t)control1(eA/TICKS2METER);
+            int32_t controlB = (int32_t)control2(eB/TICKS2METER);
+
 
             // Passa para a planta a saída do controle digital e da malha acoplada
             Motor::move(0, deadzone(controlA, 7, -7));
@@ -235,7 +261,7 @@ namespace Control {
             //Serial.println(Encoder::contadorB_media);
             TimeOfCicle();
             #endif
-        }
+        /*}
         else{
             Encoder::resetEncoders();
             stopRobot();
@@ -243,7 +269,7 @@ namespace Control {
             //Serial.print(Encoder::contadorA_media);Serial.print("\t");
             //Serial.println(Encoder::contadorB_media);Serial.print("\t");
             #endif
-        }
+        }*/
     }
 
     void stand() {
@@ -255,7 +281,7 @@ namespace Control {
             static size_t index = 0;
             
             // Obtém velocidades do encoder
-            Encoder::vel enc = Encoder::encoder();
+            //Encoder::vel enc = Encoder::encoder();
 
             // Escolhe quais serão as entradas da planta
             #if   (CONTROL_ID_MODE == CONTROL_ID_MODE_DEADZONE)
@@ -273,41 +299,22 @@ namespace Control {
                 Motor::move(1, deadzone(velocidades.B, 7, -6));
 
             #elif (CONTROL_ID_MODE == CONTROL_ID_MODE_VALIDATION)
-                square_wave(&velocidades.A, &velocidades.B, 40, 400);
+                velocidades.v = square_wave(1.2, 400);
+                velocidades.w = 0;
 
-                Imu::imuAll imuData = Imu::imuRead();
-                
-                // // Erro de malha acoplada
-                // double cccError = 20.0/sqrt(velocidades.A*velocidades.A + velocidades.B*velocidades.B) * (-velocidades.B * enc.motorA + velocidades.A * enc.motorB);
-                // if (velocidades.A < 0 && velocidades.B < 0){
-                //     cccError *= -1;
-                // }
-
-                // Erro de cada motor
-                double eA = velocidades.A - enc.motorA;
-                double eB = velocidades.B - enc.motorB;
-
-                double wRef = 0; // [°/s]
-                static double w = imuData.gyro.z;
-                w = imuData.gyro.z * 0.8 + w * 0.2;
-                double imuError = (wRef-w)/2;
-
-                // Alimenta a planta com as entradas
-                Motor::move(0, deadzone((int32_t)control1(eA+imuError), 7, -7));
-                Motor::move(1, deadzone((int32_t)control2(eB-imuError), 7, -6));
-
+                control(velocidades.v, velocidades.w);
 
             #endif
 
             // Compõe a mensagem a ser enviada pelo rádio
-            Radio::reportStruct message = {
-                .time = micros(),
-                .va = velocidades.A, 
-                .vb = velocidades.B, 
-                .enca = enc.motorA, 
-                .encb = enc.motorB
-            };
-            messages[index] = message;
+            // Radio::reportStruct message = {
+            //     .time = micros(),
+            //     .v = velocidades.v, 
+            //     .w = velocidades.w, 
+            //     .enca = enc.motorA, 
+            //     .encb = enc.motorB
+            // };
+            // messages[index] = message;
 
             #if   (CONTROL_ID_TRANSFER == CONTROL_ID_TRANSFER_SERIAL)
 
@@ -345,21 +352,21 @@ namespace Control {
                 Serial.println("Radio Lost");
                 Radio::reportMessage(1);
                 #endif
-                velocidades.A=20;
-                velocidades.B=-20;
 
-                sine_wave(&velocidades.A, &velocidades.B);
+                velocidades.w = 0;
+                velocidades.v = sine_wave();
+
                 #if MOTOR_TEST
                 TestWave(&velocidades.A, &velocidades.B);
                 Led::blue();
                 #endif
 
-                control(velocidades.A, velocidades.B);
+                control(velocidades.v, velocidades.w);
                 //motorId();
             }
             else {
                 //motorId();
-                control(velocidades.A, velocidades.B);
+                control(velocidades.v, velocidades.w);
                 Radio::radio.flush_rx();
                 Led::red();
             }
