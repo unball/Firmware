@@ -5,6 +5,8 @@
 #include <stdint-gcc.h>
 #include "pins.h"
 
+#define RADIO_THRESHOLD 2000000
+
 namespace Radio{
 
     struct dataStruct{
@@ -16,6 +18,7 @@ namespace Radio{
         uint32_t time;
         float v,w;
         float enca, encb;
+        float imuw;
     };
 
     struct vels{
@@ -28,6 +31,7 @@ namespace Radio{
     void setup(uint8_t robot, uint8_t sendChannel);
     bool receiveData(vels *);
     void reportMessage(reportStruct *);
+    bool isRadioLost();
 }
 
 

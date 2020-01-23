@@ -2,374 +2,257 @@
 
 namespace Control {
 
+    using namespace Waves;
+
+    // Converte de ticks/ms para m/s
     const double TICKS2METER = 2*PI*0.03*1000/(512*19);
 
-    int32_t acc = 0;
-    int32_t ctr = 0;
-
-    //variaveis de teste
-    int8_t wave_flag=1;
-    int16_t angulo=0;
-    int64_t square_cont=0, cont=0;
-
-    uint32_t timer=0;
-    
-    void stopRobot() {
-        Motor::stop();
-    }
-
-    
-    //verifica e imprime o tempo de duração de um ciclo
-    void TimeOfCicle(){
-        static uint32_t cicle_time = millis();
-        cicle_time = millis() - cicle_time;
-        timer = timer + cicle_time;
-        #if CONTROL_DEBUG
-        Serial.print("TIME: ");
-        Serial.println(timer);
-        #endif
-        cicle_time = millis();
-    }
-
-    //checks if received any message from radio in the last threshold us
-    bool isRadioLost(bool received, uint32_t threshold = 2000000){
-        static uint32_t lastReceived = micros();
-        if(received) lastReceived = micros();
-        else if((micros() - lastReceived) > threshold) return true;
-        return false;
-    }
-
-    void TestWave(int32_t *v1, int32_t *v2){
-        #if (wave == 1)
-            angulo++;
-            #if CONTROL_DEBUG
-            if(angulo>720*4){
-                Serial.println("#");
-            }
-            #endif
-            *v1 = (uint32_t)40*sin(angulo*(PI/180)*2);
-            *v2 = *v1;
-        #elif (wave == 2)
-            cont+=1;
-            #if CONTROL_DEBUG
-            if(square_cont > 8){
-                Serial.println("#");
-            }
-            #endif
-            if(cont>200){
-            wave_flag = -1*wave_flag;
-            cont = 0;
-            square_cont+=1;
-            }
-            *v1 = (*v1)*wave_flag;
-            *v2 = -1*(*v2)*wave_flag;
-        #elif (wave == 3)
-            *v1 = 70;
-            *v2 = 70;
-        #endif
-    }
-    
     /*
-        Implementa uma onda triangular
+        Função que corrige a deadzone de um motor
 
-        @param v1 Ponteiro para a velocidade do motor A
-        @param v2 Ponteiro para a velocidade do motor B
-        @param amplitude Valor em ticks/ms da amplitude da onda
-        @param maxCount Número de chamadas a função necessário para realizar um quarto do ciclo da onda
+        @param vin Entrada a ser corrigida
+        @param up Valor positivo da deadzone
+        @param down Valor negativo da deadzone (não importa o sinal, visto que a função usa abs(down))
     */
-    void triangular_wave(int16_t *v1, int16_t *v2, int32_t amplitude, int32_t maxCount){
-        static int32_t triangular_wave_cont;
-        static int8_t state = 3, out;
-        if(abs(triangular_wave_cont) >= maxCount){
-            triangular_wave_cont = 0;
-            state = (state+1)%4;
-        }
-        triangular_wave_cont += 1;
-        out = (state % 2) * (state-2);
-        *v1 = out*triangular_wave_cont*amplitude/maxCount;
-        *v2 = out*triangular_wave_cont*amplitude/maxCount;
-    }
-
-    void sine_wave(int16_t *v1, int16_t *v2){
-        static int32_t sine_wave_cont;
-        if(sine_wave_cont >= 100000){
-            sine_wave_cont = 0;
-        }
-        sine_wave_cont ++;
-        *v1 = 25*sin(sine_wave_cont/400.0);
-        *v2 = 25*sin(sine_wave_cont/400.0);
-    }
-
-    float sine_wave(){
-        static int32_t sine_wave_cont;
-        if(sine_wave_cont >= 100000){
-            sine_wave_cont = 0;
-        }
-        sine_wave_cont ++;
-        return 0.2*sin(sine_wave_cont/400.0);
-    }
-
-    /*
-        Implementa uma onda quadrada
-
-        @param v1 Ponteiro para a velocidade do motor A
-        @param v2 Ponteiro para a velocidade do motor B
-        @param amplitude Valor em ticks/ms da amplitude da onda
-        @param maxCount Número de chamadas a função necessário para realizar um quarto do ciclo da onda
-    */
-    void square_wave(int16_t *v1, int16_t *v2, int32_t amplitude, uint32_t maxCount){
-        static uint32_t square_wave_cont;
-        static int8_t state = 3, out;
-        if(square_wave_cont > maxCount){
-            square_wave_cont = 0;
-            state = (state+1)%4;
-        }
-        out = (state % 2) * (state-2);
-        *v1 = out*amplitude;
-        *v2 = out*amplitude;
-        square_wave_cont++;
-    }
-
-    /*
-        Implementa uma onda quadrada
-
-        @param amplitude Valor em m/s da amplitude da onda
-        @param maxCount Número de chamadas a função necessário para realizar um quarto do ciclo da onda
-    */
-    double square_wave(double amplitude, uint32_t maxCount){
-        static uint32_t square_wave_cont;
-        static int8_t state = 3, out;
-        if(square_wave_cont > maxCount){
-            square_wave_cont = 0;
-            state = (state+1)%4;
-        }
-        out = (state % 2) * (state-2);
-        square_wave_cont++;
-        return out*amplitude;
-    }
-
-    void step(int16_t *v1, int16_t *v2){
-        static uint32_t step_cont;
-        static int8_t step_flag = 0;
-        if(step_cont > 200){
-            step_flag = 1;
-        }
-        
-        if(step_cont>2000){
-            step_flag = 0;
-            
-        }
-        step_cont++;
-        *v1 = 30*step_flag;
-        *v2 = 30*step_flag;
-    }
-
-    bool frame_rate(){
-        ctr++;
-        if(ctr == 100){
-            ctr = 0;
-            return true;
-        }
-        else{
-            return false;
-        }
-    }
-
-    void Turbo(int turboA, int turboB){
-        if(turboA>0 && turboB>0){
-            Motor::move(0, 255);
-            Motor::move(1, 255);
-        }
-        else if(turboA<0 && turboB<0){
-            Motor::move(0, -255);
-            Motor::move(1, -255);
-        }
-        else if(turboA>0 && turboB<0){
-            Motor::move(0, 255);
-            Motor::move(1, -255);
-        }
-        else{
-            Motor::move(0, -255);
-            Motor::move(1, 255);
-        }
-    }
-
     int32_t deadzone(int32_t vin, int32_t up, int32_t down){
         if (vin!=0)
             return (vin > 0) ? vin+up : vin-abs(down);
         return 0;
     }
 
+    /*
+        Função que satura uma entrada para valores entre -255 e 255
+    */
     double saturation(double vin){
         return min(max(vin, -255.0), 255.0);
     }
 
-    double control1(double err){
+    /*
+        Função que recebe velocidades dos encoders em ticks/ms e converte para velocidade linear em m/s
+    */
+    inline double linSpeed(Encoder::vel enc){
+        return (enc.motorA+enc.motorB)/2 * TICKS2METER;
+    }
+
+    /*
+        Função que recebe velocidade angular do IMU em º/ms e converte para velocidade angular em rad/s
+    */
+    inline double angSpeed(double imuW){
+        return imuW * PI / 180;
+    }
+
+    /*
+        Lê os encoders e a velocidade angular do IMU filtrada em primeira ordem e 
+        retorna por referência
+    */
+    void readSpeeds(Encoder::vel *enc, double *w){
+        // Lê do encoders
+        *enc = Encoder::encoder();
+
+        // Lê do IMU
+        Imu::imuAll imuData = Imu::imuRead();
+        static double wcur = imuData.gyro.z;
+        wcur = imuData.gyro.z * 0.8 + wcur * 0.2;
+
+        *w = wcur;
+    }
+
+    /*
+        Lê os encoders e a velocidade angular do IMU filtrada em primeira ordem e
+        retorna a velocidade linear em m/s e a velocidade angular em rad/s por referência
+    */
+    void readSpeeds(double *v, double *w){
+        Encoder::vel enc;
+        double imuW;
+
+        readSpeeds(&enc, &imuW);
+
+        *v = linSpeed(enc);
+        *w = angSpeed(imuW);
+    }
+
+    /*
+        Implementa um PI digital com anti-windup para o motor A
+
+        @param Recebe o erro
+    */
+    double PImotorA(double err){
         static double old_err;
         static double old_out;
-        double out = (  1.9077 * (err - 0.9418  *  old_err) + old_out);
-        old_err = err -  (saturation(out)-out);
+        double out = (  1.6 * (err - 0.91  *  old_err) + old_out);
+        old_err = err - (saturation(out)-out);
+        
         old_out = out; //=  (abs(out) < 255)? out : 0;
         return out;
     }
 
-    double control2(double err){
+
+    /*
+        Implementa um PI digital com anti-windup para o motor B
+
+        @param Recebe o erro
+    */
+    double PImotorB(double err){
         static double old_err;
         static double old_out;
-        double out =  (   1.9077 * (err  - 0.9418 *  old_err) + old_out);
+        double out =  (  1.6 * (err  - 0.91 *  old_err) + old_out);
         old_err = err - (saturation(out)-out);
+
         old_out = out; //(abs(out) < 255)? out : 0;;
         return out;
     }
 
-    //volatile int16_t ea1=0, ea2=0, ua1=0, ua2=0;
-    void control(double v, double w){
+    /*
+        Implementa a malha de controle baixo nível
+
+        @param v Velocidade linear de referência em m/s
+        @param currV Velocidade linear medida por algum sensor (média dos encoders) em m/s
+        @param w Velocidade angular de referência em rad/s
+        @param currW Velocidade angular medida por algum sensor (IMU) em rad/s
+    */
+    void control(double v, double currV, double w, double currW){
+        // Erro velocidade linear
+        double eV = v - currV;
+
+        // Erro velocidade angular
+        double eW = w - currW;
         
-        //if(!(v == 0 && w == 0)){
-            // Lê do encoders
-            Encoder::vel enc = Encoder::encoder();
+        // Erro nos controladores
+        double eA = eV + .3 * eW;
+        double eB = eV - .3 * eW;
 
-            // Lê do IMU
-            Imu::imuAll imuData = Imu::imuRead();
-            static double wcur = imuData.gyro.z;
-            wcur = imuData.gyro.z * 0.8 + wcur * 0.2;
-
-            // Erro velocidade linear
-            double eV = v-(enc.motorA+enc.motorB)/2 * TICKS2METER;
-
-            // Erro velocidade angular
-            double eW = w-wcur*PI/180;
-            
-            // Erro nos controladores
-            double eA = eV + .3 * eW;
-            double eB = eV - .3 * eW;
-
-            // Controle digital
-            int32_t controlA = (int32_t)control1(eA/TICKS2METER);
-            int32_t controlB = (int32_t)control2(eB/TICKS2METER);
+        // Controle digital
+        int32_t controlA = (int32_t)PImotorA(eA/TICKS2METER);
+        int32_t controlB = (int32_t)PImotorB(eB/TICKS2METER);
 
 
-            // Passa para a planta a saída do controle digital e da malha acoplada
-            Motor::move(0, deadzone(controlA, 7, -7));
-            Motor::move(1, deadzone(controlB, 7, -7));
-
-            #if false //CONTROL_DEBUG
-            Encoder::encoder();
-            Serial.println("$");
-            Serial.println(v1);
-            //Serial.println(Encoder::contadorA_media);
-            //Serial.println(Encoder::contadorB_media);
-            TimeOfCicle();
-            #endif
-        /*}
-        else{
-            Encoder::resetEncoders();
-            stopRobot();
-            #if CONTROL_DEBUG
-            //Serial.print(Encoder::contadorA_media);Serial.print("\t");
-            //Serial.println(Encoder::contadorB_media);Serial.print("\t");
-            #endif
-        }*/
+        // Passa para a planta a saída do controle digital e da malha acoplada
+        Motor::move(0, deadzone(controlA, 7, -7));
+        Motor::move(1, deadzone(controlB, 7, -7));
     }
 
-    void stand() {
-        static Radio::vels velocidades;    
+    /*
+        Lê velocidades do rádio, lê velocidades de referência e executa o controle
+    */
+    void stand_default(){
+
+        // Velocidades a serem lidas do rádio, são estáticas de modo que se Radio::receiveData não receber nada, mantém-se a velocidade anterior
+        static Radio::vels velocidades;
+
+        // Velocidades atuais medidas por sensores
+        double currV, currW;
         
-        #if CONTROL_ID
-            static const size_t size = CONTROL_ID_BUFFER_SIZE;
-            static Radio::reportStruct messages[size];
-            static size_t index = 0;
-            
-            // Obtém velocidades do encoder
-            //Encoder::vel enc = Encoder::encoder();
+        // Lê velocidade do rádio
+        Radio::receiveData(&velocidades);
 
-            // Escolhe quais serão as entradas da planta
-            #if   (CONTROL_ID_MODE == CONTROL_ID_MODE_DEADZONE)
-                triangular_wave(&velocidades.A, &velocidades.B, 64, 500);
+        // Rádio foi perdido, mais de 2s sem mensagens
+        if(Radio::isRadioLost()){
+            velocidades.w = 0;
+            velocidades.v = sine_wave();
 
-                // Alimenta a planta com as entradas
-                Motor::move(0, velocidades.A);
-                Motor::move(1, velocidades.B);
+            readSpeeds(&currV, &currW);
+            control(velocidades.v, currV, velocidades.w, currW);
+        }
 
-            #elif (CONTROL_ID_MODE == CONTROL_ID_MODE_ID)
-                square_wave(&velocidades.A, &velocidades.B, 20, 750);
+        // Executa o controle normalmente com as velocidades de referência
+        else {
+            // Lê as velocidaes de sensores
+            readSpeeds(&currV, &currW);
 
-                // Alimenta a planta com as entradas
-                Motor::move(0, deadzone(velocidades.A, 7, -7));
-                Motor::move(1, deadzone(velocidades.B, 7, -6));
+            // Executa a malha de controle
+            control(velocidades.v, currV, velocidades.w, currW);
 
-            #elif (CONTROL_ID_MODE == CONTROL_ID_MODE_VALIDATION)
-                velocidades.v = square_wave(1.2, 400);
-                velocidades.w = 0;
+            // Zera a fila de recepção do rádio para ter sempre a mensagem mais recente
+            Radio::radio.flush_rx();
 
-                control(velocidades.v, velocidades.w);
+            Led::red();
+        }
+    }
 
-            #endif
+    /*
+        Gera uma onda de teste para detectar deadzone, identificar ou validar
+    */
+    void stand_id(){
+        // Velocidades de referência que serão compostas de acordo com a onda escolhida
+        Radio::vels velocidades;
 
-            // Compõe a mensagem a ser enviada pelo rádio
-            // Radio::reportStruct message = {
-            //     .time = micros(),
-            //     .v = velocidades.v, 
-            //     .w = velocidades.w, 
-            //     .enca = enc.motorA, 
-            //     .encb = enc.motorB
-            // };
-            // messages[index] = message;
+        // Buffer a ser transmitido pelo rádio
+        static const size_t size = CONTROL_ID_BUFFER_SIZE;
+        static Radio::reportStruct messages[size];
+        static size_t index = 0;
 
-            #if   (CONTROL_ID_TRANSFER == CONTROL_ID_TRANSFER_SERIAL)
+        // Dados dos sensores encoders e imu
+        Encoder::vel enc;
+        double imuW;
 
-                // Reporta mensagem via serial
-                Serial.printf("%d %d %d %lf %lf\n", message.time, message.va, message.vb, message.enca, message.encb);
+        // Lê os dados dos sensores
+        readSpeeds(&enc, &imuW);
 
-            #elif (CONTROL_ID_TRANSFER == CONTROL_ID_TRANSFER_RADIO)
+        // Escolhe quais serão as entradas da planta
+        #if   (CONTROL_ID_MODE == CONTROL_ID_MODE_DEADZONE)
+            triangular_wave(&velocidades.A, &velocidades.B, 64, 500);
 
-                // Envia a mensagem pelo rádio
-                if(index == size-1){
-                    Motor::stop();
-                    for(size_t i=0 ; i<index+1 ; i++){
-                        Radio::reportMessage(&messages[i]);
-                    }
-                    index = 0;
+            // Alimenta a planta com as entradas
+            Motor::move(0, velocidades.A);
+            Motor::move(1, velocidades.B);
+
+        #elif (CONTROL_ID_MODE == CONTROL_ID_MODE_ID)
+            square_wave(&velocidades.A, &velocidades.B, 20, 750);
+
+            // Alimenta a planta com as entradas
+            Motor::move(0, deadzone(velocidades.A, 7, -7));
+            Motor::move(1, deadzone(velocidades.B, 7, -6));
+
+        #elif (CONTROL_ID_MODE == CONTROL_ID_MODE_VALIDATION)
+            velocidades.v = square_wave(1.2, 400);
+            velocidades.w = 0;
+
+            control(velocidades.v, velocidades.w, linSpeed(enc), angSpeed(imuW));
+
+        #endif
+
+        // Compõe a mensagem a ser enviada pelo rádio
+        Radio::reportStruct message = {
+            .time = micros(),
+            .v = velocidades.v, 
+            .w = velocidades.w, 
+            .enca = enc.motorA, 
+            .encb = enc.motorB,
+            .imuw = (float)imuW
+        };
+        messages[index] = message;
+
+        #if   (CONTROL_ID_TRANSFER == CONTROL_ID_TRANSFER_SERIAL)
+
+            // Reporta mensagem via serial
+            Serial.printf("%d %lf %lf %lf %lf %lf\n", message.time, message.v, message.w, message.enca, message.encb, message.imuw);
+
+        #elif (CONTROL_ID_TRANSFER == CONTROL_ID_TRANSFER_RADIO)
+
+            // Envia a mensagem pelo rádio
+            if(index == size-1){
+                Motor::stop();
+                for(size_t i=0 ; i<index+1 ; i++){
+                    Radio::reportMessage(&messages[i]);
                 }
-                else index++;
-
-            #endif
-            
-        #else
-            if(Radio::receiveData(&velocidades)) {
-                #if CONTROL_DEBUG
-                Serial.println("radioAvailable");
-                Serial.println("Received velocities:");
-                Serial.print("=>\tvA:");Serial.print(velocidades.A);
-                Serial.print("\t");
-                Serial.print("vB:");Serial.println(velocidades.B);
-                #endif
-                isRadioLost(true);
+                index = 0;
             }
-            //procedimento para indicar que o robo nao recebe mensagens nos ultimos 2 segundos(customizavel)
-            if(isRadioLost(false)){
-                #if CONTROL_DEBUG
-                Serial.println("Radio Lost");
-                Radio::reportMessage(1);
-                #endif
+            else index++;
 
-                velocidades.w = 0;
-                velocidades.v = sine_wave();
+        #endif
+    }
 
-                #if MOTOR_TEST
-                TestWave(&velocidades.A, &velocidades.B);
-                Led::blue();
-                #endif
-
-                control(velocidades.v, velocidades.w);
-                //motorId();
-            }
-            else {
-                //motorId();
-                control(velocidades.v, velocidades.w);
-                Radio::radio.flush_rx();
-                Led::red();
-            }
+    /*
+        Executa um loop do controle usando como referência uma mensagem do rádio.
+        A função pode mudar de comportamento se a definição CONTROL_ID for verdadeira,
+        neste caso o comportamento é de fazer um loop de validação, identificação ou de detecção da deadzone.
+    */
+    void stand() {
+        
+        #if CONTROL_ID // Loop se estiver no modo de identificação
+            stand_id();
+        #else // Loop padrão
+            stand_default();
         #endif
     }
 

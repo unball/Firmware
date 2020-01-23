@@ -6,6 +6,7 @@
 #include <radio.hpp>
 #include <ledRGB.hpp>
 #include <imu.hpp>
+#include <waves.hpp>
 
 #if TEENSY_DEBUG
 #define CONTROL_DEBUG true
@@ -36,12 +37,7 @@
     #define CONTROL_ID_BUFFER_SIZE 1000
 #endif
 
-
 #endif
-
-#define MOTOR_TEST false    //define se está ou não fazendo o teste nos motores
-#define wave 1              // sine = 1 -- square = 2 -- step = 3
-//#define PI 3.14159265359
 
 typedef struct{
     double lin;
@@ -49,16 +45,7 @@ typedef struct{
 } linAng;
 
 namespace Control{
-
-    void stopRobot();
-    void TimeOfCicle();
-    void TestWave(int32_t*, int32_t*);
-    bool frame_rate();
-    void Turbo(int, int);
-    void control(double, double);
-    void motorId();
     void stand();
-    bool isRadioLost(bool, uint32_t);
 }
 
 #endif

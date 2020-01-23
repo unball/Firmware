@@ -75,10 +75,11 @@ void loop() {
 		static int32_t previous_t;
 		static int32_t t;
 		t = micros();
-		if(t-previous_t >= 1500){
+
+		// Loop de controle deve ser executado em intervalos comportados (2ms)
+		if(t-previous_t >= 2000){
 			previous_t = t;
 			Control::stand();
-			//delay(1);
 		}
 	#endif
 

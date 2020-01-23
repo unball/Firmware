@@ -15,6 +15,8 @@ namespace Radio {
   uint64_t channelRecebe;
 
   uint8_t robotNumber;
+
+  uint32_t lastReceived;
   
   void setup(uint8_t robot, uint8_t sendChannel){
     //*radio = RF24(9, 10);
@@ -34,6 +36,9 @@ namespace Radio {
     // Põe o rádio para escutar mensagens
     radio.startListening();
 
+    // Tempo inicial para a última mensagem recebida
+    lastReceived = micros();
+
     #if !CONTROL_ID
       // Ajusta o tamanho dos pacotes ao tamanho da mensagem
       radio.setPayloadSize(sizeof(dataStruct)); 
@@ -49,8 +54,13 @@ namespace Radio {
     dataStruct data;
     if(radio.available()){
       radio.read(&data,sizeof(dataStruct));
+
+      // Demultiplexa a mensagem e decodifica
       ret->v = data.v[robotNumber] * 2.0 / ((1<<15)-1);
       ret->w = data.w[robotNumber] * 64.0 / ((1<<15)-1);
+
+      // Atualiza o tempo de recebimento
+      lastReceived = micros();
       return true;
     }
     return false;
@@ -62,5 +72,11 @@ namespace Radio {
 
     // Envia a mensagem sem ACK
     radio.write(message, sizeof(reportStruct), 0);
+  }
+
+  // Checks if received any message from radio in the last threshold us
+  bool isRadioLost(){
+      if((micros() - lastReceived) > RADIO_THRESHOLD) return true;
+      return false;
   }
 } //end namespace
