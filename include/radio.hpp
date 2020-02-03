@@ -30,7 +30,7 @@ namespace Radio{
     extern RF24 radio;
 
     void setup(uint8_t robot, uint8_t sendChannel);
-    bool receiveData(vels *);
+    bool receiveData(double *v, double *w);
     void reportMessage(reportStruct *);
     bool isRadioLost();
 }

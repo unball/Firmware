@@ -161,7 +161,7 @@ namespace Imu{
     void getGyroBias(){
         axis offset = {0};
         for(uint16_t i=0; i<5000; i++){
-			gyroRead(0);
+			gyroRead(3);
 			offset.x += gyro.x;
 			offset.y += gyro.y;
 			offset.z += gyro.z;
@@ -177,7 +177,7 @@ namespace Imu{
 
         imuStart();
         imuAccelScale(0);
-        imuGyroScale(0);
+        imuGyroScale(3);
 
         getGyroBias();
     }
@@ -185,7 +185,7 @@ namespace Imu{
     //chama a leitura do acelerômetro e giroscópio
     imuAll imuRead(){
         accelRead(0);
-        gyroRead(0);
+        gyroRead(3);
         imuData.accel = accel;
         imuData.gyro = gyro;
         imuData.temp = tempRead();

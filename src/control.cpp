@@ -52,7 +52,7 @@ namespace Control {
         // Lê do IMU
         Imu::imuAll imuData = Imu::imuRead();
         static double wcur = imuData.gyro.z;
-        wcur = imuData.gyro.z * 0.8 + wcur * 0.2;
+        wcur = imuData.gyro.z * 0.95 + wcur * 0.05;
 
         *w = wcur;
     }
@@ -111,6 +111,13 @@ namespace Control {
         @param currW Velocidade angular medida por algum sensor (IMU) em rad/s
     */
     void control(double v, double currV, double w, double currW){
+        
+        if (v == 0 and w == 0){
+            Encoder::resetEncoders();
+            Motor::stop();
+            return;
+        }
+        
         // Erro velocidade linear
         double eV = v - currV;
 
@@ -118,8 +125,8 @@ namespace Control {
         double eW = w - currW;
         
         // Erro nos controladores
-        double eA = eV + .3 * eW;
-        double eB = eV - .3 * eW;
+        double eA = eV + .1 * eW;
+        double eB = eV - .1 * eW;
 
         // Controle digital
         int32_t controlA = (int32_t)PImotorA(eA/TICKS2METER);
@@ -137,21 +144,23 @@ namespace Control {
     void stand_default(){
 
         // Velocidades a serem lidas do rádio, são estáticas de modo que se Radio::receiveData não receber nada, mantém-se a velocidade anterior
-        static Radio::vels velocidades;
+        static double v = 0;
+        static double w = 0;
 
         // Velocidades atuais medidas por sensores
         double currV, currW;
         
         // Lê velocidade do rádio
-        Radio::receiveData(&velocidades);
+        Radio::receiveData(&v, &w);
+        
 
         // Rádio foi perdido, mais de 2s sem mensagens
         if(Radio::isRadioLost()){
-            velocidades.w = 0;
-            velocidades.v = sine_wave();
+            w = 0;
+            v = sine_wave();
 
             readSpeeds(&currV, &currW);
-            control(velocidades.v, currV, velocidades.w, currW);
+            control(v, currV, w, currW);
         }
 
         // Executa o controle normalmente com as velocidades de referência
@@ -160,10 +169,7 @@ namespace Control {
             readSpeeds(&currV, &currW);
 
             // Executa a malha de controle
-            control(velocidades.v, currV, velocidades.w, currW);
-
-            // Zera a fila de recepção do rádio para ter sempre a mensagem mais recente
-            Radio::radio.flush_rx();
+            control(v, currV, w, currW);
 
             Led::red();
         }

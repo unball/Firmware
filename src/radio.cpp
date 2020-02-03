@@ -16,7 +16,7 @@ namespace Radio {
 
   uint8_t robotNumber;
 
-  uint32_t lastReceived;
+  volatile static uint32_t lastReceived;
   
   void setup(uint8_t robot, uint8_t sendChannel){
     //*radio = RF24(9, 10);
@@ -50,14 +50,14 @@ namespace Radio {
     #endif
   }
 
-  bool receiveData(vels *ret){ // recebe mensagem via radio, se receber uma mensagem retorna true, se não retorna false
+  bool receiveData(double *v, double *w){ // recebe mensagem via radio, se receber uma mensagem retorna true, se não retorna false
     dataStruct data;
     if(radio.available()){
       radio.read(&data,sizeof(dataStruct));
 
       // Demultiplexa a mensagem e decodifica
-      ret->v = data.v[robotNumber] * 2.0 / ((1<<15)-1);
-      ret->w = data.w[robotNumber] * 64.0 / ((1<<15)-1);
+      *v = data.v[robotNumber] * 2.0 / 32767;
+      *w = data.w[robotNumber] * 64.0 / 32767;
 
       // Atualiza o tempo de recebimento
       lastReceived = micros();
