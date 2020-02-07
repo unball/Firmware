@@ -52,6 +52,10 @@ namespace Radio {
 
   bool receiveData(double *v, double *w){ // recebe mensagem via radio, se receber uma mensagem retorna true, se não retorna false
     dataStruct data;
+    if(radio.failureDetected){
+      setup(0, 3);
+      radio.failureDetected = 0;
+    }
     if(radio.available()){
       radio.read(&data,sizeof(dataStruct));
 

@@ -125,8 +125,8 @@ namespace Control {
         double eW = w - currW;
         
         // Erro nos controladores
-        double eA = eV + .1 * eW;
-        double eB = eV - .1 * eW;
+        double eA = eV + .15 * eW;
+        double eB = eV - .15 * eW;
 
         // Controle digital
         int32_t controlA = (int32_t)PImotorA(eA/TICKS2METER);
