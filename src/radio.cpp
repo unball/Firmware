@@ -52,16 +52,13 @@ namespace Radio {
 
   bool receiveData(double *v, double *w){ // recebe mensagem via radio, se receber uma mensagem retorna true, se não retorna false
     dataStruct data;
-    if(radio.failureDetected){
-      setup(0, 3);
-      radio.failureDetected = 0;
-    }
     if(radio.available()){
       radio.read(&data,sizeof(dataStruct));
 
       // Demultiplexa a mensagem e decodifica
-      *v = data.v[robotNumber] * 2.0 / 32767;
-      *w = data.w[robotNumber] * 64.0 / 32767;
+      *v = data.v * 2.0 / 32767;
+      *w = data.w * 64.0 / 32767;
+      //Serial.printf("%d %d\n", data.v, data.w);
 
       // Atualiza o tempo de recebimento
       lastReceived = micros();

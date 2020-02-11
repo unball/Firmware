@@ -10,8 +10,8 @@
 namespace Radio{
 
     struct dataStruct{
-        int16_t v[5];
-        int16_t w[5];
+        int16_t v;
+        int16_t w;
     };
     
     struct reportStruct{
