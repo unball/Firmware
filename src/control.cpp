@@ -80,9 +80,9 @@ namespace Control {
         static double old_err;
         static double old_out;
         double out = (  1.6 * (err - 0.91  *  old_err) + old_out);
-        old_err = err - (saturation(out)-out);
+        old_err = err; //- (saturation(out)-out);
         
-        old_out = out; //=  (abs(out) < 255)? out : 0;
+        old_out = (abs(out) < 255)? out : 0;
         return out;
     }
 
@@ -96,9 +96,9 @@ namespace Control {
         static double old_err;
         static double old_out;
         double out =  (  1.6 * (err  - 0.91 *  old_err) + old_out);
-        old_err = err - (saturation(out)-out);
+        old_err = err; //- (saturation(out)-out);
 
-        old_out = out; //(abs(out) < 255)? out : 0;;
+        old_out = (abs(out) < 255)? out : 0;;
         return out;
     }
 
