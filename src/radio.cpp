@@ -57,8 +57,10 @@ namespace Radio {
 
       // Demultiplexa a mensagem e decodifica
       *v = data.v * 2.0 / 32767;
-      *w = data.w * 64.0 / 32767;
-      //Serial.printf("%d %d\n", data.v, data.w);
+
+      // Se ultrapassar um certo valor, faz um spin a 360 rad/s
+      if (abs(data.w) > 32000) *w = (data.w >= 0 ? 1 : -1) * 360;
+      else *w = data.w * 64.0 / 32767;
 
       // Atualiza o tempo de recebimento
       lastReceived = micros();
