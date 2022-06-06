@@ -40,9 +40,7 @@ namespace Radio {
     lastReceived = micros();
 
     // Ajusta o tamanho dos pacotes ao tamanho da mensagem
-    radio.setPayloadSize(sizeof(reportStruct));
-    // Põe o rádio para enviar mensagens
-    radio.stopListening();
+    radio.setPayloadSize(sizeof(dataStruct)); 
 
   }
 

@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-#define TEENSY_DEBUG false
+#define TEENSY_DEBUG true
 #define ROBOT_NUMBER 0
 
 #include "radio.hpp"
