@@ -5,11 +5,11 @@
 #include <radio.hpp>
 #include <waves.hpp>
 
-#if TEENSY_DEBUG
-#define CONTROL_DEBUG true
-#else
-#define CONTROL_DEBUG false
-#endif
+//#if TEENSY_DEBUG
+//#define CONTROL_DEBUG true
+//#else
+//#define CONTROL_DEBUG false
+//#endif
 
 typedef struct{
     double lin;

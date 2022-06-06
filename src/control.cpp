@@ -22,7 +22,7 @@ namespace Control {
             v = sine_wave();
 
             Motor::move(0, v);
-            Motor::move(1, w);
+            Motor::move(1, v);
         }
 
         // Executa o controle normalmente com as velocidades de referência

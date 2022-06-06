@@ -29,7 +29,7 @@ namespace Waves{
             sine_wave_cont = 0;
         }
         sine_wave_cont ++;
-        return 0.2*sin(sine_wave_cont/400.0);
+        return 50*sin(sine_wave_cont/400.0);
     }
     
     /*

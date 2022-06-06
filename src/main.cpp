@@ -10,17 +10,10 @@
 
 Radio::dataStruct vel;
 
-void setup() {
+void setup() {	
 
-	#if (TEENSY_DEBUG || CONTROL_DEBUG || IMU_DEBUG || MOTOR_DEBUG)
-		Serial.begin(9600);
-		while(!Serial);
-		Serial.println("SETUP!");
-	#endif
-	
-
-	/*Serial.begin(9600);
-	while(!Serial);*/
+	//Serial.begin(9600);
+	//while(!Serial);
 
 	Radio::setup(0, 3);
 	Motor::setup();
@@ -31,16 +24,17 @@ void loop() {
 		Serial.println("LOOP!");
 		
 		//=========Radio==========
-		vel.B = 56;
-		vel.A = 47;
-		Radio::receiveData(&vel);
+		// Velocidades a serem lidas do rádio, são estáticas de modo que se Radio::receiveData não receber nada, mantém-se a velocidade anterior
+        static double v = 0;
+        static double w = 0;
+		Radio::receiveData(&v, &w);
 		Serial.println("Radio:");
-		Serial.print("a: ");Serial.print(vel.A);Serial.print("\tb: ");Serial.println(vel.B);
+		Serial.print("a: ");Serial.print(v);Serial.print("\tb: ");Serial.println(w);
 		//=========End Radio===========
 
-		//=========Motor==========
-		Motor::move(0, 100);
-		Motor::move(1, 100);
+		//=========Motor===============
+		Motor::move(0, 50);
+		Motor::move(1, 50);
 		//=========End Motor==========
 
 		delay(100);
