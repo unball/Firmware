@@ -39,15 +39,11 @@ namespace Radio {
     // Tempo inicial para a última mensagem recebida
     lastReceived = micros();
 
-    #if !CONTROL_ID
-      // Ajusta o tamanho dos pacotes ao tamanho da mensagem
-      radio.setPayloadSize(sizeof(dataStruct)); 
-    #else
-      // Ajusta o tamanho dos pacotes ao tamanho da mensagem
-      radio.setPayloadSize(sizeof(reportStruct));
-      // Põe o rádio para enviar mensagens
-      radio.stopListening();
-    #endif
+    // Ajusta o tamanho dos pacotes ao tamanho da mensagem
+    radio.setPayloadSize(sizeof(reportStruct));
+    // Põe o rádio para enviar mensagens
+    radio.stopListening();
+
   }
 
   bool receiveData(double *v, double *w){ // recebe mensagem via radio, se receber uma mensagem retorna true, se não retorna false
@@ -56,11 +52,12 @@ namespace Radio {
       radio.read(&data,sizeof(dataStruct));
 
       // Demultiplexa a mensagem e decodifica
-      *v = data.v * 2.0 / 32767;
+      *v = data.v;
 
       // Se ultrapassar um certo valor, faz um spin a 360 rad/s
-      if (abs(data.w) > 32000) *w = (data.w >= 0 ? 1 : -1) * 360;
-      else *w = data.w * 64.0 / 32767;
+      //if (abs(data.w) > 32000) *w = (data.w >= 0 ? 1 : -1) * 360;
+      //else *w = data.w * 64.0 / 32767;
+      *w = data.w;
 
       // Atualiza o tempo de recebimento
       lastReceived = micros();
