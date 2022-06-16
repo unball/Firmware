@@ -1,18 +1,17 @@
 #include "radio.hpp"
-#include "control.hpp"
 
 // TODO: Detectar falhas no rádio com radio.failureDetected e tentar recuperar
 
 namespace Radio {
 
-  dataStruct velocidades;
+  //dataStruct velocidades;
 
   RF24 radio(CE_PIN, CS_PIN);
   //RF24 *radio;
 
   const uint64_t channels[4] = { 0xABCDABCD71L, 0x544d52687CL, 0x644d52687CL, 0x744d52687CL };
-  uint64_t channelEnvia;
-  uint64_t channelRecebe;
+  uint64_t channelSend;
+  uint64_t channelReceive;
 
   uint8_t robotNumber;
 
@@ -21,15 +20,15 @@ namespace Radio {
   void setup(uint8_t robot, uint8_t sendChannel){
     //*radio = RF24(9, 10);
     robotNumber = robot; 
-    channelRecebe=channels[robot];
-    channelEnvia=channels[sendChannel];
+    channelReceive=channels[robot];
+    channelSend=channels[sendChannel];
     radio.begin();                           // inicializa radio
     radio.setChannel(108);                   //muda para um canal de frequencia diferente de 2.4Ghz
     radio.setPALevel(RF24_PA_MAX);           //usa potencia maxima
     radio.setDataRate(RF24_2MBPS);           //usa velocidade de transmissao maxima
 
-    radio.openWritingPipe(channelEnvia);        //escreve pelo pipe0 SEMPRE
-    radio.openReadingPipe(1,channelRecebe);      //escuta pelo pipe1, evitar usar pipe0
+    radio.openWritingPipe(channelSend);        //escreve pelo pipe0 SEMPRE
+    radio.openReadingPipe(1,channelReceive);      //escuta pelo pipe1, evitar usar pipe0
 
     radio.enableDynamicPayloads();           //ativa payloads dinamicos(pacote tamamhos diferentes do padrao)
 
