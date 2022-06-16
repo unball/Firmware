@@ -1,11 +1,11 @@
 #include <Arduino.h>
 
-#define TEENSY_DEBUG true
+#define WEMOS_DEBUG false
 #define ROBOT_NUMBER 0
 
 #include "radio.hpp"
 #include "motor.hpp"
-#include "control.hpp"
+#include "waves.hpp"
 
 
 Radio::dataStruct vel;
@@ -20,7 +20,7 @@ void setup() {
 }
 
 void loop() {
-	#if TEENSY_DEBUG
+	#if WEMOS_DEBUG
 		Serial.println("LOOP!");
 		
 		//=========Radio==========
@@ -39,15 +39,29 @@ void loop() {
 
 		delay(100);
 	#else
-		static int32_t previous_t;
-		static int32_t t;
-		t = micros();
+		// Velocidades a serem lidas do rádio, são estáticas de modo que se Radio::receiveData não receber nada, mantém-se a velocidade anterior
+		static double v = 0;
+		static double w = 0;
 
-		// Loop de controle deve ser executado em intervalos comportados (2ms)
-		if(t-previous_t >= 2000){
-			previous_t = t;
-			Control::stand();
+		// Lê velocidade do rádio
+		Radio::receiveData(&v, &w);
+
+		// Rádio foi perdido, mais de 2s sem mensagens
+		if(Radio::isRadioLost()){
+			w = 0;
+			v = Waves::sine_wave();
+
+			Motor::move(0, v);
+			Motor::move(1, v);
 		}
+
+		// Executa o controle normalmente com as velocidades de referência
+		else {
+			// Passa para a planta a saída do controle digital e da malha acoplada
+			Motor::move(0, v);
+			Motor::move(1, w);
+		}
+
 	#endif
 
 
