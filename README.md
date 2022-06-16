@@ -10,10 +10,7 @@ dpkg -i path/to/debFile/debFileName.deb
 
 Once the VScode editor is installed to install de platformIO extention follow the instrutions at [PlatformIO - installation](https://platformio.org/install/ide?install=vscode).
 
-### Teensy loader
-instructions on how to install the teensy loader can be found in the [pjrc - official web page](https://www.pjrc.com/teensy/loader_linux.html). When trying to upload any code to teensy with the platformIO the teensy loader will be automatically called.
-
 ## Uploading
 **IF USING A EXTERNAL POWER SUPLY, USE THE ADAPTED NO POWER USB CABLE**
 
-Use the platformIO extention options to build and upload the code (pressing the teensy config button may be needed).
+Use the platformIO extention options to build and upload the code.

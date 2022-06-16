@@ -3,7 +3,8 @@
 #include <Arduino.h>
 #include <stdint-gcc.h>
 #include "pins.h"
-#if TENSY_DEBUG
+
+#if WEMOS_DEBUG
 #define MOTOR_DEBUG true
 #else
 #define MOTOR_DEBUG false
@@ -16,9 +17,5 @@ namespace Motor{
     void stop();
     int8_t getMotorDirection(int8_t motor);
 }
-
-
-
-
 
 #endif
