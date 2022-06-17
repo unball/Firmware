@@ -13,7 +13,8 @@
 #define BIN1_PIN 3
 #define BIN2_PIN 2
 
-//#define STBY_PIN 5
+//**Battery pin**
+#define BATT A0
 
 //**Radio pins**
 #define CE_PIN 9    //RX

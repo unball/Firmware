@@ -6,6 +6,7 @@
 #include "radio.hpp"
 #include "motor.hpp"
 #include "waves.hpp"
+#include "battery.hpp"
 
 
 Radio::dataStruct vel;
@@ -23,7 +24,7 @@ void loop() {
 	#if WEMOS_DEBUG
 		Serial.println("LOOP!");
 		
-		//=========Radio==========
+		//=========Radio===============
 		// Velocidades a serem lidas do rádio, são estáticas de modo que se Radio::receiveData não receber nada, mantém-se a velocidade anterior
         static double v = 0;
         static double w = 0;
@@ -32,10 +33,19 @@ void loop() {
 		Serial.print("a: ");Serial.print(v);Serial.print("\tb: ");Serial.println(w);
 		//=========End Radio===========
 
+		//=========Bateria===============
+		static float voltage = 0.0;
+		static float voltagePerc = 0.0;
+		Battery::measure(&voltagePerc);
+		voltage = Battery::map_float(voltage, 0, 100, 0, MAX_VOLTAGE);
+		Serial.println("Bateria:");
+		Serial.print("Tensão aproximada: ");Serial.print(voltage);Serial.print("%\tPorcentagem: ");Serial.println(voltagePerc);
+		//=========End Bateria===========
+
 		//=========Motor===============
 		Motor::move(0, 50);
 		Motor::move(1, 50);
-		//=========End Motor==========
+		//=========End Motor===========
 
 		delay(100);
 	#else
@@ -55,9 +65,8 @@ void loop() {
 			Motor::move(1, v);
 		}
 
-		// Executa o controle normalmente com as velocidades de referência
+		// Manda velocidades pro motor
 		else {
-			// Passa para a planta a saída do controle digital e da malha acoplada
 			Motor::move(0, v);
 			Motor::move(1, w);
 		}
