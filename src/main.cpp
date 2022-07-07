@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-#define WEMOS_DEBUG false
+#define WEMOS_DEBUG true
 #define ROBOT_NUMBER 0
 
 #include "radio.hpp"
@@ -13,11 +13,14 @@ Radio::dataStruct vel;
 
 void setup() {	
 
-	//Serial.begin(9600);
-	//while(!Serial);
+	Serial.begin(9600);
+	// while(!Serial);
+	Serial.println("SETUP!");
 
-	Radio::setup(0, 3);
+	// Radio::setup(0, 3);
 	Motor::setup();
+
+	pinMode(LED_BUILTIN, OUTPUT);
 }
 
 void loop() {
@@ -26,11 +29,11 @@ void loop() {
 		
 		//=========Radio===============
 		// Velocidades a serem lidas do rádio, são estáticas de modo que se Radio::receiveData não receber nada, mantém-se a velocidade anterior
-        static double v = 0;
-        static double w = 0;
-		Radio::receiveData(&v, &w);
-		Serial.println("Radio:");
-		Serial.print("a: ");Serial.print(v);Serial.print("\tb: ");Serial.println(w);
+        // static double v = 0;
+        // static double w = 0;
+		// Radio::receiveData(&v, &w);
+		// Serial.println("Radio:");
+		// Serial.print("a: ");Serial.print(v);Serial.print("\tb: ");Serial.println(w);
 		//=========End Radio===========
 
 		//=========Bateria===============
@@ -47,7 +50,10 @@ void loop() {
 		Motor::move(1, 50);
 		//=========End Motor===========
 
-		delay(100);
+		digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
+		delay(1000);                       // wait for a second
+		digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
+		delay(1000); 
 	#else
 		// Velocidades a serem lidas do rádio, são estáticas de modo que se Radio::receiveData não receber nada, mantém-se a velocidade anterior
 		static double v = 0;
