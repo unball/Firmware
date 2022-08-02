@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <RF24.h>
+#include <SPI.h>
 #include <stdint-gcc.h>
 #include "pins.h"
 

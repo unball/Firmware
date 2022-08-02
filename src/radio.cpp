@@ -4,14 +4,15 @@
 
 namespace Radio {
 
-  //dataStruct velocidades;
+  dataStruct velocidades;
 
-  RF24 radio(CE_PIN, CS_PIN);
+  RF24 radio;
+  //RF24 radio(CE_PIN, CS_PIN);
   //RF24 *radio;
 
   const uint64_t channels[4] = { 0xABCDABCD71L, 0x544d52687CL, 0x644d52687CL, 0x744d52687CL };
-  uint64_t channelSend;
-  uint64_t channelReceive;
+  uint64_t channelEnvia;
+  uint64_t channelRecebe;
 
   uint8_t robotNumber;
 
@@ -19,16 +20,21 @@ namespace Radio {
   
   void setup(uint8_t robot, uint8_t sendChannel){
     //*radio = RF24(9, 10);
-    robotNumber = robot; 
-    channelReceive=channels[robot];
-    channelSend=channels[sendChannel];
-    radio.begin();                           // inicializa radio
+    robotNumber = robot;
+    channelRecebe=channels[robot];
+    channelEnvia=channels[sendChannel];
+    if (!radio.begin()) {
+      Serial.println("radio is not responding");
+    } else {
+      Serial.println("******radio OK*****");
+    }
+     radio.begin();                           // inicializa radio
     radio.setChannel(108);                   //muda para um canal de frequencia diferente de 2.4Ghz
     radio.setPALevel(RF24_PA_MAX);           //usa potencia maxima
     radio.setDataRate(RF24_2MBPS);           //usa velocidade de transmissao maxima
 
-    radio.openWritingPipe(channelSend);        //escreve pelo pipe0 SEMPRE
-    radio.openReadingPipe(1,channelReceive);      //escuta pelo pipe1, evitar usar pipe0
+    radio.openWritingPipe(channelEnvia);        //escreve pelo pipe0 SEMPRE
+    radio.openReadingPipe(1,channelRecebe);      //escuta pelo pipe1, evitar usar pipe0
 
     radio.enableDynamicPayloads();           //ativa payloads dinamicos(pacote tamamhos diferentes do padrao)
 
@@ -39,8 +45,9 @@ namespace Radio {
     lastReceived = micros();
 
     // Ajusta o tamanho dos pacotes ao tamanho da mensagem
-    radio.setPayloadSize(sizeof(dataStruct)); 
+    radio.setPayloadSize(sizeof(dataStruct));
 
+    radio.stopListening();
   }
 
   bool receiveData(double *v, double *w){ // recebe mensagem via radio, se receber uma mensagem retorna true, se não retorna false
@@ -49,12 +56,11 @@ namespace Radio {
       radio.read(&data,sizeof(dataStruct));
 
       // Demultiplexa a mensagem e decodifica
-      *v = data.v;
+      *v = data.v * 2.0 / 32767;
 
       // Se ultrapassar um certo valor, faz um spin a 360 rad/s
-      //if (abs(data.w) > 32000) *w = (data.w >= 0 ? 1 : -1) * 360;
-      //else *w = data.w * 64.0 / 32767;
-      *w = data.w;
+      if (abs(data.w) > 32000) *w = (data.w >= 0 ? 1 : -1) * 360;
+      else *w = data.w * 64.0 / 32767;
 
       // Atualiza o tempo de recebimento
       lastReceived = micros();
