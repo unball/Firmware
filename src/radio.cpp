@@ -28,7 +28,6 @@ namespace Radio {
     } else {
       Serial.println("******radio OK*****");
     }
-    radio.begin();                           // inicializa radio
     radio.setChannel(108);                   //muda para um canal de frequencia diferente de 2.4Ghz
     radio.setPALevel(RF24_PA_MAX);           //usa potencia maxima
     radio.setDataRate(RF24_2MBPS);           //usa velocidade de transmissao maxima
@@ -46,8 +45,6 @@ namespace Radio {
 
     // Ajusta o tamanho dos pacotes ao tamanho da mensagem
     radio.setPayloadSize(sizeof(dataStruct));
-
-    //radio.stopListening();
   }
 
   bool receiveData(double *v, double *w){ // recebe mensagem via radio, se receber uma mensagem retorna true, se não retorna false
