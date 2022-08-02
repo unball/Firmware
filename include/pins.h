@@ -17,8 +17,8 @@
 #define BATT A0
 
 //**Radio pins**
-#define CE_PIN RX    //RX
-#define CS_PIN TX   //TX
+#define CE_PIN 0    //RX
+#define CS_PIN RX  //TX
 #define MOSI_PIN D7
 #define MISO_PIN D6
 #define SCK_PIN D5

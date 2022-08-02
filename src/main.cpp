@@ -16,7 +16,7 @@ void setup() {
 
 	Serial.begin(9600);
 	while(!Serial);
-	delay(2000);
+	delay(5000);
 	Serial.println("START");
 	
 	//Serial.setDebugOutput(true);
