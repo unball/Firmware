@@ -1,6 +1,5 @@
 #include <Arduino.h>
 
-
 #define WEMOS_DEBUG true
 #define ROBOT_NUMBER 0
 
