@@ -46,8 +46,8 @@ namespace Motor {
         digitalWrite(pin1[motor], inPin1);
         digitalWrite(pin2[motor], inPin2);
         analogWrite(PWM[motor], abs(power));
-        Serial.print("Motor: ");Serial.print(motor);Serial.print("%\tinpin1 ");Serial.print(inPin1);
-        Serial.print("\tinpin2: ");Serial.println(inPin2);
+        //Serial.print("Motor: ");Serial.print(motor);Serial.print("%\tinpin1 ");Serial.print(inPin1);
+        //Serial.print("\tinpin2: ");Serial.println(inPin2);
     }
 
     //Stops current for the motors
