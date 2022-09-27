@@ -20,10 +20,10 @@ void setup() {
 	
 	//Serial.setDebugOutput(true);
 	//Serial.begin(9600);
-	//pinMode(LED_BUILTIN, OUTPUT);  // initialize onboard LED as output
 	Radio::setup(0, 3);
 	//RF24 radio(CE_PIN, CS_PIN);
 	Motor::setup();
+	pinMode(BATT,INPUT);
 	
 }
 
@@ -43,17 +43,24 @@ void loop() {
 		//=========End Radio===========
 
 		//=========Bateria===============
-		//static float voltage = 0.0;
-		//static float voltagePerc = 0.0;
-		//Battery::measure(&voltagePerc);
+		static float voltage = 0.0;
+		static float voltagePerc = 0.0;
+		Battery::measure(&voltage, &voltagePerc);
 		//voltage = Battery::map_float(voltage, 0, 100, 0, MAX_VOLTAGE);
-		//Serial.println("Bateria:");
-		//Serial.print("Tensão aproximada: ");Serial.print(voltage);Serial.print("%\tPorcentagem: ");Serial.println(voltagePerc);
+		Serial.println("Bateria:");
+		Serial.print("Tensão aproximada: ");Serial.print(voltage);//Serial.print("\tPorcentagem: ");Serial.println(voltagePerc);
 		//=========End Bateria===========
 
 		//=========Motor===============
-		Motor::move(0, 50);
-		Motor::move(1, 50);
+		Motor::move(0, 100);
+		Motor::move(1, 100);
+		//if(Radio::isRadioLost()){
+		//	w = 0;
+		//	v = Waves::sine_wave();
+
+		//	Motor::move(0, v);
+		//	Motor::move(1, v);
+		//}
 		//delay(500);
 		//Motor::stop();
 		//=========End Motor===========
