@@ -81,8 +81,22 @@ namespace Control {
         static double old_out;
         double out = (  1.6 * (err - 0.91  *  old_err) + old_out);
         old_err = err; //- (saturation(out)-out);
+        //  1.6 * (1-0.91 * z^-1)/(1-z^-1)
+        //  1.6 * (z-0.91)/(z-1)    Projetado a partir do LGR pro motor (identificação o motor)
+        //
+        // 1 - Identificar novo motor (com carga/com roda e no chão)
+        //                              -MATLAB identificação de sistemas
+        //                              -sintonização de constantes
+        // 2 - Projetar um controlador (contínuo)
+        // 3 - Discretizar controlador (mapeamento direto com transformada z)
+        //                              -comando MATLAB: c2d(tf,T,"matched")
+        // 4 - Expandir função de transferencia e isolar U(z)
+        // 5 - Transformada inversa de z
+        //
+        //  z = e^(sT)
+
         
-        old_out = (abs(out) < 255)? out : 0;
+        old_out = (abs(out) < 255)? out : 0;    // anti-windup (evita que o erro de saturação seja considerado como erro)
         return out;
     }
 
