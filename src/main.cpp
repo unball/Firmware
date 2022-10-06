@@ -34,28 +34,27 @@ void loop() {
         static double vr;
 		Radio::receiveData(&vl, &vr);
 		Serial.println("###################");
-		Serial.println("\tRadio:");
+		Serial.println("Radio:");
 		Serial.print("vl: ");Serial.print(vl);Serial.print("\tvr: ");Serial.println(vr);
 		Serial.println("###################");
 		//=========End Radio===========
 
 		//=========Bateria===============
-		static float voltage;
-		static float voltagePerc;
-		Battery::measure(&voltage, &voltagePerc);
+		static double voltage;
+		Battery::measure(&voltage);
 		Serial.println("Bateria:");
-		Serial.print("Tensão aproximada: ");Serial.print(voltage);//Serial.print("\tPorcentagem: ");Serial.println(voltagePerc);
+		Serial.print("Tensão aproximada: ");Serial.println(voltage);
 		//=========End Bateria===========
 
 		//=========Motor===============
 		Motor::move(0, 100);
 		Motor::move(1, 100);
 		//if(Radio::isRadioLost()){
-		//	w = 0;
-		//	v = Waves::sine_wave();
+		//	vr = 0;
+		//	vl = Waves::sine_wave();
 
-		//	Motor::move(0, v);
-		//	Motor::move(1, v);
+		//	Motor::move(0, vl);
+		//	Motor::move(1, vl);
 		//}
 		//=========End Motor===========
 		delay(500);
