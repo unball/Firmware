@@ -12,16 +12,13 @@
 Radio::dataStruct vel;
 
 void setup() {	
-
-	Serial.begin(9600);
-	while(!Serial);
-	delay(5000);
-	Serial.println("START");
-	
-	//Serial.setDebugOutput(true);
-	//Serial.begin(9600);
-	Radio::setup(0, 3);
-	//RF24 radio(CE_PIN, CS_PIN);
+	#if WEMOS_DEBUG
+		Serial.begin(9600);
+		while(!Serial);
+		delay(1000);
+		Serial.println("START");
+	#endif
+	Radio::setup(ROBOT_NUMBER, 3);
 	Motor::setup();
 	pinMode(BATT,INPUT);
 	
@@ -33,20 +30,19 @@ void loop() {
 		
 		//=========Radio===============
 		// Velocidades a serem lidas do rádio, são estáticas de modo que se Radio::receiveData não receber nada, mantém-se a velocidade anterior
-        static double v = 0;
-        static double w = 0;
-		Radio::receiveData(&v, &w);
+        static double vl;
+        static double vr;
+		Radio::receiveData(&vl, &vr);
 		Serial.println("###################");
-		Serial.println("tRadio:");
-		Serial.print("a: ");Serial.print(v);Serial.print("\tb: ");Serial.println(w);
+		Serial.println("\tRadio:");
+		Serial.print("vl: ");Serial.print(vl);Serial.print("\tvr: ");Serial.println(vr);
 		Serial.println("###################");
 		//=========End Radio===========
 
 		//=========Bateria===============
-		static float voltage = 0.0;
-		static float voltagePerc = 0.0;
+		static float voltage;
+		static float voltagePerc;
 		Battery::measure(&voltage, &voltagePerc);
-		//voltage = Battery::map_float(voltage, 0, 100, 0, MAX_VOLTAGE);
 		Serial.println("Bateria:");
 		Serial.print("Tensão aproximada: ");Serial.print(voltage);//Serial.print("\tPorcentagem: ");Serial.println(voltagePerc);
 		//=========End Bateria===========
@@ -61,40 +57,31 @@ void loop() {
 		//	Motor::move(0, v);
 		//	Motor::move(1, v);
 		//}
-		//delay(500);
-		//Motor::stop();
 		//=========End Motor===========
-		//Serial.println("Hello World.");
-		//digitalWrite(LED_BUILTIN, HIGH);  // turn on LED with voltage HIGH
-		//delay(500);                      // wait one second
-		//digitalWrite(LED_BUILTIN, LOW);   // turn off LED with voltage LOW
 		delay(500);
-		
-		//delay(100);
 	#else
 		// Velocidades a serem lidas do rádio, são estáticas de modo que se Radio::receiveData não receber nada, mantém-se a velocidade anterior
-		static double v = 0;
-		static double w = 0;
+		static double vl;
+		static double vr;
 
 		// Lê velocidade do rádio
-		Radio::receiveData(&v, &w);
+		Radio::receiveData(&vl, &vr);
 
 		// Rádio foi perdido, mais de 2s sem mensagens
 		if(Radio::isRadioLost()){
-			w = 0;
-			v = Waves::sine_wave();
+			vr = 0;
+			vl = Waves::sine_wave();
 
-			Motor::move(0, v);
-			Motor::move(1, v);
+			Motor::move(0, vl);
+			Motor::move(1, vl);
 		}
 
 		// Manda velocidades pro motor
 		else {
-			Motor::move(0, v);
-			Motor::move(1, w);
+			Motor::move(0, vl);
+			Motor::move(1, vr);
 		}
 
 	#endif
-
 
 }
