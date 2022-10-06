@@ -12,28 +12,14 @@
 namespace Radio{
 
     struct dataStruct{
-        int16_t v;
-        int16_t w;
-    };
-    
-    struct reportStruct{
-        uint32_t time;
-        float v,w;
-        int16_t va,vb;
-        float enca, encb;
-        float imuw;
-    };
-
-    struct vels{
-        float v;
-        float w;
+        int16_t vl;
+        int16_t vr;
     };
 
     extern RF24 radio;
 
     void setup(uint8_t robot, uint8_t sendChannel);
-    bool receiveData(double *v, double *w);
-    void reportMessage(reportStruct *);
+    bool receiveData(double *vl, double *vr);
     bool isRadioLost();
 }
 
