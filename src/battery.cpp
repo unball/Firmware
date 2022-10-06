@@ -16,14 +16,12 @@ namespace Battery{
         2.96V x
     */
 
-    void measure(float *voltage, float *percentage){
-        // read the input on analog pin 0:
+    void measure(double *voltage){
         int sensorValue = analogRead(BATT);
-        // Convert the analog reading (which goes from 0 - 1023) to a voltage (0 - 3.2V):
-        float voltage_read = sensorValue * (3.3 / 1023);
-        *voltage = voltage_read; //* (8.5 / 2.9025);
-
-        //Serial.print("Tensão em A0:");Serial.println(voltage_read);
+        Serial.print("ANALOGREAD:");Serial.println(sensorValue);
+        //double voltage_read = sensorValue * (3.2 / 1023);           // Convert the analog reading (which goes from 0 - 1023) to a voltage (0 - 3.2V):
+        //*voltage =voltage_read * (7.75 / 2.906);
+        *voltage = sensorValue * 0.0094 - 0.349;
     }
 /*
 void measure(float *voltage){
