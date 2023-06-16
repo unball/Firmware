@@ -14,3 +14,19 @@ Once the VScode editor is installed to install de platformIO extention follow th
 **IF USING A EXTERNAL POWER SUPLY, USE THE ADAPTED NO POWER USB CABLE**
 
 Use the platformIO extention options to build and upload the code.
+
+## Debuging 
+
+You can use the debug from PlataformIO with VSCode or change the line in ```main.cpp```:
+
+```
+#define WEMOS_DEBUG false
+```
+
+to 
+
+```
+#define WEMOS_DEBUG true
+```
+
+Note that to upload the firmware, you don't need the debug to be true!!! 
