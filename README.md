@@ -29,4 +29,4 @@ to
 #define WEMOS_DEBUG true
 ```
 
-Note that to upload the firmware, you don't need the debug to be true!!! 
+Note that to upload the firmware, you have to put WEMOS_DEBUG to false. 
