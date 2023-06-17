@@ -15,7 +15,7 @@ Once the VScode editor is installed to install de platformIO extention follow th
 
 Use the platformIO extention options to build and upload the code.
 
-## Debuging 
+## Debugging 
 
 You can use the debug from PlataformIO with VSCode or change the line in ```main.cpp```:
 
