@@ -30,3 +30,15 @@ to
 ```
 
 Note that to upload the firmware, you have to put WEMOS_DEBUG to false. 
+
+## Note!!
+
+At ```platformio.ini``` the default upload port to the project is 
+
+```
+upload_port = /dev/ttyUSB0
+```
+
+But if you disconnect and connect the usb again, the port can be ```/dev/ttyUSB1```. And an error could occur. 
+
+Besides that, in your OS the serial port could be ```/deb/ttyACM0``` or ```/deb/ttyACM1``` (if the situation above happens).
