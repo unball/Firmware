@@ -61,4 +61,10 @@ namespace Radio {
       if((micros() - lastReceived) > RADIO_THRESHOLD) return true;
       return false;
   }
+
+  // Checks if received any message from radio in the last threshold us
+  bool isRadioDisconnected(){
+      if((micros() - lastReceived) > RADIO_RESET_THRESHOLD) return true;
+      return false;
+  }
 }
