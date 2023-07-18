@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-#define WEMOS_DEBUG true
+#define WEMOS_DEBUG false
 #define ROBOT_NUMBER 0
 
 #include "radio.hpp"
@@ -68,6 +68,9 @@ void loop() {
 
 		// Rádio foi perdido, mais de 2s sem mensagens
 		if(Radio::isRadioLost()){
+			// Rádio foi disconectado, mais de 5s sem mensagens
+			if(Radio::isRadioDisconnected())
+				ESP.restart();
 			vr = 0;
 			vl = Waves::sine_wave();
 
