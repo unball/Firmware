@@ -8,6 +8,7 @@
 #include "pins.h"
 
 #define RADIO_THRESHOLD 2000000
+#define RADIO_RESET_THRESHOLD 5000000
 
 namespace Radio{
 
@@ -21,6 +22,7 @@ namespace Radio{
     void setup(uint8_t robot, uint8_t sendChannel);
     bool receiveData(double *vl, double *vr);
     bool isRadioLost();
+    bool isRadioDisconnected();
 }
 
 
