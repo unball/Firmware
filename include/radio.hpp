@@ -7,8 +7,11 @@
 #include <stdint-gcc.h>
 #include "pins.h"
 
-#define RADIO_THRESHOLD 2000000
-#define RADIO_RESET_THRESHOLD 4000000
+#define RADIO_THRESHOLD 10000000
+#define RADIO_RESET_THRESHOLD 11000000
+
+// #define RADIO_THRESHOLD 2000000
+// #define RADIO_RESET_THRESHOLD 4000000
 
 namespace Radio{
 
