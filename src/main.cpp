@@ -2,7 +2,7 @@
 #include <ESP8266WiFi.h>
 #include <espnow.h>
 
-#define WEMOS_DEBUG true
+#define WEMOS_DEBUG false
 #define ROBOT_NUMBER 1
 
 #include "radio.hpp"
@@ -11,6 +11,7 @@
 
 typedef struct dataStruct
 {
+	int16_t id;
 	int16_t vl;
 	int16_t vr;
 } dataStruct;
@@ -18,19 +19,19 @@ typedef struct dataStruct
 //Cria uma struct_message chamada myData
 dataStruct vel;
 
+volatile static uint32_t lastReceived;
+
+double vl = 0;
+double vr = 0;
+
 //Funcao de Callback executada quando a mensagem for recebida
 void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len)
 {
-  memcpy(&vel, incomingData, sizeof(vel));
-  Serial.println();
-  Serial.print("Bytes recebidos: ");
-  Serial.println(len);
-  Serial.print("String: (");
-  Serial.print(vel.vl);
-  Serial.println(")");
-  Serial.print("String: (");
-  Serial.print(vel.vr);
-  Serial.println(")");
+	memcpy(&vel, incomingData, sizeof(vel));
+	if(vel.id == ROBOT_NUMBER)
+		vl = vel.vl;
+		vr = vel.vr;
+		lastReceived = micros();
 }
 
 void setup() {	
@@ -49,8 +50,8 @@ void setup() {
 	esp_now_set_self_role(ESP_NOW_ROLE_SLAVE);
   	esp_now_register_recv_cb(OnDataRecv);
 	
-	Radio::setup(ROBOT_NUMBER, 3);
 	Motor::setup();
+	lastReceived = micros();
 	
 }
 
@@ -72,7 +73,7 @@ void loop() {
 		//=========Wifi===============
 		Serial.println("###################");
 		Serial.println("Radio:");
-		Serial.print("vl: ");Serial.print(vel.vl);Serial.print("\tvr: ");Serial.println(vel.vr);
+		Serial.print("vl: ");Serial.print(vl);Serial.print("\tvr: ");Serial.println(vr);
 		Serial.println("###################");
 		//=========End Wifi===========
 
@@ -89,17 +90,10 @@ void loop() {
 		//=========End Motor===========
 		delay(500);
 	#else
-		// Velocidades a serem lidas do rádio, são estáticas de modo que se Radio::receiveData não receber nada, mantém-se a velocidade anterior
-		static double vl;
-		static double vr;
-
-		// Lê velocidade do rádio
-		Radio::receiveData(&vl, &vr);
-
 		// Rádio foi perdido, mais de 2s sem mensagens
-		if(Radio::isRadioLost()){
+		if((micros() - lastReceived) > RADIO_THRESHOLD){
 			// Rádio foi disconectado, mais de 5s sem mensagens
-			if(Radio::isRadioDisconnected())
+			if((micros() - lastReceived) > RADIO_RESET_THRESHOLD)
 				ESP.restart();
 			vr = 0;
 			vl = Waves::sine_wave();
