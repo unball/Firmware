@@ -28,10 +28,11 @@ double vr = 0;
 void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len)
 {
 	memcpy(&vel, incomingData, sizeof(vel));
-	if(vel.id == ROBOT_NUMBER)
+	if(vel.id == ROBOT_NUMBER){
 		vl = vel.vl;
 		vr = vel.vr;
 		lastReceived = micros();
+	}
 }
 
 void setup() {	
