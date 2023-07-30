@@ -1,26 +1,58 @@
 #include <Arduino.h>
+#include <ESP8266WiFi.h>
+#include <espnow.h>
 
 #define WEMOS_DEBUG false
-#define ROBOT_NUMBER 0
+#define ROBOT_NUMBER 1
 
 #include "radio.hpp"
 #include "motor.hpp"
 #include "waves.hpp"
-#include "battery.hpp"
 
+typedef struct dataStruct
+{
+	int16_t id;
+	int16_t vl;
+	int16_t vr;
+} dataStruct;
 
-Radio::dataStruct vel;
+//Cria uma struct_message chamada myData
+dataStruct vel;
+
+volatile static uint32_t lastReceived;
+
+double vl = 0;
+double vr = 0;
+
+//Funcao de Callback executada quando a mensagem for recebida
+void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len)
+{
+	memcpy(&vel, incomingData, sizeof(vel));
+	if(vel.id == ROBOT_NUMBER){
+		vl = vel.vl;
+		vr = vel.vr;
+		lastReceived = micros();
+	}
+}
 
 void setup() {	
 	#if WEMOS_DEBUG
-		Serial.begin(9600);
+  		Serial.begin(115200);
 		while(!Serial);
 		delay(1000);
 		Serial.println("START");
 	#endif
-	Radio::setup(ROBOT_NUMBER, 3);
+
+	WiFi.mode(WIFI_STA);
+	if (esp_now_init() != 0) {
+		Serial.println("Erro ao inicializar o ESP-NOW");
+		return;
+	}
+	esp_now_set_self_role(ESP_NOW_ROLE_SLAVE);
+  	esp_now_register_recv_cb(OnDataRecv);
+	
 	Motor::setup();
-	pinMode(BATT,INPUT);
+	lastReceived = micros();
 	
 }
 
@@ -30,21 +62,21 @@ void loop() {
 		
 		//=========Radio===============
 		// Velocidades a serem lidas do rádio, são estáticas de modo que se Radio::receiveData não receber nada, mantém-se a velocidade anterior
-        static double vl;
-        static double vr;
-		Radio::receiveData(&vl, &vr);
+        // static double vl;
+        // static double vr;
+		// Radio::receiveData(&vl, &vr);
+		// Serial.println("###################");
+		// Serial.println("Radio:");
+		// Serial.print("vl: ");Serial.print(vl);Serial.print("\tvr: ");Serial.println(vr);
+		// Serial.println("###################");
+		//=========End Radio===========
+
+		//=========Wifi===============
 		Serial.println("###################");
 		Serial.println("Radio:");
 		Serial.print("vl: ");Serial.print(vl);Serial.print("\tvr: ");Serial.println(vr);
 		Serial.println("###################");
-		//=========End Radio===========
-
-		//=========Bateria===============
-		static double voltage;
-		Battery::measure(&voltage);
-		Serial.println("Bateria:");
-		Serial.print("Tensão aproximada: ");Serial.println(voltage);
-		//=========End Bateria===========
+		//=========End Wifi===========
 
 		//=========Motor===============
 		Motor::move(0, 100);
@@ -59,17 +91,10 @@ void loop() {
 		//=========End Motor===========
 		delay(500);
 	#else
-		// Velocidades a serem lidas do rádio, são estáticas de modo que se Radio::receiveData não receber nada, mantém-se a velocidade anterior
-		static double vl;
-		static double vr;
-
-		// Lê velocidade do rádio
-		Radio::receiveData(&vl, &vr);
-
 		// Rádio foi perdido, mais de 2s sem mensagens
-		if(Radio::isRadioLost()){
+		if((micros() - lastReceived) > RADIO_THRESHOLD){
 			// Rádio foi disconectado, mais de 5s sem mensagens
-			if(Radio::isRadioDisconnected())
+			if((micros() - lastReceived) > RADIO_RESET_THRESHOLD)
 				ESP.restart();
 			vr = 0;
 			vl = Waves::sine_wave();
