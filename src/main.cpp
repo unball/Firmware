@@ -8,6 +8,7 @@
 #include "radio.hpp"
 #include "motor.hpp"
 #include "waves.hpp"
+#include "imu.hpp"
 
 typedef struct dataStruct
 {
@@ -52,8 +53,9 @@ void setup() {
   	esp_now_register_recv_cb(OnDataRecv);
 	
 	Motor::setup();
+	Imu::setup();
+
 	lastReceived = micros();
-	
 }
 
 void loop() {
@@ -66,6 +68,13 @@ void loop() {
 		Serial.print("vl: ");Serial.print(vl);Serial.print("\tvr: ");Serial.println(vr);
 		Serial.println("###################");
 		//=========End Wifi===========
+
+		//=========IMU===============
+		Serial.println("###################");
+		Serial.println("IMU:");
+		Serial.print("theta: ");Serial.println(Imu::get_theta_speed());
+		Serial.println("###################");
+		//=========End IMU===========
 
 		//=========Motor===============
 		Motor::move(0, 100);
