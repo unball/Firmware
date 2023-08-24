@@ -2,8 +2,8 @@
 #include <ESP8266WiFi.h>
 #include <espnow.h>
 
-#define WEMOS_DEBUG false
-#define ROBOT_NUMBER 1
+#define WEMOS_DEBUG true
+#define ROBOT_NUMBER 0
 
 #include "radio.hpp"
 #include "motor.hpp"
@@ -59,17 +59,6 @@ void setup() {
 void loop() {
 	#if WEMOS_DEBUG
 		Serial.println("LOOP!");
-		
-		//=========Radio===============
-		// Velocidades a serem lidas do rádio, são estáticas de modo que se Radio::receiveData não receber nada, mantém-se a velocidade anterior
-        // static double vl;
-        // static double vr;
-		// Radio::receiveData(&vl, &vr);
-		// Serial.println("###################");
-		// Serial.println("Radio:");
-		// Serial.print("vl: ");Serial.print(vl);Serial.print("\tvr: ");Serial.println(vr);
-		// Serial.println("###################");
-		//=========End Radio===========
 
 		//=========Wifi===============
 		Serial.println("###################");
