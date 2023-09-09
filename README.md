@@ -65,7 +65,7 @@ We recommend to comment the code line above because Windows handles serial ports
 
 ### Caution 
 
-If the plataform.io isn't showing all tty ports on ubuntu it probobably is related to BRLTTY modules, then we gonna have to remove it. Don't worry this module is related this module is for acessibility related to braile display onto ubuntu.
+If the plataform.io isn't showing any ttyUSB or ttyACM ports on ubuntu it probably is related to BRLTTY modules, then we gonna have to remove it. Don't worry this module is related this module is for acessibility related to braile display onto ubuntu.
 
 To start it you gotta list all the devices, just to check if it's working
 
@@ -75,7 +75,7 @@ ls /dev/ttyUSB*
 ls /dev/ttyACM*
 ```
 
-if the port isn't showing there, the system hasn't laoded the board, then it probably is the module, to remove it:
+if the port isn't showing there, the system hasn't loaded the board, then it probably is the module, to remove it:
 
 ```bash
 sudo apt-get remove --auto-remove brltty
