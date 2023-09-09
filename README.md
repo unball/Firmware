@@ -88,6 +88,6 @@ ls /dev/ttyUSB*
 ls /dev/ttyACM*
 ```
 
-it probably fixed it, for you but if it hasn't fixed try the link below.
+it probably fixed it for you, but if it hasn't fixed try the link below.
 
 [Link to debug it or if you wanna see the original solution](https://forum.arduino.cc/t/ubuntu-arduino-ide-not-showing-any-ports/1043925/19)
