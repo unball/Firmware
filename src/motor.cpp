@@ -23,7 +23,7 @@ namespace Motor {
         pinMode(BIN1_PIN, OUTPUT);
         pinMode(BIN2_PIN, OUTPUT);
 
-        digitalWrite(STBY_PIN, LOW);    // STARTS WITH MOTOR STOPPED
+        // digitalWrite(STBY_PIN, LOW);    // STARTS WITH MOTOR STOPPED
     }
 
     void move(uint8_t motor, int32_t power) {
