@@ -24,6 +24,12 @@ dpkg -i path/to/debFile/debFileName.deb
 
 Once the VScode editor is installed to install de platformIO extention follow the instrutions at [PlatformIO - installation](https://platformio.org/install/ide?install=vscode).
 
+if PIO isn't working properly or isn't reading the python3.6.9, try:
+```bash
+sudo apt-get install python3-venv
+```
+then reboot VSCODE.
+
 ## Uploading
 **IF USING A EXTERNAL POWER SUPLY, USE THE ADAPTED NO POWER USB CABLE**
 
