@@ -7,6 +7,7 @@
 
 //TODO: change to typedef file with all macros and structs
 
+//**Motor pins**
 #define PWMA_PIN D4
 #define AIN1_PIN D0
 #define AIN2_PIN D8
