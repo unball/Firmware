@@ -9,14 +9,14 @@ namespace Wifi{
 
     typedef struct dataStruct
     {
-        uint8_t id;
-        double v;
-        double w;
+        int16_t id;
+        int16_t v;
+        int16_t w;
     } dataStruct;
 
     void setup(uint8_t robot);
     void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len);
-    void receiveData(double *v, double *w);
+    void receiveData(int16_t *v, int16_t *w);
     bool isCommunicationLost();
 
 }

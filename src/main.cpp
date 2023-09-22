@@ -8,8 +8,8 @@
 #include "waves.hpp"
 #include "imu.hpp"
 
-double v = 0;
-double w = 0;
+int16_t v = 0;
+int16_t w = 0;
 
 void setup() {	
 	#if WEMOS_DEBUG

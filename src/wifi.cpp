@@ -12,8 +12,8 @@ namespace Wifi{
 
     uint8_t robotNumber;
 
-    double v = 0;
-    double w = 0;
+    int16_t v = 0;
+    int16_t w = 0;
 
     void setup(uint8_t robot){
         robotNumber = robot;
@@ -35,7 +35,7 @@ namespace Wifi{
 	    lastReceived = micros();
     }
 
-    void receiveData(double *v, double *w){
+    void receiveData(int16_t *v, int16_t *w){
         // Protecting original data
         vel = temp_vel;
         if(vel.id == robotNumber){
