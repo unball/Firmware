@@ -8,6 +8,7 @@
 #include "radio.hpp"
 #include "motor.hpp"
 #include "waves.hpp"
+#include "IMU.hpp"
 
 typedef struct dataStruct
 {
