@@ -77,7 +77,7 @@ void loop() {
 		//=========IMU===============
 		Serial.println("###################");
 		Serial.println("IMU:");
-		Serial.print("theta: ");Serial.println(IMU::get_theta_speed());
+		Serial.print("theta: ");Serial.println(IMU::get_w());
 		Serial.println("###################");
 		//=========End IMU===========
 

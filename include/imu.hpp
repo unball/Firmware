@@ -12,7 +12,7 @@ namespace IMU{
 
     void setup_debug();
     void setup();
-    float get_theta_speed();
+    float get_w();
 }
 
 #endif

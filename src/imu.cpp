@@ -27,7 +27,7 @@ namespace IMU{
         mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
     }
 
-    float get_theta_speed(){
+    float get_w(){
         sensors_event_t a, g, temp;
         mpu.getEvent(&a, &g, &temp);
         float theta = g.gyro.z; 
