@@ -1,6 +1,6 @@
-#include "IMU.hpp"
+#include "imu.hpp"
 
-namespace Imu{
+namespace IMU{
 
     Adafruit_MPU6050 mpu;
 
