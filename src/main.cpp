@@ -5,7 +5,6 @@
 #define WEMOS_DEBUG false
 #define ROBOT_NUMBER 1
 
-#include "radio.hpp"
 #include "motor.hpp"
 #include "waves.hpp"
 #include "imu.hpp"
@@ -62,17 +61,6 @@ void setup() {
 void loop() {
 	#if WEMOS_DEBUG
 		Serial.println("LOOP!");
-		
-		//=========Radio===============
-		// Velocidades a serem lidas do rádio, são estáticas de modo que se Radio::receiveData não receber nada, mantém-se a velocidade anterior
-        // static double v;
-        // static double w;
-		// Radio::receiveData(&v, &w);
-		// Serial.println("###################");
-		// Serial.println("Radio:");
-		// Serial.print("v: ");Serial.print(v);Serial.print("\tw: ");Serial.println(w);
-		// Serial.println("###################");
-		//=========End Radio===========
 
 		//=========IMU===============
 		Serial.println("###################");
@@ -91,13 +79,6 @@ void loop() {
 		//=========Motor===============
 		Motor::move(0, 100);
 		Motor::move(1, 100);
-		//if(Radio::isRadioLost()){
-		//	w = 0;
-		//	v = Waves::sine_wave();
-
-		//	Motor::move(0, v);
-		//	Motor::move(1, v);
-		//}
 		//=========End Motor===========
 		delay(500);
 	#else
