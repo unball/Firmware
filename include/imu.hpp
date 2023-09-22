@@ -10,6 +10,7 @@ namespace IMU{
 
     extern Adafruit_MPU6050 mpu;
 
+    void setup_debug();
     void setup();
     float get_theta_speed();
 }
