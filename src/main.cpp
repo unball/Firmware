@@ -16,7 +16,8 @@ typedef struct dataStruct
 	float w;
 } dataStruct;
 
-//Cria uma struct_message chamada myData
+dataStruct temp_vel;
+
 dataStruct vel;
 
 volatile static uint32_t lastReceived;
@@ -24,15 +25,11 @@ volatile static uint32_t lastReceived;
 double v = 0;
 double w = 0;
 
-//Funcao de Callback executada quando a mensagem for recebida
+// Callback function, execute when message is received via Wi-Fi
 void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len)
 {
-	memcpy(&vel, incomingData, sizeof(vel));
-	if(vel.id == ROBOT_NUMBER){
-		v = vel.v;
-		w = vel.w;
-		lastReceived = micros();
-	}
+	memcpy(&temp_vel, incomingData, sizeof(vel));
+	lastReceived = micros();
 }
 
 void setup() {	
@@ -91,9 +88,9 @@ void loop() {
 		//=========End Motor===========
 		delay(500);
 	#else
-		// Rádio foi perdido, mais de 2s sem mensagens
+		// Communication has been lost
 		if((micros() - lastReceived) > RADIO_THRESHOLD){
-			// Rádio foi disconectado, mais de 5s sem mensagens
+			// Communication probably failed
 			if((micros() - lastReceived) > RADIO_RESET_THRESHOLD)
 				ESP.restart();
 			w = 0;
@@ -103,8 +100,13 @@ void loop() {
 			Motor::move(1, v);
 		}
 
-		// Manda velocidades pro motor
 		else {
+			// Protecting original data
+			vel = temp_vel;
+			if(vel.id == ROBOT_NUMBER){
+				v = vel.v;
+				w = vel.w;
+			}
 			Motor::move(0, v);
 			Motor::move(1, w);
 		}
