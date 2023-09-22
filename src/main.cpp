@@ -49,6 +49,11 @@ void setup() {
 	esp_now_set_self_role(ESP_NOW_ROLE_SLAVE);
   	esp_now_register_recv_cb(OnDataRecv);
 	
+	#if WEMOS_DEBUG
+		IMU::setup_debug();
+	#else
+		IMU::setup();
+	#endif
 	Motor::setup();
 	lastReceived = micros();
 	
@@ -68,6 +73,13 @@ void loop() {
 		// Serial.print("v: ");Serial.print(v);Serial.print("\tw: ");Serial.println(w);
 		// Serial.println("###################");
 		//=========End Radio===========
+
+		//=========IMU===============
+		Serial.println("###################");
+		Serial.println("IMU:");
+		Serial.print("theta: ");Serial.println(IMU::get_theta_speed());
+		Serial.println("###################");
+		//=========End IMU===========
 
 		//=========Wifi===============
 		Serial.println("###################");
