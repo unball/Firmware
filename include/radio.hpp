@@ -13,14 +13,14 @@
 namespace Radio{
 
     struct dataStruct{
-        int16_t vl;
-        int16_t vr;
+        float v;
+        float w;
     };
 
     extern RF24 radio;
 
     void setup(uint8_t robot, uint8_t sendChannel);
-    bool receiveData(double *vl, double *vr);
+    bool receiveData(double *v, double *w);
     bool isRadioLost();
     bool isRadioDisconnected();
 }

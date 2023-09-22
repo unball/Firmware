@@ -41,13 +41,13 @@ namespace Radio {
     radio.setPayloadSize(sizeof(dataStruct));
   }
 
-  bool receiveData(double *vl, double *vr){ // recebe mensagem via radio, se receber uma mensagem retorna true, se não retorna false
+  bool receiveData(double *v, double *w){ // recebe mensagem via radio, se receber uma mensagem retorna true, se não retorna false
     dataStruct data;
     if(radio.available()){
       radio.read(&data,sizeof(dataStruct));
 
-      *vl = data.vl;
-      *vr = data.vr;
+      *v = data.v;
+      *w = data.w;
 
       // Atualiza o tempo de recebimento
       lastReceived = micros();

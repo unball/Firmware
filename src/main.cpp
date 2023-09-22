@@ -11,9 +11,9 @@
 
 typedef struct dataStruct
 {
-	int16_t id;
-	int16_t vl;
-	int16_t vr;
+	uint8_t id;
+	float v;
+	float w;
 } dataStruct;
 
 //Cria uma struct_message chamada myData
@@ -21,16 +21,16 @@ dataStruct vel;
 
 volatile static uint32_t lastReceived;
 
-double vl = 0;
-double vr = 0;
+double v = 0;
+double w = 0;
 
 //Funcao de Callback executada quando a mensagem for recebida
 void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len)
 {
 	memcpy(&vel, incomingData, sizeof(vel));
 	if(vel.id == ROBOT_NUMBER){
-		vl = vel.vl;
-		vr = vel.vr;
+		v = vel.v;
+		w = vel.w;
 		lastReceived = micros();
 	}
 }
@@ -62,19 +62,19 @@ void loop() {
 		
 		//=========Radio===============
 		// Velocidades a serem lidas do rádio, são estáticas de modo que se Radio::receiveData não receber nada, mantém-se a velocidade anterior
-        // static double vl;
-        // static double vr;
-		// Radio::receiveData(&vl, &vr);
+        // static double v;
+        // static double w;
+		// Radio::receiveData(&v, &w);
 		// Serial.println("###################");
 		// Serial.println("Radio:");
-		// Serial.print("vl: ");Serial.print(vl);Serial.print("\tvr: ");Serial.println(vr);
+		// Serial.print("v: ");Serial.print(v);Serial.print("\tw: ");Serial.println(w);
 		// Serial.println("###################");
 		//=========End Radio===========
 
 		//=========Wifi===============
 		Serial.println("###################");
 		Serial.println("Radio:");
-		Serial.print("vl: ");Serial.print(vl);Serial.print("\tvr: ");Serial.println(vr);
+		Serial.print("v: ");Serial.print(v);Serial.print("\tw: ");Serial.println(w);
 		Serial.println("###################");
 		//=========End Wifi===========
 
@@ -82,11 +82,11 @@ void loop() {
 		Motor::move(0, 100);
 		Motor::move(1, 100);
 		//if(Radio::isRadioLost()){
-		//	vr = 0;
-		//	vl = Waves::sine_wave();
+		//	w = 0;
+		//	v = Waves::sine_wave();
 
-		//	Motor::move(0, vl);
-		//	Motor::move(1, vl);
+		//	Motor::move(0, v);
+		//	Motor::move(1, v);
 		//}
 		//=========End Motor===========
 		delay(500);
@@ -96,17 +96,17 @@ void loop() {
 			// Rádio foi disconectado, mais de 5s sem mensagens
 			if((micros() - lastReceived) > RADIO_RESET_THRESHOLD)
 				ESP.restart();
-			vr = 0;
-			vl = Waves::sine_wave();
+			w = 0;
+			v = Waves::sine_wave();
 
-			Motor::move(0, vl);
-			Motor::move(1, vl);
+			Motor::move(0, v);
+			Motor::move(1, v);
 		}
 
 		// Manda velocidades pro motor
 		else {
-			Motor::move(0, vl);
-			Motor::move(1, vr);
+			Motor::move(0, v);
+			Motor::move(1, w);
 		}
 
 	#endif
