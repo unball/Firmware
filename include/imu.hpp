@@ -6,6 +6,8 @@
 #include <Adafruit_MPU6050.h>
 #include "pins.h"
 
+//TODO: Implement X and Y Offset
+
 namespace IMU{
 
     extern Adafruit_MPU6050 mpu;
