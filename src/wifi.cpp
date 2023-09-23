@@ -20,9 +20,9 @@ namespace Wifi{
 
         WiFi.mode(WIFI_STA);
         if (esp_now_init() != 0) {
-            Serial.println("Erro ao inicializar o ESP-NOW");
             return;
         }
+        WiFi.setOutputPower(MAX_POWER);
 
         esp_now_set_self_role(ESP_NOW_ROLE_SLAVE);
         esp_now_register_recv_cb(OnDataRecv);
