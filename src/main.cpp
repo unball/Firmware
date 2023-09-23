@@ -7,6 +7,7 @@
 #include "motor.hpp"
 #include "waves.hpp"
 #include "imu.hpp"
+#include "control.hpp"
 
 double v = 0;
 double w = 0;
@@ -54,19 +55,8 @@ void loop() {
 		//=========End Motor===========
 		delay(500);
 	#else
-		if(Wifi::isCommunicationLost()){
-			w = 0;
-			v = Waves::sine_wave();
-
-			Motor::move(0, v);
-			Motor::move(1, v);
-		}
-
-		else {
-			Wifi::receiveData(&v, &w);
-			Motor::move(0, v);
-			Motor::move(1, w);
-		}
+	
+		Control::stand();
 
 	#endif
 
