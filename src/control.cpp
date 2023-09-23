@@ -78,10 +78,16 @@ namespace Control {
 
         w = PID(v, eW);
 
-        int32_t controlR = (int32_t)(v - w);
-        int32_t controlL = (int32_t)(v + w);
+        //TODO: verificar se essa conta faz sentido. Se não, usar speed2motors do MALP:
+        // vr = (v + (L/2)*w) / r
+        // vl = (v - (L/2)*w) / r
+        // onde r = 0.016 e L = 0.075.
+        // então, as saídas estarão em m/s em cada uma das rodas, só então transformar para PWM
 
-        // // Passa para a planta a saída do controle digital e da malha acoplada
+        int32_t controlR = (int32_t)saturation((v - w));
+        int32_t controlL = (int32_t)saturation((v + w));
+
+        // Passes the control output to the plant 
         Motor::move(0, deadzone(controlR, 7, -7));
         Motor::move(1, deadzone(controlL, 7, -7));
     }
