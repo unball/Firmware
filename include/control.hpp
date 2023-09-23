@@ -2,16 +2,15 @@
 #define CONTROL_HPP
 
 #include <motor.hpp>
-#include <radio.hpp>
 #include <imu.hpp>
 #include <waves.hpp>
-
-typedef struct{
-    double lin;
-    double ang;
-} linAng;
+#include "wifi.hpp"
 
 namespace Control{
+	const float kp = -1.59521;
+	const float ki = -0.16864;
+	const float kd = 0.16686;
+
     void stand();
 }
 
