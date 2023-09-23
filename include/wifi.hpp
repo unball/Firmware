@@ -7,6 +7,8 @@
 
 namespace Wifi{
 
+    const float MAX_POWER = 10.5;
+
     typedef struct dataStruct
     {
         uint8_t id;
