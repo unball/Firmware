@@ -4,6 +4,9 @@ namespace Control {
 
     using namespace Waves;
 
+    double err_sum = 0;
+    double last_err = 0;
+
     /*
         Função que corrige a deadzone de um motor
 
@@ -44,76 +47,43 @@ namespace Control {
 
         @param Recebe o erro
     */
-    double PImotorA(double err){
-        static double old_err;
-        static double old_out;
-        double out = (  1.6 * (err - 0.91  *  old_err) + old_out);
-        old_err = err; //- (saturation(out)-out);
-        //  1.6 * (1-0.91 * z^-1)/(1-z^-1)
-        //  1.6 * (z-0.91)/(z-1)    Projetado a partir do LGR pro motor (identificação o motor)
-        //
-        // 1 - Identificar novo motor (com carga/com roda e no chão)
-        //                              -MATLAB identificação de sistemas
-        //                              -sintonização de constantes
-        // 2 - Projetar um controlador (contínuo)
-        // 3 - Discretizar controlador (mapeamento direto com transformada z)
-        //                              -comando MATLAB: c2d(tf,T,"matched")
-        // 4 - Expandir função de transferencia e isolar U(z)
-        // 5 - Transformada inversa de z
-        //
-        //  z = e^(sT)
-
+    double PID(double v, double err){
+        err_sum += err;
         
-        old_out = (abs(out) < 255)? out : 0;    // anti-windup (evita que o erro de saturação seja considerado como erro)
-        return out;
-    }
+        double P = err * kp;
+        double I = err_sum * ki;
+        double D = (err - last_err) * kd;
+        
+        double output = P+I+D;
 
-
-    /*
-        Implementa um PI digital com anti-windup para o motor B
-
-        @param Recebe o erro
-    */
-    double PImotorB(double err){
-        static double old_err;
-        static double old_out;
-        double out =  (  1.6 * (err  - 0.91 *  old_err) + old_out);
-        old_err = err; //- (saturation(out)-out);
-
-        old_out = (abs(out) < 255)? out : 0;;
-        return out;
+	    return output;
     }
 
     /*
         Implementa a malha de controle baixo nível
 
         @param v Velocidade linear de referência em m/s
-        @param currV Velocidade linear medida por algum sensor (média dos encoders) em m/s
         @param w Velocidade angular de referência em rad/s
         @param currW Velocidade angular medida por algum sensor (IMU) em rad/s
     */
-    void control(double w, double currW){
+    void control(double v, double w, double currW){
         
-        if (w == 0){
+        if (v == 0 && w == 0){
             Motor::stop();
             return;
         }
 
-        // Erro velocidade angular
+        // Angular velocity error
         double eW = w - currW;
-        
-        // Erro nos controladores
-        // double eA = eV + .2 * eW;
-        // double eB = eV - .2 * eW;
 
-        // // Controle digital
-        // int32_t controlA = (int32_t)PImotorA(eA/TICKS2METER);
-        // int32_t controlB = (int32_t)PImotorB(eB/TICKS2METER);
+        w = PID(v, eW);
 
+        int32_t controlR = (int32_t)(v - w);
+        int32_t controlL = (int32_t)(v + w);
 
         // // Passa para a planta a saída do controle digital e da malha acoplada
-        // Motor::move(0, deadzone(controlA, 7, -7));
-        // Motor::move(1, deadzone(controlB, 7, -7));
+        Motor::move(0, deadzone(controlR, 7, -7));
+        Motor::move(1, deadzone(controlL, 7, -7));
     }
 
     /*
@@ -121,33 +91,33 @@ namespace Control {
     */
     void stand(){
 
-        // Velocidades a serem lidas do rádio, são estáticas de modo que se Radio::receiveData não receber nada, mantém-se a velocidade anterior
+        // Velocities to be read by Wi-Fi, they are static in case Wifi::receiveData does not receive anything, it keeps the previous velocity
+        static double v = 0;
         static double w = 0;
 
         // Velocidades atuais medidas por sensores
         double currW;
         
-        // Lê velocidade do rádio
-        // Radio::receiveData(&v, &w);
-        
+        // Lê velocidades pelo Wifi
+        Wifi::receiveData(&v, &w);
 
-        // Rádio foi perdido, mais de 2s sem mensagens
-        // if(Radio::isRadioLost()){
-        //     w = 0;
-        //     v = sine_wave();
+        if(Wifi::isCommunicationLost()){
+			w = 0;
+			v = Waves::sine_wave();
 
-        //     readSpeeds(&currV, &currW);
-        //     control(v, currV, w, currW);
-        // }
-
-        // Executa o controle normalmente com as velocidades de referência
-        // else {
-            // Lê as velocidaes de sensores
             readSpeeds(&currW);
+            control(v, w, currW);
 
-            // Executa a malha de controle
-            control(w, currW);
-        // }
+			Motor::move(0, v);
+			Motor::move(1, v);
+		}
+
+        // Execute the control normally with the reference velocities
+        // Read the velocities through the sensor
+        readSpeeds(&currW);
+
+        // Execute the control loop
+        control(v , w, currW);
     }
 
-}//end namespace
+}
