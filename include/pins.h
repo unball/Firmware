@@ -16,7 +16,7 @@
 #define BIN1_PIN D0
 #define BIN2_PIN D4
 
-#define STDY_PIN D5
+#define STBY_PIN D5
 
 //**IMU pins**
 #define SCL_PIN D1
