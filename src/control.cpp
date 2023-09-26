@@ -39,7 +39,7 @@ namespace Control {
         retorna a velocidade linear em m/s e a velocidade angular em rad/s por referência
     */
     void readSpeeds(double *w){
-        *w = angSpeed(IMU::get_w());
+        *w = angSpeed(-IMU::get_w());
     }
 
     /*
@@ -78,14 +78,13 @@ namespace Control {
 
         w = PID(v, eW);
 
-        //TODO: verificar se essa conta faz sentido. Se não, usar speed2motors do MALP:
-        // vr = (v + (L/2)*w) / r
-        // vl = (v - (L/2)*w) / r
-        // onde r = 0.016 e L = 0.075.
-        // então, as saídas estarão em m/s em cada uma das rodas, só então transformar para PWM
+        // int32_t controlR = (int32_t)saturation((v - w));
+        // int32_t controlL = (int32_t)saturation((v + w));
 
-        int32_t controlR = (int32_t)saturation((v - w));
-        int32_t controlL = (int32_t)saturation((v + w));
+        // speed2motors do MALP:
+        int32_t controlR = (int32_t)saturation(255*((v + (L/2)*w) / r)+30);
+        int32_t controlL = (int32_t)saturation(255*((v - (L/2)*w) / r)+30);
+
 
         // Passes the control output to the plant 
         Motor::move(0, deadzone(controlR, 7, -7));
@@ -111,19 +110,25 @@ namespace Control {
 			w = 0;
 			v = Waves::sine_wave();
 
+            // readSpeeds(&currW);
+            // control(v, w, currW);
+            Motor::move(0, deadzone(v, 7, -7));
+            Motor::move(1, deadzone(v, 7, -7));
+            }
+
+        else{
+            // Execute the control normally with the reference velocities
+            // Read the velocities through the sensor
             readSpeeds(&currW);
             control(v, w, currW);
 
-			Motor::move(0, v);
-			Motor::move(1, v);
-		}
+			// Motor::move(0, v);
+			// Motor::move(1, v);
 
-        // Execute the control normally with the reference velocities
-        // Read the velocities through the sensor
-        readSpeeds(&currW);
+            // Execute the control loop
+            // control(1 , 0, currW);
+        }
 
-        // Execute the control loop
-        control(v , w, currW);
     }
 
 }
