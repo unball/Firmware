@@ -1,8 +1,5 @@
 #include <Arduino.h>
 
-#define WEMOS_DEBUG false
-#define ROBOT_NUMBER 1
-
 #include <control.hpp>
 #include <imu.hpp>
 #include <motor.hpp>
