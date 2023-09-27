@@ -58,7 +58,7 @@ namespace Control {
         // D = 0.0;
         
         double output = P+I+D;
-        // last_err = err;
+        last_err = err;
 
 	    return output;
     }
@@ -141,7 +141,8 @@ namespace Control {
             // Read the velocities through the sensor
             readSpeeds(&currW);
             w = 0;
-			v = 40;
+			v = Waves::sine_wave();
+
             // Execute the control loop
             control(v, 0, currW);
         }
