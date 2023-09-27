@@ -3,10 +3,9 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <espnow.h>
+#include "../../include/config.h"
 
 namespace Wifi{
-
-    const float MAX_POWER = 10.5;
 
     typedef struct dataStruct
     {
