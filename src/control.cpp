@@ -39,7 +39,8 @@ namespace Control {
         retorna a velocidade linear em m/s e a velocidade angular em rad/s por referência
     */
     void readSpeeds(double *w){
-        *w = angSpeed(-IMU::get_w());
+        // *w = angSpeed(-IMU::get_w());
+        *w = -IMU::get_w();
     }
 
     /*
@@ -49,12 +50,15 @@ namespace Control {
     */
     double PID(double v, double err){
         err_sum += err;
+        err_sum = (abs(err_sum) < 64.0)? err_sum : 0;
         
         double P = err * kp;
         double I = err_sum * ki;
         double D = (err - last_err) * kd;
+        // D = 0.0;
         
         double output = P+I+D;
+        // last_err = err;
 
 	    return output;
     }
@@ -77,18 +81,25 @@ namespace Control {
         double eW = w - currW;
 
         w = PID(v, eW);
+        if (v > 0 ) v = map(v, 0, 255, 60, 255);
+        if (v < 0 ) v = map(v, 0, -255, -60, -255);
 
-        // int32_t controlR = (int32_t)saturation((v - w));
-        // int32_t controlL = (int32_t)saturation((v + w));
+        int32_t controlR = (int32_t)saturation((v - w));
+        int32_t controlL = (int32_t)saturation((v + w));
+        if (controlR < 15 && controlR > -15) controlR = 0;
+        if (controlL < 15 && controlL > -15) controlL = 0;
 
         // speed2motors do MALP:
-        int32_t controlR = (int32_t)saturation(255*((v + (L/2)*w) / r)+30);
-        int32_t controlL = (int32_t)saturation(255*((v - (L/2)*w) / r)+30);
+        // int32_t controlR = (int32_t)saturation(255*((v + (L/2)*w) / r));
+        // int32_t controlL = (int32_t)saturation(255*((v - (L/2)*w) / r));
 
 
         // Passes the control output to the plant 
-        Motor::move(0, deadzone(controlR, 7, -7));
-        Motor::move(1, deadzone(controlL, 7, -7));
+        // Motor::move(0, deadzone(controlR, 7, -7));
+        // Motor::move(1, deadzone(controlL, 7, -7));
+        Motor::move(0, controlR);
+        Motor::move(1, controlL);
+        
     }
 
     /*
@@ -107,26 +118,32 @@ namespace Control {
         Wifi::receiveData(&v, &w);
 
         if(Wifi::isCommunicationLost()){
+            err_sum = 0;
+            last_err = 0;
+
 			w = 0;
 			v = Waves::sine_wave();
 
             // readSpeeds(&currW);
             // control(v, w, currW);
+            // int32_t controlR = (int32_t)saturation(255*((v + (L/2)*w) / r)+30);
+            // int32_t controlL = (int32_t)saturation(255*((v - (L/2)*w) / r)+30);
+
+            // Passes the control output to the plant 
             Motor::move(0, deadzone(v, 7, -7));
             Motor::move(1, deadzone(v, 7, -7));
-            }
+            // Motor::move(0, deadzone(v, 7, -7));
+            // Motor::move(1, deadzone(v, 7, -7));
+        }
 
         else{
             // Execute the control normally with the reference velocities
             // Read the velocities through the sensor
             readSpeeds(&currW);
-            control(v, w, currW);
-
-			// Motor::move(0, v);
-			// Motor::move(1, v);
-
+            w = 0;
+			v = 40;
             // Execute the control loop
-            // control(1 , 0, currW);
+            control(v, 0, currW);
         }
 
     }
