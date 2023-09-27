@@ -7,9 +7,9 @@
 #include "wifi.hpp"
 
 namespace Control{
-	const float kp = -1.59521;
-	const float ki = -0.16864;
-	const float kd = 0.16686;
+	const float kp = 0.159521;
+	const float ki = 0.016864;
+	const float kd = 0.016686;
 	const float r =	0.016;
 	const float L = 0.075;
 
