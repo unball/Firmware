@@ -1,5 +1,3 @@
-#include <Arduino.h>
-
 #include <control.hpp>
 #include <imu.hpp>
 #include <motor.hpp>
