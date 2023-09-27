@@ -2,7 +2,7 @@
 #ifndef PINS_HPP
 #define PINS_HPP
 
-#define RADIO_THRESHOLD 2000000
+#define RADIO_THRESHOLD 500000
 #define RADIO_RESET_THRESHOLD 4000000
 
 //TODO: change to typedef file with all macros and structs
