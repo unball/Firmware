@@ -9,9 +9,6 @@
 #include "imu.hpp"
 #include "control.hpp"
 
-double v = 0;
-double w = 0;
-
 void setup() {	
 	#if WEMOS_DEBUG
   		Serial.begin(115200);
@@ -22,13 +19,14 @@ void setup() {
 	
 	#if WEMOS_DEBUG
 		IMU::setup_debug();
+		Wifi::setup_debug(ROBOT_NUMBER);
 	#else
 		IMU::setup();
+		Wifi::setup(ROBOT_NUMBER);
 	#endif
 
-	Wifi::setup(ROBOT_NUMBER);
 	Motor::setup();
-	
+
 }
 
 void loop() {
@@ -44,7 +42,7 @@ void loop() {
 
 		//=========Wifi===============
 		Serial.println("###################");
-		Serial.println("Radio:");
+		Serial.println("Wi-Fi:");
 		Serial.print("v: ");Serial.print(v);Serial.print("\tw: ");Serial.println(w);
 		Serial.println("###################");
 		//=========End Wifi===========
@@ -55,8 +53,15 @@ void loop() {
 		//=========End Motor===========
 		delay(500);
 	#else
-	
-		Control::stand();
+		static int32_t previous_t;
+		static int32_t t;
+		t = micros();
+
+		// Loop de controle deve ser executado em intervalos comportados (2ms)
+		if(t-previous_t >= 2000){
+			previous_t = t;
+			Control::stand();
+		}
 
 	#endif
 
