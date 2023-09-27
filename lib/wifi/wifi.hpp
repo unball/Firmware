@@ -3,7 +3,6 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <espnow.h>
-#include "pins.h"
 
 namespace Wifi{
 
