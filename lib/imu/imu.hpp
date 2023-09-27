@@ -4,7 +4,6 @@
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_MPU6050.h>
-#include "pins.h"
 
 //TODO: Implement X and Y Offset
 
