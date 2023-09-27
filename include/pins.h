@@ -1,4 +1,3 @@
-#pragma once
 #ifndef PINS_HPP
 #define PINS_HPP
 

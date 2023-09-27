@@ -1,13 +1,8 @@
-#include <Arduino.h>
-
-#define WEMOS_DEBUG false
-#define ROBOT_NUMBER 1
-
-#include "wifi.hpp"
-#include "motor.hpp"
-#include "waves.hpp"
-#include "imu.hpp"
-#include "control.hpp"
+#include <control.hpp>
+#include <imu.hpp>
+#include <motor.hpp>
+#include <waves.hpp>
+#include <wifi.hpp>
 
 void setup() {	
 	#if WEMOS_DEBUG

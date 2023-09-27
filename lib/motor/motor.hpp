@@ -1,14 +1,9 @@
 #ifndef MOTOR_H
 #define MOTOR_H
+
 #include <Arduino.h>
 #include <stdint-gcc.h>
-#include "pins.h"
-
-#if WEMOS_DEBUG
-#define MOTOR_DEBUG true
-#else
-#define MOTOR_DEBUG false
-#endif
+#include "../../include/pins.h"
 
 namespace Motor{
 
