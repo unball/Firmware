@@ -7,9 +7,7 @@
 #include "motor.hpp"
 #include "waves.hpp"
 #include "imu.hpp"
-
-double v = 0;
-double w = 0;
+#include "control.hpp"
 
 void setup() {	
 	#if WEMOS_DEBUG
@@ -21,13 +19,14 @@ void setup() {
 	
 	#if WEMOS_DEBUG
 		IMU::setup_debug();
+		Wifi::setup_debug(ROBOT_NUMBER);
 	#else
 		IMU::setup();
+		Wifi::setup(ROBOT_NUMBER);
 	#endif
 
-	Wifi::setup(ROBOT_NUMBER);
 	Motor::setup();
-	
+
 }
 
 void loop() {
@@ -43,7 +42,7 @@ void loop() {
 
 		//=========Wifi===============
 		Serial.println("###################");
-		Serial.println("Radio:");
+		Serial.println("Wi-Fi:");
 		Serial.print("v: ");Serial.print(v);Serial.print("\tw: ");Serial.println(w);
 		Serial.println("###################");
 		//=========End Wifi===========
@@ -54,18 +53,14 @@ void loop() {
 		//=========End Motor===========
 		delay(500);
 	#else
-		if(Wifi::isCommunicationLost()){
-			w = 0;
-			v = Waves::sine_wave();
+		static int32_t previous_t;
+		static int32_t t;
+		t = micros();
 
-			Motor::move(0, v);
-			Motor::move(1, v);
-		}
-
-		else {
-			Wifi::receiveData(&v, &w);
-			Motor::move(0, v);
-			Motor::move(1, w);
+		// Loop de controle deve ser executado em intervalos comportados (2ms)
+		if(t-previous_t >= 2000){
+			previous_t = t;
+			Control::stand();
 		}
 
 	#endif
