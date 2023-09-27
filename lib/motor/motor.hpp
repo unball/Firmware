@@ -1,5 +1,6 @@
 #ifndef MOTOR_H
 #define MOTOR_H
+
 #include <Arduino.h>
 #include <stdint-gcc.h>
 #include "../../include/pins.h"
