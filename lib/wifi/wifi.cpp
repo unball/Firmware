@@ -4,8 +4,6 @@
 
 namespace Wifi{
 
-    const int communicationTimeout = 500000;
-
     dataStruct temp_vel;
 
     dataStruct vel;
@@ -47,13 +45,18 @@ namespace Wifi{
 	    lastReceived = micros();
     }
 
-    void receiveData(double *v, double *w){
+    /// @brief Receive data copying from temp struct to global struct
+    /// @param v reference to the linear velocity
+    /// @param w reference to the angular velocity
+    /// @return True if the control will be used 
+    bool receiveData(double *v, double *w){
         // Protecting original data
         vel = temp_vel;
         if(vel.id == robotNumber){
             *v = vel.v;
             *w = vel.w;
         }
+        return vel.control;
     }
 
     bool isCommunicationLost(){
