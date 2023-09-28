@@ -6,6 +6,7 @@
 #define ROBOT_NUMBER 1
 
 /* Wi-Fi */
+const int communicationTimeout = 500000;
 const float MAX_POWER = 10.5;
 
 /* Control */

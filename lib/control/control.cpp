@@ -108,14 +108,14 @@ namespace Control {
     void stand(){
 
         // Velocities to be read by Wi-Fi, they are static in case Wifi::receiveData does not receive anything, it keeps the previous velocity
-        static double v = 0;
-        static double w = 0;
+        static double v = 0; //vl
+        static double w = 0; //vr
 
         // Velocidades atuais medidas por sensores
         double currW;
         
         // Lê velocidades pelo Wifi
-        Wifi::receiveData(&v, &w);
+        bool useControl = Wifi::receiveData(&v, &w);
 
         if(Wifi::isCommunicationLost()){
             err_sum = 0;
@@ -124,27 +124,23 @@ namespace Control {
 			w = 0;
 			v = Waves::sine_wave();
 
-            // readSpeeds(&currW);
-            // control(v, w, currW);
-            // int32_t controlR = (int32_t)saturation(255*((v + (L/2)*w) / r)+30);
-            // int32_t controlL = (int32_t)saturation(255*((v - (L/2)*w) / r)+30);
-
-            // Passes the control output to the plant 
-            Motor::move(0, deadzone(v, 7, -7));
-            Motor::move(1, deadzone(v, 7, -7));
-            // Motor::move(0, deadzone(v, 7, -7));
-            // Motor::move(1, deadzone(v, 7, -7));
+            Motor::move(0, v);
+            Motor::move(1, v);
         }
 
         else{
             // Execute the control normally with the reference velocities
             // Read the velocities through the sensor
             readSpeeds(&currW);
-            w = 0;
-			v = Waves::sine_wave();
 
             // Execute the control loop
-            control(v, 0, currW);
+            if (useControl) {
+                control(v, w, currW);
+            }
+            else{
+                Motor::move(0, (int32_t)v);
+                Motor::move(1, (int32_t)w);
+            }
         }
 
     }
