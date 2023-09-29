@@ -2,8 +2,9 @@
 #define CONFIG_HPP
 
 /* Main configs*/
-#define WEMOS_DEBUG false
 #define ROBOT_NUMBER 1
+#define WEMOS_DEBUG false
+#define PID_TUNNER true
 
 /* Wi-Fi */
 const int communicationTimeout = 500000;
