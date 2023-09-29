@@ -8,28 +8,22 @@ namespace Wifi{
 
     rcv_message msg;
 
+    #if PID_TUNNER
+    snd_message send_message;
+    #endif
+
     volatile static uint32_t lastReceived;
 
     uint8_t robotNumber;
-
-    void setup_debug(uint8_t robot){
-        robotNumber = robot;
-
-        WiFi.mode(WIFI_STA);
-        if (esp_now_init() != 0) {
-            Serial.println("Erro ao inicializar o ESP-NOW");
-            return;
-        }
-
-        esp_now_set_self_role(ESP_NOW_ROLE_SLAVE);
-        esp_now_register_recv_cb(OnDataRecv);
-    }
 
     void setup(uint8_t robot){
         robotNumber = robot;
 
         WiFi.mode(WIFI_STA);
         if (esp_now_init() != 0) {
+            #if WEMOS_DEBUG
+            Serial.println("Erro ao inicializar o ESP-NOW");
+            #endif
             return;
         }
         WiFi.setOutputPower(MAX_POWER);

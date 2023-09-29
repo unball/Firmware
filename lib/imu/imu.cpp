@@ -4,24 +4,18 @@ namespace IMU{
 
     Adafruit_MPU6050 mpu;
 
-    void setup_debug(){
-        // Try to initialize!
+    void setup(){
         if (!mpu.begin()) {
+            #if WEMOS_DEBUG
             Serial.println("Failed to find MPU6050 chip");
+            #endif
             while (1) {
             delay(10);
             }
         }
+        #if WEMOS_DEBUG
         Serial.println("MPU6050 Found!");
-
-        mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
-
-        mpu.setGyroRange(MPU6050_RANGE_500_DEG);
-
-        mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
-    }
-
-    void setup(){
+        #endif
         mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
         mpu.setGyroRange(MPU6050_RANGE_500_DEG);
         mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);

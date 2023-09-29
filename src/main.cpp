@@ -11,15 +11,9 @@ void setup() {
 		delay(1000);
 		Serial.println("START");
 	#endif
-	
-	#if WEMOS_DEBUG
-		IMU::setup_debug();
-		Wifi::setup_debug(ROBOT_NUMBER);
-	#else
-		IMU::setup();
-		Wifi::setup(ROBOT_NUMBER);
-	#endif
 
+	Wifi::setup(ROBOT_NUMBER);
+	IMU::setup();
 	Motor::setup();
 
 }
