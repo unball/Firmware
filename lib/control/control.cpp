@@ -6,21 +6,6 @@ namespace Control {
 
     double err_sum = 0;
     double last_err = 0;
-    
-    /// @brief Calculate the angular speed to each wheel based on radius of the wheel and distance between them.
-    /// @param v Linear velocity of the robot
-    /// @param w Angualr velocity of the robot
-    void speed2motors(double v, double w){
-        // Calculates the angular speed of rotation to each wheel
-        int32_t vr = (v + (L/2)*w) / r;
-        int32_t vl = (v - (L/2)*w) / r;
-
-        vr = (int32_t)saturation((deadzone(vr, motor_deadzone, -motor_deadzone)));
-        vl = (int32_t)saturation((deadzone(vl, motor_deadzone, -motor_deadzone)));
-
-        Motor::move(0, vr);
-        Motor::move(1, vl);
-    }
 
     /*
         Função que corrige a deadzone de um motor
@@ -110,6 +95,21 @@ namespace Control {
         Motor::move(0, controlR);
         Motor::move(1, controlL);
         
+    }
+    
+    /// @brief Calculate the angular speed to each wheel based on radius of the wheel and distance between them.
+    /// @param v Linear velocity of the robot
+    /// @param w Angualr velocity of the robot
+    void speed2motors(double v, double w){
+        // Calculates the angular speed of rotation to each wheel
+        int32_t vr = (v + (L/2)*w) / r;
+        int32_t vl = (v - (L/2)*w) / r;
+
+        vr = (int32_t)saturation((deadzone(vr, motor_deadzone, -motor_deadzone)));
+        vl = (int32_t)saturation((deadzone(vl, motor_deadzone, -motor_deadzone)));
+
+        Motor::move(0, vr);
+        Motor::move(1, vl);
     }
 
     /*
