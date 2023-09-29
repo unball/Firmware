@@ -6,6 +6,21 @@ namespace Control {
 
     double err_sum = 0;
     double last_err = 0;
+    
+    /// @brief Calculate the angular speed to each wheel based on radius of the wheel and distance between them.
+    /// @param v Linear velocity of the robot
+    /// @param w Angualr velocity of the robot
+    void speed2motors(double v, double w){
+        // Calculates the angular speed of rotation to each wheel
+        int32_t vr = (v + (L/2)*w) / r;
+        int32_t vl = (v - (L/2)*w) / r;
+
+        vr = (int32_t)saturation((deadzone(vr, motor_deadzone, -motor_deadzone)));
+        vl = (int32_t)saturation((deadzone(vl, motor_deadzone, -motor_deadzone)));
+
+        Motor::move(0, vr);
+        Motor::move(1, vl);
+    }
 
     /*
         Função que corrige a deadzone de um motor
@@ -71,7 +86,7 @@ namespace Control {
         @param currW Velocidade angular medida por algum sensor (IMU) em rad/s
     */
     void control(double v, double w, double currW){
-        
+        //TODO: deadzone?
         if (v == 0 && w == 0){
             Motor::stop();
             return;
@@ -88,11 +103,6 @@ namespace Control {
         int32_t controlL = (int32_t)saturation((v + w));
         if (controlR < 15 && controlR > -15) controlR = 0;
         if (controlL < 15 && controlL > -15) controlL = 0;
-
-        // speed2motors do MALP:
-        // int32_t controlR = (int32_t)saturation(255*((v + (L/2)*w) / r));
-        // int32_t controlL = (int32_t)saturation(255*((v - (L/2)*w) / r));
-
 
         // Passes the control output to the plant 
         // Motor::move(0, deadzone(controlR, 7, -7));
@@ -138,8 +148,7 @@ namespace Control {
                 control(v, w, currW);
             }
             else{
-                Motor::move(0, (int32_t)v);
-                Motor::move(1, (int32_t)w);
+                speed2motors(v, w);
             }
         }
 
