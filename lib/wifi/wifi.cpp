@@ -1,12 +1,12 @@
 #include "wifi.hpp"
 
-//TODO: Restar ESP 
+//TODO: Resetar ESP 
 
 namespace Wifi{
 
-    dataStruct temp_vel;
+    rcv_message temp_msg;
 
-    dataStruct vel;
+    rcv_message msg;
 
     volatile static uint32_t lastReceived;
 
@@ -41,8 +41,9 @@ namespace Wifi{
     // Callback function, execute when message is received via Wi-Fi
     void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len)
     {
-        memcpy(&temp_vel, incomingData, sizeof(vel));
+        memcpy(&temp_msg, incomingData, sizeof(msg));
 	    lastReceived = micros();
+        // TODO: last Received deveria estar aqui ou em receiveData?
     }
 
     /// @brief Receive data copying from temp struct to global struct
@@ -51,12 +52,13 @@ namespace Wifi{
     /// @return True if the control will be used 
     bool receiveData(double *v, double *w){
         // Protecting original data
-        vel = temp_vel;
-        if(vel.id == robotNumber){
-            *v = vel.v;
-            *w = vel.w;
+        msg = temp_msg;
+        if(msg.id == robotNumber){
+            // Demultiplexing and decoding the velocities
+            *v = msg.v * 2.0 / 32767;
+            *w = msg.w * 64.0 / 32767;
         }
-        return vel.control;
+        return bool(msg.control);
     }
 
     bool isCommunicationLost(){
