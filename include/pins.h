@@ -1,4 +1,3 @@
-#pragma once
 #ifndef PINS_HPP
 #define PINS_HPP
 
@@ -13,11 +12,6 @@
 #define BIN1_PIN D0
 #define BIN2_PIN D4
 
-//**Radio pins**
-#define CE_PIN 0    //RX
-#define CS_PIN RX  //TX
-#define MOSI_PIN D7
-#define MISO_PIN D6
-#define SCK_PIN D5
+#define STBY_PIN D5
 
 #endif
