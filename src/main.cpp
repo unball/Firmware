@@ -4,10 +4,14 @@
 
 #define WEMOS_DEBUG false
 #define ROBOT_NUMBER 1
+#define WIFI_TIMEOUT 500000
+#define WIFI_RESET_TIMEOUT 30000000
+// Wi-FI Output Power. Max 20.5dB, Min: 0dB
+const uint8_t MAX_POWER = 10.0;
 
-#include "radio.hpp"
 #include "motor.hpp"
 #include "waves.hpp"
+
 
 typedef struct dataStruct
 {
@@ -44,6 +48,9 @@ void setup() {
 	#endif
 
 	WiFi.mode(WIFI_STA);
+	        
+	/* Sets the output power in dB*/
+	WiFi.setOutputPower(MAX_POWER);
 	if (esp_now_init() != 0) {
 		Serial.println("Erro ao inicializar o ESP-NOW");
 		return;
@@ -92,9 +99,9 @@ void loop() {
 		delay(500);
 	#else
 		// Rádio foi perdido, mais de 2s sem mensagens
-		if((micros() - lastReceived) > RADIO_THRESHOLD){
+		if((micros() - lastReceived) > WIFI_TIMEOUT){
 			// Rádio foi disconectado, mais de 5s sem mensagens
-			if((micros() - lastReceived) > RADIO_RESET_THRESHOLD)
+			if((micros() - lastReceived) > WIFI_RESET_TIMEOUT)
 				ESP.restart();
 			vr = 0;
 			vl = Waves::sine_wave();
