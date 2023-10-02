@@ -6,6 +6,8 @@
 #define ROBOT_NUMBER 1
 #define WIFI_TIMEOUT 500000
 #define WIFI_RESET_TIMEOUT 30000000
+// Wi-FI Output Power. Max 20.5dB, Min: 0dB
+const uint8_t MAX_POWER = 10.0;
 
 #include "motor.hpp"
 #include "waves.hpp"
@@ -46,6 +48,9 @@ void setup() {
 	#endif
 
 	WiFi.mode(WIFI_STA);
+	        
+	/* Sets the output power in dB*/
+	WiFi.setOutputPower(MAX_POWER);
 	if (esp_now_init() != 0) {
 		Serial.println("Erro ao inicializar o ESP-NOW");
 		return;
