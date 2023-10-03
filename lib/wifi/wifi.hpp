@@ -8,16 +8,15 @@ namespace Wifi{
 
     struct rcv_message
     {
-        uint8_t control;
-        uint8_t id;
-        int16_t v;
-        int16_t w;
+        int16_t id;
+        int16_t vl;
+        int16_t vr;
     };
 
     void setup_debug(uint8_t robot);
     void setup(uint8_t robot);
     void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len);
-    bool receiveData(double *v, double *w);
+    void receiveData(int16_t *vl, int16_t *vr);
     bool isCommunicationLost();
 
 }
