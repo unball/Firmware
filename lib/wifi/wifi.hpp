@@ -6,13 +6,13 @@
 
 namespace Wifi{
 
-    typedef struct dataStruct
+    struct rcv_message
     {
-        bool control;
+        uint8_t control;
         uint8_t id;
-        double v;
-        double w;
-    } dataStruct;
+        int16_t v;
+        int16_t w;
+    };
 
     void setup_debug(uint8_t robot);
     void setup(uint8_t robot);

@@ -13,8 +13,11 @@ const float MAX_POWER = 10.5;
 const float kp = 0.159521;
 const float ki = 0.016864;
 const float kd = 0.016686;
+
+/* Robot parameters */
 const float r =	0.016;
 const float L = 0.075;
+const int motor_deadzone = 32;
 
 
 #endif
