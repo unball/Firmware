@@ -14,4 +14,8 @@
 
 #define STBY_PIN D5
 
+//**IMU pins**
+#define SCL_PIN D1
+#define SDA_PIN D2
+
 #endif
