@@ -16,7 +16,7 @@ void setup() {
 		IMU::setup_debug();
 		Wifi::setup_debug(ROBOT_NUMBER);
 	#else
-		IMU::setup();
+		// IMU::setup();
 		Wifi::setup(ROBOT_NUMBER);
 	#endif
 
@@ -26,6 +26,8 @@ void setup() {
 
 void loop() {
 	#if WEMOS_DEBUG
+		static int16_t vl; 
+		static int16_t vr; 
 		Serial.println("LOOP!");
 
 		//=========IMU===============
@@ -38,7 +40,8 @@ void loop() {
 		//=========Wifi===============
 		Serial.println("###################");
 		Serial.println("Wi-Fi:");
-		Serial.print("v: ");Serial.print(v);Serial.print("\tw: ");Serial.println(w);
+        Wifi::receiveData(&vl, &vr);
+		Serial.print("vl: ");Serial.print(vl);Serial.print("\tvr: ");Serial.println(vr);
 		Serial.println("###################");
 		//=========End Wifi===========
 
@@ -52,10 +55,10 @@ void loop() {
 		static int32_t t;
 		t = micros();
 
-		// Loop de controle deve ser executado em intervalos comportados (2ms)
-		if(t-previous_t >= 2000){
+		// Loop de controle deve ser executado em intervalos comportados
+		if(t-previous_t >= controlLoopInterval){
 			previous_t = t;
-			Control::stand();
+			Control::actuateNoControl();
 		}
 
 	#endif
