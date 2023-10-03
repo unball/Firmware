@@ -3,13 +3,15 @@
 
 /* Main configs*/
 #define WEMOS_DEBUG false
-#define ROBOT_NUMBER 1
+#define ROBOT_NUMBER 0
 
 /* Wi-Fi */
 const int communicationTimeout = 500000;
-const float MAX_POWER = 10.5;
+const int resetTimeout = 4000000;
+const float MAX_POWER = 10.0;
 
 /* Control */
+const int controlLoopInterval= 2000;   // actuation interval in ms
 const float kp = 0.159521;
 const float ki = 0.016864;
 const float kd = 0.016686;
