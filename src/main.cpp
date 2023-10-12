@@ -15,7 +15,6 @@ void setup() {
 	Wifi::setup(ROBOT_NUMBER);
 	IMU::setup();
 	Motor::setup();
-
 }
 
 void loop() {
