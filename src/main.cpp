@@ -13,13 +13,12 @@ void setup() {
 	#endif
 	
 	#if WEMOS_DEBUG
-		IMU::setup_debug();
 		Wifi::setup_debug(ROBOT_NUMBER);
 	#else
-		// IMU::setup();
 		Wifi::setup(ROBOT_NUMBER);
 	#endif
 
+	IMU::setup();
 	Motor::setup();
 
 }
