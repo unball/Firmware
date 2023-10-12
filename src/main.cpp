@@ -19,8 +19,8 @@ void setup() {
 
 void loop() {
 	#if WEMOS_DEBUG
-		static int16_t vl; 
-		static int16_t vr; 
+		static double v; 
+		static double w; 
 		Serial.println("LOOP!");
 
 		//=========IMU===============
@@ -33,8 +33,9 @@ void loop() {
 		//=========Wifi===============
 		Serial.println("###################");
 		Serial.println("Wi-Fi:");
-        Wifi::receiveData(&vl, &vr);
-		Serial.print("vl: ");Serial.print(vl);Serial.print("\tvr: ");Serial.println(vr);
+		Serial.print("useControl: ");Serial.print(Wifi::useControl);
+        Wifi::receiveData(&v, &w);
+		Serial.print("v: ");Serial.print(v);Serial.print("\tw: ");Serial.println(w);
 		Serial.println("###################");
 		//=========End Wifi===========
 
