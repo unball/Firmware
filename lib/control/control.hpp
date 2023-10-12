@@ -14,7 +14,6 @@ namespace Control{
     double PID(double v, double err);
     void control(double v, double w, double currW);
     void stand();
-    void actuateNoControl();
 }
 
 #endif
