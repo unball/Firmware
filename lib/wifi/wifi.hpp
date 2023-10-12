@@ -14,7 +14,6 @@ namespace Wifi{
         int16_t w;
     };
 
-    void setup_debug(uint8_t robot);
     void setup(uint8_t robot);
     void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len);
     bool receiveData(double *v, double *w);
