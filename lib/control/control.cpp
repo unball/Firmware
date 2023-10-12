@@ -97,7 +97,7 @@ namespace Control {
         
     }
     
-    /// @brief Calculate the angular speed to each wheel based on radius of the wheel and distance between them.
+    /// @brief Move the motors without control, based on the radius of the wheel and distance between them.
     /// @param v Linear velocity of the robot
     /// @param w Angualr velocity of the robot
     void speed2motors(double v, double w){
@@ -125,56 +125,32 @@ namespace Control {
         double currW;
         
         // Lê velocidades pelo Wifi
-        // bool useControl = Wifi::receiveData(&v, &w);
+        bool useControl = Wifi::receiveData(&v, &w);
 
         if(Wifi::isCommunicationLost()){
             err_sum = 0;
             last_err = 0;
 
-			w = 0;
 			v = Waves::sine_wave();
+			w = 0;
 
             Motor::move(0, v);
             Motor::move(1, v);
         }
-
         else{
             // Execute the control normally with the reference velocities
             // Read the velocities through the sensor
             readSpeeds(&currW);
 
             // Execute the control loop
-            // if (useControl) {
-            //     control(v, w, currW);
-            // }
-            // else{
-            //     speed2motors(v, w);
-            // }
+            if (useControl) {
+                control(v, w, currW);
+            }
+            else{
+                speed2motors(v, w);
+            }
         }
 
-    }
-
-    void actuateNoControl(){
-        // Velocities to be read by Wi-Fi, they are static in case Wifi::receiveData does not receive anything, it keeps the previous velocity
-        static int16_t vl = 0;
-        static int16_t vr = 0;
-        
-        // Lê velocidades pelo Wifi
-        Wifi::receiveData(&vl, &vr);
-
-        if(Wifi::isCommunicationLost()){
-			vl = 0;
-			vr = Waves::sine_wave();
-
-            Motor::move(0, vr);
-            Motor::move(1, vr);
-        }
-        else{
-            Motor::move(0, vl);
-            Motor::move(1, vr);
-        }
-
- 
     }
 
 }
