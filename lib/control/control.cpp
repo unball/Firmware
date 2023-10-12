@@ -125,7 +125,7 @@ namespace Control {
         double currW;
         
         // Lê velocidades pelo Wifi
-        bool useControl = Wifi::receiveData(&v, &w);
+        Wifi::receiveData(&v, &w);
 
         if(Wifi::isCommunicationLost()){
             err_sum = 0;
@@ -143,7 +143,7 @@ namespace Control {
             readSpeeds(&currW);
 
             // Execute the control loop
-            if (useControl) {
+            if (Wifi::useControl) {
                 control(v, w, currW);
             }
             else{
