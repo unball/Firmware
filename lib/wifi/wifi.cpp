@@ -36,6 +36,7 @@ namespace Wifi{
 
         esp_now_set_self_role(ESP_NOW_ROLE_SLAVE);
         esp_now_register_recv_cb(OnDataRecv);
+        lastReceived = micros();
     }
 
     // Callback function, execute when message is received via Wi-Fi
@@ -47,25 +48,23 @@ namespace Wifi{
     }
 
     /// @brief Receive data copying from temp struct to global struct
-    /// @param v reference to the linear velocity
-    /// @param w reference to the angular velocity
-    /// @return True if the control will be used 
-    bool receiveData(double *v, double *w){
+    /// @param vl reference to the velocity
+    /// @param vr reference to the velocity
+    void receiveData(int16_t *vl, int16_t *vr){
         // Protecting original data
         msg = temp_msg;
         if(msg.id == robotNumber){
             // Demultiplexing and decoding the velocities
-            *v = msg.v * 2.0 / 32767;
-            *w = msg.w * 64.0 / 32767;
+            *vl = msg.vl;
+            *vr = msg.vr;
         }
-        return bool(msg.control);
     }
 
     bool isCommunicationLost(){
         if((micros() - lastReceived) > communicationTimeout){
 			// Communication probably failed
-			// if((micros() - lastReceived) > RADIO_RESET_THRESHOLD)
-			// 	ESP.restart();
+			if((micros() - lastReceived) > resetTimeout)
+				ESP.restart();
             return true;
 		}
         return false;

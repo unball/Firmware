@@ -125,7 +125,7 @@ namespace Control {
         double currW;
         
         // Lê velocidades pelo Wifi
-        bool useControl = Wifi::receiveData(&v, &w);
+        // bool useControl = Wifi::receiveData(&v, &w);
 
         if(Wifi::isCommunicationLost()){
             err_sum = 0;
@@ -144,14 +144,37 @@ namespace Control {
             readSpeeds(&currW);
 
             // Execute the control loop
-            if (useControl) {
-                control(v, w, currW);
-            }
-            else{
-                speed2motors(v, w);
-            }
+            // if (useControl) {
+            //     control(v, w, currW);
+            // }
+            // else{
+            //     speed2motors(v, w);
+            // }
         }
 
+    }
+
+    void actuateNoControl(){
+        // Velocities to be read by Wi-Fi, they are static in case Wifi::receiveData does not receive anything, it keeps the previous velocity
+        static int16_t vl = 0;
+        static int16_t vr = 0;
+        
+        // Lê velocidades pelo Wifi
+        Wifi::receiveData(&vl, &vr);
+
+        if(Wifi::isCommunicationLost()){
+			vl = 0;
+			vr = Waves::sine_wave();
+
+            Motor::move(0, vr);
+            Motor::move(1, vr);
+        }
+        else{
+            Motor::move(0, vl);
+            Motor::move(1, vr);
+        }
+
+ 
     }
 
 }
