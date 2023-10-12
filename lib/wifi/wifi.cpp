@@ -54,7 +54,6 @@ namespace Wifi{
     /// @brief Receive data copying from temp struct to global struct
     /// @param v reference to the linear velocity
     /// @param w reference to the angular velocity
-    /// @return True if the control will be used 
     void receiveData(double *v, double *w){
         // Protecting original data
         msg = temp_msg;
