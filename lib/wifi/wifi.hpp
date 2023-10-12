@@ -15,10 +15,12 @@ namespace Wifi{
     };
 
     extern bool useControl;
+    extern bool doTwiddle;
 
     void setup(uint8_t robot);
     void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len);
-    bool receiveData(double *v, double *w);
+    void receiveConfig(bool *control, bool *twiddle);
+    void receiveData(double *v, double *w);
     bool isCommunicationLost();
 
 }
