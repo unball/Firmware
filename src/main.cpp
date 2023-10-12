@@ -58,7 +58,7 @@ void loop() {
 		// Loop de controle deve ser executado em intervalos comportados
 		if(t-previous_t >= controlLoopInterval){
 			previous_t = t;
-			Control::actuateNoControl();
+			Control::stand();
 		}
 
 	#endif
