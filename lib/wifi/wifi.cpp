@@ -35,7 +35,7 @@ namespace Wifi{
     {
         memcpy(&temp_msg, incomingData, sizeof(msg));
 	    lastReceived = micros();
-        // TODO: last Received deveria estar aqui ou em receiveData?
+        // TODO: lastReceived deveria estar aqui ou em receiveData?
     }
 
     /// @brief Receive data copying from temp struct to global struct
