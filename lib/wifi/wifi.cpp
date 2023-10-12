@@ -10,6 +10,8 @@ namespace Wifi{
 
     uint8_t robotNumber;
 
+    bool useControl = false;
+
     void setup(uint8_t robot){
         robotNumber = robot;
 
@@ -24,6 +26,8 @@ namespace Wifi{
 
         esp_now_set_self_role(ESP_NOW_ROLE_SLAVE);
         esp_now_register_recv_cb(OnDataRecv);
+        double v,w;
+        useControl = receiveData(&v,&w);
     }
 
     // Callback function, execute when message is received via Wi-Fi
