@@ -116,15 +116,14 @@ namespace Control {
         Lê velocidades do rádio, lê velocidades de referência e executa o controle
     */
     void stand(){
-
         // Velocities to be read by Wi-Fi, they are static in case Wifi::receiveData does not receive anything, it keeps the previous velocity
         static double v = 0; //vl
         static double w = 0; //vr
 
-        // Velocidades atuais medidas por sensores
+        // Current speed measured by sensor
         double currW;
         
-        // Lê velocidades pelo Wifi
+        // Read speeds from Wi-Fi
         Wifi::receiveData(&v, &w);
 
         if(Wifi::isCommunicationLost()){
