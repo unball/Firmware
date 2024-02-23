@@ -1,6 +1,5 @@
 #ifndef CONTROL_HPP
 #define CONTROL_HPP
-
 #include <motor.hpp>
 #include <imu.hpp>
 #include <waves.hpp>
@@ -13,7 +12,7 @@ namespace Control{
     void readSpeeds(double *w);
     double PID(double v, double err);
     void control(double v, double w, double currW);
-    void stand();
+    void stand(bool useControl);
     void actuateNoControl();
 }
 
