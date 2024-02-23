@@ -1,6 +1,13 @@
 #include "wifi.hpp"
 
+
 //TODO: Resetar ESP 
+
+#define MAX_POWER 10.0  //TODO: Test values
+#define WIFI_CHANNEL 12  //TODO: Test values
+
+/* Broadcast address, sends to everyone */
+uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 namespace Wifi{
 
@@ -47,6 +54,33 @@ namespace Wifi{
         // TODO: last Received deveria estar aqui ou em receiveData?
     }
 
+void sendWifi(float ew){
+    /* Sends the message using ESP-NOW */
+    esp_now_send(broadcastAddress, (uint8_t *) &ew, sizeof(ew));
+    delay(3);
+  
+}
+
+    #if PID_TUNNER
+
+    /// @brief Receive data copying from temp struct to global struct
+    /// @param kp Constoante proporcional
+    /// @param ki Constante integral
+    /// @param kd Constante derivativa
+    void receiveData(float* kp, float* ki, float* kd, float* w, float* v){
+            // Protecting original data
+            msg = temp_msg;
+            if(msg.id == robotNumber){
+                // Demultiplexing and decoding the velocities
+                *kp = (float)msg.kp/100;
+                *ki = (float)msg.ki/100;
+                *kd = (float)msg.kd/100;
+                *w = (float)msg.w/100;
+                *v = (float)msg.v/100;
+            }
+        }
+
+    #else
     /// @brief Receive data copying from temp struct to global struct
     /// @param vl reference to the velocity
     /// @param vr reference to the velocity
@@ -59,6 +93,7 @@ namespace Wifi{
             *vr = msg.vr;
         }
     }
+    #endif
 
     bool isCommunicationLost(){
         if((micros() - lastReceived) > communicationTimeout){
