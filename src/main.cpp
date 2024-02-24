@@ -56,7 +56,7 @@ void loop() {
 		//=========End Motor===========
 		delay(500);
 	#else
-		if(true){
+		if(!Wifi::doTwiddle){
 			static int32_t previous_t;
 			static int32_t t;
 			t = micros();
@@ -67,7 +67,7 @@ void loop() {
 				Control::stand();
 			}
 		}
-		if(false){
+		if(Wifi::doTwiddle){
 			Wifi::sendResponse(erro);
 		}
 
