@@ -33,7 +33,7 @@ namespace Wifi{
         esp_now_register_recv_cb(OnDataRecv);
         while (!useControl && !doTwiddle && !noControl){
             Serial.println("No Mode");
-            receiveConfig(&useControl, &doTwiddle);
+            receiveConfig(&useControl, &doTwiddle, &noControl, &kp, &ki, &kd);
         }
         
                         
@@ -51,19 +51,27 @@ namespace Wifi{
     /// @brief Receive system's configurations in wether to use control or to do the PID Tunner routine, by copying from temp struct to global struct
     /// @param control reference to the control flag
     /// @param twiddle reference to the PID Tunner flag
-    void receiveConfig(bool *control, bool *twiddle){
+    void receiveConfig(bool *control, bool *twiddle, bool *noControl, double *kp, double *ki, double *kd){
         // Protecting original data
         msg = temp_msg;
         if(msg.id == robotNumber){
-            /*control = msg.control;
-            *twiddle = msg.control;*/
-            if (msg.control == 1){
+            
+            if (msg.control == 0){
+                *twiddle = true;
+            }
+            
+            else if (msg.control == 1){
                 *control = true;
+                *kp = ((float)msg.kp) / 100;
+                *ki = ((float)msg.ki) / 100;
+                *kd = ((float)msg.kd) / 100;
             }
 
             else if (msg.control == 2){
-                *twiddle = true;
-            }                    
+                *noControl = true;
+            }
+
+
         }
     }
 

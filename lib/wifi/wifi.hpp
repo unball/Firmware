@@ -30,7 +30,7 @@ namespace Wifi{
 
     void setup(uint8_t robot);
     void OnDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len);
-    void receiveConfig(bool *control, bool *twiddle);
+    void receiveConfig(bool *control, bool *twiddle, bool *noControl, double *kp, double *ki, double *kd);
     void receiveData(double *kd, double *ki, double *kp, double *v, double *w);
     bool isCommunicationLost();
     void sendResponse(double erro);
