@@ -3,35 +3,31 @@
 #include <motor.hpp>
 #include <waves.hpp>
 #include <wifi.hpp>
-#include "../../include/config.h"
+
+double erro = 0;
 
 void setup() {
-	Wifi::setup(ROBOT_NUMBER);
 	Serial.begin(115200);	
 	#if WEMOS_DEBUG
-  		
+  		Serial.begin(115200);
 		while(!Serial);
 		delay(1000);
 		Serial.println("START");
-		IMU::setup_debug();
-		//Wifi::setup_debug(ROBOT_NUMBER);
-	#else
-		// IMU::setup();
-		
 	#endif
 
+	Wifi::setup(ROBOT_NUMBER);
+	IMU::setup();
 	Motor::setup();
-
 }
 
 void loop() {
-	Serial.println("LOOP!");
+	Wifi::sendResponse(erro);
 	#if WEMOS_DEBUG
-		float kp;
-		float ki; 
-		float kd; 
-		float w; 
-		float v;  
+		static double v; 
+		static double w;
+		double kp;
+		double ki;
+		double kd; 
 		Serial.println("LOOP!");
 
 		//=========IMU===============
@@ -44,46 +40,26 @@ void loop() {
 		//=========Wifi===============
 		Serial.println("###################");
 		Serial.println("Wi-Fi:");
-        Wifi::receiveData(&kp, &ki, &kd,  &w, &v);
-		Serial.print("kp: ");Serial.print(kp);
-		Serial.print("\tki: ");Serial.println(ki);
-		Serial.print("\tkd: ");Serial.println(kd);
-		Serial.print("\tw: ");Serial.println(w);
-		Serial.print("\tv: ");Serial.println(v);
+		Serial.print("useControl: ");Serial.print(Wifi::useControl);
+        Wifi::receiveData(&kp, &ki, &kd, &v, &w);
+		Serial.print("v: ");Serial.print(v);Serial.print("\tw: ");Serial.println(w);
 		Serial.println("###################");
 		//=========End Wifi===========
 
 		//=========Motor===============
-		Motor::move(0, 00);
-		Motor::move(1, 00);
+		Motor::move(0, 100);
+		Motor::move(1, 100);
 		//=========End Motor===========
 		delay(500);
 	#else
 		static int32_t previous_t;
 		static int32_t t;
 		t = micros();
-		#if PID_TUNNER
+
 		// Loop de controle deve ser executado em intervalos comportados
 		if(t-previous_t >= controlLoopInterval){
-			Serial.println("c0ntr0 interval false 0k!");
 			previous_t = t;
-			Control::stand(false);
-			//Control::actuateNoControl();
-
+			erro = Control::stand();
 		}
-		else{
-			Serial.println("c0ntr0 interval true 0k!");
-			Control::stand(true);
-		}
-		#else
-		if(t-previous_t >= controlLoopInterval){
-			previous_t = t;
-			Control::actuateNoControl();
-
-		}
-		#endif
-	
-
 	#endif
-
 }
