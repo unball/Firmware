@@ -1,16 +1,17 @@
 #include <control.hpp>
 
-/*const*/ float kp = 0.159521;
-/*const*/ float ki = 0.016864;
-/*const*/ float kd = 0.016686;
+double kp = 0.159521;
+double ki = 0.016864;
+double kd = 0.016686;
+
 
 namespace Control {
 
     using namespace Waves;
 
+    double erro = 0;
     double err_sum = 0;
     double last_err = 0;
-    
 
     /*
         Função que corrige a deadzone de um motor
@@ -60,7 +61,8 @@ namespace Control {
         double P = err * kp;
         double I = err_sum * ki;
         double D = (err - last_err) * kd;
-
+        // D = 0.0;
+        
         double output = P+I+D;
         last_err = err;
 
@@ -73,10 +75,9 @@ namespace Control {
         @param v Velocidade linear de referência em m/s
         @param w Velocidade angular de referência em rad/s
         @param currW Velocidade angular medida por algum sensor (IMU) em rad/s
+        @param *erro ponteiro para a variavel global de erro
     */
-    void control(double v, double w, double currW){
-        Serial.println("C0ntr0l 0k");
-
+    void control(double v, double w, double currW, double *erro){
         //TODO: deadzone?
         if (v == 0 && w == 0){
             Motor::stop();
@@ -85,114 +86,86 @@ namespace Control {
 
         // Angular velocity error
         double eW = w - currW;
+        
 
         w = PID(v, eW);
+
         if (v > 0 ) v = map(v, 0, 255, 60, 255);
         if (v < 0 ) v = map(v, 0, -255, -60, -255);
 
         int32_t controlR = (int32_t)saturation((v - w));
         int32_t controlL = (int32_t)saturation((v + w));
-            
+
         if (controlR < 15 && controlR > -15) controlR = 0;
         if (controlL < 15 && controlL > -15) controlL = 0;
-            
-        
 
         // Passes the control output to the plant 
         // Motor::move(0, deadzone(controlR, 7, -7));
         // Motor::move(1, deadzone(controlL, 7, -7));
         Motor::move(0, controlR);
         Motor::move(1, controlL);
-        //Wifi::sendWifi(-IMU::get_w());
+
+        *erro = eW;
         
     }
     
-    /// @brief Calculate the angular speed to each wheel based on radius of the wheel and distance between them.
+    /// @brief Move the motors without control, based on the radius of the wheel and distance between them.
     /// @param v Linear velocity of the robot
     /// @param w Angualr velocity of the robot
     void speed2motors(double v, double w){
         // Calculates the angular speed of rotation to each wheel
         int32_t vr = (v + (L/2)*w) / r;
         int32_t vl = (v - (L/2)*w) / r;
+
         vr = (int32_t)saturation((deadzone(vr, motor_deadzone, -motor_deadzone)));
         vl = (int32_t)saturation((deadzone(vl, motor_deadzone, -motor_deadzone)));
+
         Motor::move(0, vr);
-        Motor::move(1, vl);       
-        
+        Motor::move(1, vl);
     }
 
     /*
         Lê velocidades do rádio, lê velocidades de referência e executa o controle
     */
-    void stand(bool useControl){
-        Serial.println("Stand 0k");
-
-
-        float w;
-        float v;
+    double stand(){
 
         // Velocities to be read by Wi-Fi, they are static in case Wifi::receiveData does not receive anything, it keeps the previous velocity
-        #if PID_TUNNER
-        Wifi::receiveData(&kp, &ki, &kd, &v, &w);
-        Serial.println(v);
-        #endif
+        static double v = 0; //vl
+        static double w = 0; //vr
 
         // Velocidades atuais medidas por sensores
         double currW;
         
         // Lê velocidades pelo Wifi
-        // bool useControl = Wifi::receiveData(&v, &w);
+        Wifi::receiveData(&kp, &ki, &kd, &v, &w);
+        Serial.print(kp);Serial.print(" ");Serial.print(ki);Serial.print(" ");Serial.println(kd);
 
         if(Wifi::isCommunicationLost()){
-            //Serial.println("kkkkkkk");
             err_sum = 0;
             last_err = 0;
 
-			w = 0;
 			v = Waves::sine_wave();
+			w = 0;
 
             Motor::move(0, v);
             Motor::move(1, v);
         }
-
         else{
             // Execute the control normally with the reference velocities
             // Read the velocities through the sensor
             readSpeeds(&currW);
 
-
             // Execute the control loop
-            if (useControl) {
-                 control(v, w, currW);
+            if (Wifi::useControl) {
+                control(v, w, currW, &erro);
             }
             else{
-                 speed2motors(v, w);
+                speed2motors(v, w);
             }
         }
 
+        return erro;
+
     }
-    //#if !PID_TUNNER
-    void actuateNoControl(){
-        // Velocities to be read by Wi-Fi, they are static in case Wifi::receiveData does not receive anything, it keeps the previous velocity
-        static int16_t vl = 0;
-        static int16_t vr = 0;
-        
-        // Lê velocidades pelo Wifi
-        //Wifi::receiveData(&vl, &vr);
 
-        if(Wifi::isCommunicationLost()){
-			vl = 0;
-			vr = Waves::sine_wave();
-
-            Motor::move(0, vr);
-            Motor::move(1, vr);
-        }
-        else{
-            Motor::move(0, vl);
-            Motor::move(1, vr);
-        }
-
- 
-    }
-    //#endif
 }
