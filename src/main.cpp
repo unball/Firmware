@@ -21,7 +21,9 @@ void setup() {
 }
 
 void loop() {
-	Wifi::sendResponse(erro);
+
+	Wifi::receiveConfig(&useControl, &doTwiddle, &noControl, &kp, &ki, &kd);
+	
 	#if WEMOS_DEBUG
 		static double v; 
 		static double w;
@@ -62,4 +64,6 @@ void loop() {
 			erro = Control::stand();
 		}
 	#endif
+
+	Wifi::sendResponse(erro);
 }
