@@ -136,7 +136,6 @@ namespace Control {
         
         // Lê velocidades pelo Wifi
         Wifi::receiveData(&kp, &ki, &kd, &v, &w);
-        Serial.print(kp);Serial.print(" ");Serial.print(ki);Serial.print(" ");Serial.println(kd);
 
         if(Wifi::isCommunicationLost()){
             err_sum = 0;
