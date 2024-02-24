@@ -78,7 +78,22 @@ namespace Wifi{
     /// @brief Receive data copying from temp struct to global struct
     /// @param v reference to the linear velocity
     /// @param w reference to the angular velocity
-    void receiveData(double *kp, double *ki, double *kd, double *v, double *w){
+    void receiveDataGame(double *v, double *w){
+        // Protecting original data
+        msg = temp_msg;
+        if(msg.id == robotNumber){
+            // Demultiplexing and decoding the velocities and constants
+            *v  = ((float)msg.v) * 2.0 / 32767;
+            *w  = ((float)msg.w) * 64.0 / 32767;
+        }
+    }
+    /// @brief Receive data copying from temp struct to global struct
+    /// @param kp reference to the proportional gain
+    /// @param ki reference to the integral gain
+    /// @param kd reference to the derivative gain
+    /// @param v  reference to the linear velocity
+    /// @param w  reference to the angular velocity
+    void receiveDataTwiddle(double *kp, double *ki, double *kd, double *v, double *w){
         // Protecting original data
         msg = temp_msg;
         if(msg.id == robotNumber){
