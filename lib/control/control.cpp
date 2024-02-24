@@ -125,7 +125,8 @@ namespace Control {
     /*
         Lê velocidades do rádio, lê velocidades de referência e executa o controle
     */
-    double stand(){
+    
+    void stand(){
 
         // Velocities to be read by Wi-Fi, they are static in case Wifi::receiveData does not receive anything, it keeps the previous velocity
         static double v = 0; //vl
@@ -160,9 +161,6 @@ namespace Control {
                 speed2motors(v, w);
             }
         }
-
-        return erro;
-
     }
 
 }

@@ -62,7 +62,7 @@ void loop() {
 			// Loop de controle deve ser executado em intervalos comportados
 			if(t-previous_t >= controlLoopInterval){
 				previous_t = t;
-				erro = Control::stand();
+				Control::stand();
 			}
 		}
 		if(doTwiddle){
