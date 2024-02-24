@@ -13,9 +13,7 @@ namespace Wifi{
 
     uint8_t robotNumber;
 
-    bool useControl = false;
-    bool doTwiddle = false;
-    bool noControl = false;
+    
 
     void setup(uint8_t robot){
         robotNumber = robot;
@@ -30,19 +28,11 @@ namespace Wifi{
         WiFi.setOutputPower(MAX_POWER);
 
         esp_now_set_self_role(ESP_NOW_ROLE_SLAVE);
-        esp_now_register_recv_cb(OnDataRecv);
-        while (!useControl && !doTwiddle && !noControl){
-            Serial.println("No Mode");
-            receiveConfig(&useControl, &doTwiddle, &noControl, &kp, &ki, &kd);
-        }
-        
-                        
-        
+        esp_now_register_recv_cb(OnDataRecv);            
     }
 
     // Callback function, execute when message is received via Wi-Fi
-    void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len)
-    {
+    void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len){
         memcpy(&temp_msg, incomingData, sizeof(msg));
 	    lastReceived = micros();
         // TODO: lastReceived deveria estar aqui ou em receiveData?
