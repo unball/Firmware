@@ -20,9 +20,11 @@ void setup() {
 	Motor::setup();
 }
 
+
+
 void loop() {
 
-	//Wifi::receiveConfig(&useControl, &doTwiddle, &noControl, &kp, &ki, &kd);
+	Wifi::receiveConfig(&Wifi::useControl, &Wifi::doTwiddle, &Wifi::noControl, &Control::kp, &Control::ki, &Control::kd);
 	
 	#if WEMOS_DEBUG
 		static double v; 

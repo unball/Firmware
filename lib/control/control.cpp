@@ -10,9 +10,9 @@ namespace Control {
     double erro = 0;
     double err_sum = 0;
     double last_err = 0;
-    double kp;
-    double ki;
-    double kd;
+    double kp = 0.159521;
+    double ki = 0.016864;
+    double kd = 0.016686;
 
     /*
         Função que corrige a deadzone de um motor

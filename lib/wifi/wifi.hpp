@@ -25,6 +25,7 @@ namespace Wifi{
 
     extern bool useControl;
     extern bool doTwiddle;
+    extern bool noControl;
 
 
 

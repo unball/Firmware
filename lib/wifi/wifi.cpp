@@ -17,6 +17,7 @@ namespace Wifi{
 
     bool useControl = false;
     bool doTwiddle = false;
+    bool noControl = false;
 
     
 
