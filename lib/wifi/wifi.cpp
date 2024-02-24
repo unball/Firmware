@@ -48,17 +48,27 @@ namespace Wifi{
             
             if (msg.control == 0){
                 *twiddle = true;
+                *control = false;
+                *noControl = false;
             }
             
-            else if (msg.control == 1){
-                *control = true;
-                *kp = ((float)msg.kp) / 100;
-                *ki = ((float)msg.ki) / 100;
-                *kd = ((float)msg.kd) / 100;
+            else if (msg.control == 1 ){
+                if (!useControl){
+                    *control = true;
+                    *noControl = false;
+                    *twiddle = false;
+                    *kp = ((float)msg.kp) / 100;
+                    *ki = ((float)msg.ki) / 100;
+                    *kd = ((float)msg.kd) / 100;
+                }
+                
+                
             }
 
             else if (msg.control == 2){
                 *noControl = true;
+                *control = false;
+                *twiddle = false;
             }
 
 
