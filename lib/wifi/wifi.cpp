@@ -99,7 +99,7 @@ namespace Wifi{
     /// @param kd reference to the derivative gain
     /// @param v  reference to the linear velocity
     /// @param w  reference to the angular velocity
-    void receiveDataTwiddle(double *kp, double *ki, double *kd, double *v, double *w){
+    void receiveDataTwiddle(double *kp, double *ki, double *kd){
         // Protecting original data
         msg = temp_msg;
         if(msg.id == robotNumber){
@@ -107,8 +107,6 @@ namespace Wifi{
             *kp = ((float)msg.kp) / 100;
             *ki = ((float)msg.ki) / 100;
             *kd = ((float)msg.kd) / 100;
-            *v  = ((float)msg.v) * 2.0 / 32767;
-            *w  = ((float)msg.w) * 64.0 / 32767;
         }
     }
 

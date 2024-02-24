@@ -176,7 +176,7 @@ namespace Control {
         double currW;
         
         // Lê velocidades pelo Wifi
-        Wifi::receiveDataTwiddle(&kp, &ki, &kd, &v, &w);
+        Wifi::receiveDataTwiddle(&kp, &ki, &kd);
 
         if(Wifi::isCommunicationLost()){
             err_sum = 0;
