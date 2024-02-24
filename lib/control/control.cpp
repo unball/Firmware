@@ -157,7 +157,7 @@ namespace Control {
             readSpeeds(&currW);
 
             // Execute the control loop
-            if (true) {
+            if (Wifi::useControl) {
                 control(v, w, currW, &erro);
             }
             else{
