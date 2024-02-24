@@ -1,8 +1,6 @@
 #include <control.hpp>
 
-double kp = 0.159521;
-double ki = 0.016864;
-double kd = 0.016686;
+
 
 
 namespace Control {

@@ -12,9 +12,9 @@ const float MAX_POWER = 10.0;
 
 /* Control */
 const int controlLoopInterval= 2000;   // actuation interval in ms
-/*const float double kp = 0.159521;
-const float double ki = 0.016864;
-const float double kd = 0.016686;*/
+/*const float*/ double kp = 0.159521;
+/*const float*/ double ki = 0.016864;
+/*const float*/ double kd = 0.016686;
 
 /* Robot parameters */
 const float r =	0.016;
