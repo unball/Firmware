@@ -12,10 +12,7 @@ const float MAX_POWER = 10.0;
 
 /* Control */
 const int controlLoopInterval= 2000;   // actuation interval in ms
-/*
-bool useControl = false;
-bool doTwiddle = false;
-bool noControl = false;*/
+
 
 /* Robot parameters */
 const float r =	0.016;

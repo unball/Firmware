@@ -24,13 +24,10 @@ namespace Wifi{
 
     extern bool useControl;
     extern bool doTwiddle;
-    extern bool noControl;
-
-
-
+    
     void setup(uint8_t robot);
     void OnDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len);
-    void receiveConfig(bool *control, bool *twiddle, bool *noControl, double *kp, double *ki, double *kd);
+    void receiveConfig(bool *control, bool *twiddle, double *kp, double *ki, double *kd);
     void receiveDataGame(double *v, double *w);
     void receiveDataTwiddle(double *kd, double *ki, double *kp);
     bool isCommunicationLost();

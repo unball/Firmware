@@ -17,7 +17,6 @@ namespace Wifi{
 
     bool useControl = false;
     bool doTwiddle = false;
-    bool noControl = false;
 
     
 
@@ -47,7 +46,7 @@ namespace Wifi{
     /// @brief Receive system's configurations in wether to use control or to do the PID Tunner routine, by copying from temp struct to global struct
     /// @param control reference to the control flag
     /// @param twiddle reference to the PID Tunner flag
-    void receiveConfig(bool *control, bool *twiddle, bool *noControl, double *kp, double *ki, double *kd){
+    void receiveConfig(bool *control, bool *twiddle, double *kp, double *ki, double *kd){
         // Protecting original data
         msg = temp_msg;
         if(msg.id == robotNumber){
@@ -55,13 +54,11 @@ namespace Wifi{
             if (msg.control == 0){
                 *twiddle = true;
                 *control = false;
-                *noControl = false;
             }
             
             else if (msg.control == 1 ){
                 if (true){
                     *control = true;
-                    *noControl = false;
                     *twiddle = false;
                     *kp = ((float)msg.kp) / 100;
                     *ki = ((float)msg.ki) / 100;
@@ -72,7 +69,6 @@ namespace Wifi{
             }
 
             else if (msg.control == 2){
-                *noControl = true;
                 *control = false;
                 *twiddle = false;
             }

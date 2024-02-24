@@ -24,7 +24,7 @@ void setup() {
 
 void loop() {
 
-	Wifi::receiveConfig(&Wifi::useControl, &Wifi::doTwiddle, &Wifi::noControl, &Control::kp, &Control::ki, &Control::kd);
+	Wifi::receiveConfig(&Wifi::useControl, &Wifi::doTwiddle, &Control::kp, &Control::ki, &Control::kd);
 	
 	#if WEMOS_DEBUG
 		static double v; 
