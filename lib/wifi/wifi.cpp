@@ -15,6 +15,7 @@ namespace Wifi{
 
     bool useControl = false;
     bool doTwiddle = false;
+    bool noControl = false;
 
     void setup(uint8_t robot){
         robotNumber = robot;
@@ -30,7 +31,7 @@ namespace Wifi{
 
         esp_now_set_self_role(ESP_NOW_ROLE_SLAVE);
         esp_now_register_recv_cb(OnDataRecv);
-        while (!useControl && !doTwiddle){
+        while (!useControl && !doTwiddle && !noControl){
             Serial.println("No Mode");
             receiveConfig(&useControl, &doTwiddle);
         }

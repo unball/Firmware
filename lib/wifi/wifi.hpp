@@ -26,6 +26,7 @@ namespace Wifi{
 
     extern bool useControl;
     extern bool doTwiddle;
+    extern bool noControl;
 
     void setup(uint8_t robot);
     void OnDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len);
