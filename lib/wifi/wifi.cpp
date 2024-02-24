@@ -2,6 +2,8 @@
 
 namespace Wifi{
 
+    
+
     uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 
@@ -12,6 +14,9 @@ namespace Wifi{
     volatile static uint32_t lastReceived;
 
     uint8_t robotNumber;
+
+    bool useControl = false;
+    bool doTwiddle = false;
 
     
 
@@ -53,7 +58,7 @@ namespace Wifi{
             }
             
             else if (msg.control == 1 ){
-                if (!useControl){
+                if (true){
                     *control = true;
                     *noControl = false;
                     *twiddle = false;

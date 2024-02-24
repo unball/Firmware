@@ -22,7 +22,7 @@ void setup() {
 
 void loop() {
 
-	Wifi::receiveConfig(&useControl, &doTwiddle, &noControl, &kp, &ki, &kd);
+	//Wifi::receiveConfig(&useControl, &doTwiddle, &noControl, &kp, &ki, &kd);
 	
 	#if WEMOS_DEBUG
 		static double v; 
@@ -54,7 +54,7 @@ void loop() {
 		//=========End Motor===========
 		delay(500);
 	#else
-		if(!doTwiddle){
+		if(true){
 			static int32_t previous_t;
 			static int32_t t;
 			t = micros();
@@ -65,7 +65,7 @@ void loop() {
 				Control::stand();
 			}
 		}
-		if(doTwiddle){
+		if(false){
 			Wifi::sendResponse(erro);
 		}
 

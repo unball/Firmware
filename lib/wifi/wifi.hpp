@@ -3,7 +3,6 @@
 #include <ESP8266WiFi.h>
 #include <espnow.h>
 #include "../../include/config.h"
-#
 
 namespace Wifi{
 
@@ -24,9 +23,6 @@ namespace Wifi{
         int16_t value;
     };
 
-    extern bool useControl;
-    extern bool doTwiddle;
-    extern bool noControl;
 
     void setup(uint8_t robot);
     void OnDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len);

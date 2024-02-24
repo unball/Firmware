@@ -10,6 +10,9 @@ namespace Control {
     double erro = 0;
     double err_sum = 0;
     double last_err = 0;
+    double kp;
+    double ki;
+    double kd;
 
     /*
         Função que corrige a deadzone de um motor
@@ -154,7 +157,7 @@ namespace Control {
             readSpeeds(&currW);
 
             // Execute the control loop
-            if (useControl) {
+            if (true) {
                 control(v, w, currW, &erro);
             }
             else{
