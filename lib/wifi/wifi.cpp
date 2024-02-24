@@ -125,7 +125,6 @@ namespace Wifi{
     void sendResponse(double erro){
         snd_message robotStatus;
         robotStatus.id = ROBOT_NUMBER;
-        robotStatus.response  = true;
         robotStatus.value = (int16_t)(erro * 100);
         esp_now_send(broadcastAddress, (uint8_t *) &robotStatus, sizeof(snd_message));
     }

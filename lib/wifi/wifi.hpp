@@ -19,7 +19,6 @@ namespace Wifi{
 
     struct snd_message{
         uint8_t id;
-        bool response;
         int16_t value;
     };
 
