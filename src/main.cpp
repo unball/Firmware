@@ -68,7 +68,7 @@ void loop() {
 			}
 		}
 		if(Wifi::doTwiddle){
-			Wifi::sendResponse(erro);
+			Wifi::sendResponse(Control::twiddle());
 		}
 
 

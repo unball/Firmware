@@ -166,4 +166,54 @@ namespace Control {
         }
     }
 
+    double twiddle(){
+
+        // Velocities to be read by Wi-Fi, they are static in case Wifi::receiveData does not receive anything, it keeps the previous velocity
+        double v = 1; //vl
+        double w = 0; //vr
+
+        // Velocidades atuais medidas por sensores
+        double currW;
+        
+        // Lê velocidades pelo Wifi
+        Wifi::receiveDataTwiddle(&kp, &ki, &kd, &v, &w);
+
+        if(Wifi::isCommunicationLost()){
+            err_sum = 0;
+            last_err = 0;
+
+			v = Waves::sine_wave();
+			w = 0;
+
+            Motor::move(0, v);
+            Motor::move(1, v);
+        }
+        else{
+            // Execute the control normally with the reference velocities
+            // Read the velocities through the sensor
+            readSpeeds(&currW);
+            control(v, w, currW, &erro);
+            delay(4000);
+
+
+            control(-v, w, currW, &erro);
+            delay(4000);
+
+            v = 0;
+            w = 10;
+            control(v, w, currW, &erro);
+            delay(4000);
+
+            v = 0;
+            w = 10;
+            control(v, -w, currW, &erro);
+            delay(4000);
+
+        }
+
+        return erro;
+    
+    }
+
+
 }
