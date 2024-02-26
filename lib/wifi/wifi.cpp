@@ -80,8 +80,6 @@ namespace Wifi{
     /// @param kp reference to the proportional gain
     /// @param ki reference to the integral gain
     /// @param kd reference to the derivative gain
-    /// @param v  reference to the linear velocity
-    /// @param w  reference to the angular velocity
     void receiveDataTwiddle(double *kp, double *ki, double *kd){
         if(msg.id == robotNumber){
             // Demultiplexing and decoding the velocities and constants
