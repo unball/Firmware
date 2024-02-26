@@ -52,17 +52,17 @@ namespace Wifi{
         if(msg.id == robotNumber){
             
             if (msg.control == Mode::no_control){
-                *twiddle = false;
                 *control = false;
+                *twiddle = false;
             }            
             else if (msg.control == Mode::control){
-                if (true){
-                    *control = true;
-                    *twiddle = false;
+                if (!Wifi::useControl){
                     *kp = ((float)msg.kp) / 100;
                     *ki = ((float)msg.ki) / 100;
                     *kd = ((float)msg.kd) / 100;
                 }
+                *control = true;
+                *twiddle = false;
             }
             else if (msg.control == Mode::twiddle){
                 *control = false;
