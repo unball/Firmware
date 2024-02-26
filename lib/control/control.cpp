@@ -114,6 +114,12 @@ namespace Control {
     /// @param v Linear velocity of the robot
     /// @param w Angualr velocity of the robot
     void speed2motors(double v, double w){
+        
+        if (v == 0 && w == 0){
+            Motor::stop();
+            return;
+        }
+        
         // Calculates the angular speed of rotation to each wheel
         int32_t vr = (v + (L/2)*w) / r;
         int32_t vl = (v - (L/2)*w) / r;
@@ -192,6 +198,8 @@ namespace Control {
             // Execute the control normally with the reference velocities
             // Read the velocities through the sensor
             readSpeeds(&currW);
+            v = 1;
+            w = 0;
             control(v, w, currW, &erro);
             delay(4000);
 
@@ -199,14 +207,12 @@ namespace Control {
             control(-v, w, currW, &erro);
             delay(4000);
 
-            v = 0;
+            v = 1;
             w = 10;
             control(v, w, currW, &erro);
             delay(4000);
 
-            v = 0;
-            w = 10;
-            control(v, -w, currW, &erro);
+            control(-v, -w, currW, &erro);
             delay(4000);
 
         }
