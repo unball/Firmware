@@ -13,7 +13,7 @@ void setup() {
 	#endif
 
 	Wifi::setup(ROBOT_NUMBER);
-	IMU::setup();
+	IMU::setup();				// Must be after setting up the Wifi, in case the MPU is not working properly
 	Motor::setup();
 }
 
@@ -49,7 +49,7 @@ void loop() {
 		static int32_t t;
 		t = micros();
 
-		// Loop de controle deve ser executado em intervalos comportados
+		// Control loop must be executed in steady intervals
 		if(t-previous_t >= controlLoopInterval){
 			previous_t = t;
 			Control::stand();

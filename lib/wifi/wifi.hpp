@@ -8,8 +8,8 @@ namespace Wifi{
 
     struct rcv_message
     {
-        uint8_t control;
-        uint8_t id;
+        int8_t control;
+        int8_t id;
         int16_t v;
         int16_t w;
     };
