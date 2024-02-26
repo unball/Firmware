@@ -51,12 +51,11 @@ namespace Wifi{
         msg = temp_msg;
         if(msg.id == robotNumber){
             
-            if (msg.control == 0){
-                *twiddle = true;
+            if (msg.control == Mode::no_control){
+                *twiddle = false;
                 *control = false;
-            }
-            
-            else if (msg.control == 1 ){
+            }            
+            else if (msg.control == Mode::control){
                 if (true){
                     *control = true;
                     *twiddle = false;
@@ -64,16 +63,11 @@ namespace Wifi{
                     *ki = ((float)msg.ki) / 100;
                     *kd = ((float)msg.kd) / 100;
                 }
-                
-                
             }
-
-            else if (msg.control == 2){
+            else if (msg.control == Mode::twiddle){
                 *control = false;
-                *twiddle = false;
+                *twiddle = true;
             }
-
-
         }
     }
 
