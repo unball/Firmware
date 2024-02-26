@@ -2,13 +2,9 @@
 
 namespace Wifi{
 
-    
-
     uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
-
     rcv_message temp_msg;
-
     rcv_message msg;
 
     volatile static uint32_t lastReceived;
@@ -16,9 +12,7 @@ namespace Wifi{
     uint8_t robotNumber;
 
     bool useControl = false;
-    bool doTwiddle = false;
-
-    
+    bool doTwiddle = false;    
 
     void setup(uint8_t robot){
         robotNumber = robot;
@@ -75,14 +69,13 @@ namespace Wifi{
     /// @param v reference to the linear velocity
     /// @param w reference to the angular velocity
     void receiveDataGame(double *v, double *w){
-        // Protecting original data
-        msg = temp_msg;
         if(msg.id == robotNumber){
             // Demultiplexing and decoding the velocities and constants
             *v  = ((float)msg.v) * 2.0 / 32767;
             *w  = ((float)msg.w) * 64.0 / 32767;
         }
     }
+
     /// @brief Receive data copying from temp struct to global struct
     /// @param kp reference to the proportional gain
     /// @param ki reference to the integral gain
@@ -90,8 +83,6 @@ namespace Wifi{
     /// @param v  reference to the linear velocity
     /// @param w  reference to the angular velocity
     void receiveDataTwiddle(double *kp, double *ki, double *kd){
-        // Protecting original data
-        msg = temp_msg;
         if(msg.id == robotNumber){
             // Demultiplexing and decoding the velocities and constants
             *kp = ((float)msg.kp) / 100;
