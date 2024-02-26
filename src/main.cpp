@@ -41,7 +41,8 @@ void loop() {
 
 		//=========Wifi===============
 		Serial.println("###################");
-		Serial.println("Wi-Fi:");Wifi::receiveConfig(&Wifi::useControl, &Wifi::doTwiddle, &Control::kp, &Control::ki, &Control::kd);
+		Serial.println("Wi-Fi:");
+		Wifi::receiveConfig(&Wifi::useControl, &Wifi::doTwiddle, &Control::kp, &Control::ki, &Control::kd);
 		Serial.print("useControl: ");Serial.print(Wifi::useControl);Serial.print("doTwiddle: ");Serial.print(Wifi::doTwiddle);Serial.print("kp: ");Serial.print(Control::kp);Serial.print("ki: ");Serial.print(Control::ki);Serial.print("kd: ");Serial.println(Control::kd);
 		Serial.println("###################");
 		Wifi::receiveDataGame(&v, &w);
