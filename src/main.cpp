@@ -4,30 +4,34 @@
 #include <waves.hpp>
 #include <wifi.hpp>
 
-void setup() {	
+double erro = 0;
+
+void setup() {
+	Serial.begin(115200);	
 	#if WEMOS_DEBUG
   		Serial.begin(115200);
 		while(!Serial);
 		delay(1000);
 		Serial.println("START");
 	#endif
-	
-	#if WEMOS_DEBUG
-		IMU::setup_debug();
-		Wifi::setup_debug(ROBOT_NUMBER);
-	#else
-		// IMU::setup();
-		Wifi::setup(ROBOT_NUMBER);
-	#endif
 
+	Wifi::setup(ROBOT_NUMBER);
+	IMU::setup();
 	Motor::setup();
-
 }
 
+
+
 void loop() {
+
+	Wifi::receiveConfig(&Wifi::useControl, &Wifi::doTwiddle, &Control::kp, &Control::ki, &Control::kd);
+	
 	#if WEMOS_DEBUG
-		static int16_t vl; 
-		static int16_t vr; 
+		static double v; 
+		static double w;
+		double kp;
+		double ki;
+		double kd; 
 		Serial.println("LOOP!");
 
 		//=========IMU===============
@@ -40,8 +44,9 @@ void loop() {
 		//=========Wifi===============
 		Serial.println("###################");
 		Serial.println("Wi-Fi:");
-        Wifi::receiveData(&vl, &vr);
-		Serial.print("vl: ");Serial.print(vl);Serial.print("\tvr: ");Serial.println(vr);
+		Serial.print("useControl: ");Serial.print(Wifi::useControl);
+        Wifi::receiveData(&kp, &ki, &kd, &v, &w);
+		Serial.print("v: ");Serial.print(v);Serial.print("\tw: ");Serial.println(w);
 		Serial.println("###################");
 		//=========End Wifi===========
 
@@ -51,15 +56,22 @@ void loop() {
 		//=========End Motor===========
 		delay(500);
 	#else
-		static int32_t previous_t;
-		static int32_t t;
-		t = micros();
+		if(!Wifi::doTwiddle){
+			static int32_t previous_t;
+			static int32_t t;
+			t = micros();
 
-		// Loop de controle deve ser executado em intervalos comportados
-		if(t-previous_t >= controlLoopInterval){
-			previous_t = t;
-			Control::actuateNoControl();
+			// Loop de controle deve ser executado em intervalos comportados
+			if(t-previous_t >= controlLoopInterval){
+				previous_t = t;
+				Control::stand();
+			}
 		}
+		if(Wifi::doTwiddle){
+			Wifi::sendResponse(Control::twiddle());
+		}
+
+
 
 	#endif
 

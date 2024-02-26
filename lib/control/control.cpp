@@ -1,11 +1,18 @@
 #include <control.hpp>
 
+
+
+
 namespace Control {
 
     using namespace Waves;
 
+    double erro = 0;
     double err_sum = 0;
     double last_err = 0;
+    double kp = 0.159521;
+    double ki = 0.016864;
+    double kd = 0.016686;
 
     /*
         Função que corrige a deadzone de um motor
@@ -69,8 +76,9 @@ namespace Control {
         @param v Velocidade linear de referência em m/s
         @param w Velocidade angular de referência em rad/s
         @param currW Velocidade angular medida por algum sensor (IMU) em rad/s
+        @param *erro ponteiro para a variavel global de erro
     */
-    void control(double v, double w, double currW){
+    void control(double v, double w, double currW, double *erro){
         //TODO: deadzone?
         if (v == 0 && w == 0){
             Motor::stop();
@@ -79,13 +87,16 @@ namespace Control {
 
         // Angular velocity error
         double eW = w - currW;
+        
 
         w = PID(v, eW);
+
         if (v > 0 ) v = map(v, 0, 255, 60, 255);
         if (v < 0 ) v = map(v, 0, -255, -60, -255);
 
         int32_t controlR = (int32_t)saturation((v - w));
         int32_t controlL = (int32_t)saturation((v + w));
+
         if (controlR < 15 && controlR > -15) controlR = 0;
         if (controlL < 15 && controlL > -15) controlL = 0;
 
@@ -94,10 +105,12 @@ namespace Control {
         // Motor::move(1, deadzone(controlL, 7, -7));
         Motor::move(0, controlR);
         Motor::move(1, controlL);
+
+        *erro = eW;
         
     }
     
-    /// @brief Calculate the angular speed to each wheel based on radius of the wheel and distance between them.
+    /// @brief Move the motors without control, based on the radius of the wheel and distance between them.
     /// @param v Linear velocity of the robot
     /// @param w Angualr velocity of the robot
     void speed2motors(double v, double w){
@@ -115,6 +128,7 @@ namespace Control {
     /*
         Lê velocidades do rádio, lê velocidades de referência e executa o controle
     */
+    
     void stand(){
 
         // Velocities to be read by Wi-Fi, they are static in case Wifi::receiveData does not receive anything, it keeps the previous velocity
@@ -125,56 +139,81 @@ namespace Control {
         double currW;
         
         // Lê velocidades pelo Wifi
-        // bool useControl = Wifi::receiveData(&v, &w);
+        Wifi::receiveDataGame(&v, &w);
 
         if(Wifi::isCommunicationLost()){
             err_sum = 0;
             last_err = 0;
 
-			w = 0;
 			v = Waves::sine_wave();
+			w = 0;
 
             Motor::move(0, v);
             Motor::move(1, v);
         }
-
         else{
             // Execute the control normally with the reference velocities
             // Read the velocities through the sensor
             readSpeeds(&currW);
 
             // Execute the control loop
-            // if (useControl) {
-            //     control(v, w, currW);
-            // }
-            // else{
-            //     speed2motors(v, w);
-            // }
+            if (Wifi::useControl) {
+                control(v, w, currW, &erro);
+            }
+            else{
+                speed2motors(v, w);
+            }
         }
-
     }
 
-    void actuateNoControl(){
+    double twiddle(){
+
         // Velocities to be read by Wi-Fi, they are static in case Wifi::receiveData does not receive anything, it keeps the previous velocity
-        static int16_t vl = 0;
-        static int16_t vr = 0;
+        double v = 1; //vl
+        double w = 0; //vr
+
+        // Velocidades atuais medidas por sensores
+        double currW;
         
         // Lê velocidades pelo Wifi
-        Wifi::receiveData(&vl, &vr);
+        Wifi::receiveDataTwiddle(&kp, &ki, &kd);
 
         if(Wifi::isCommunicationLost()){
-			vl = 0;
-			vr = Waves::sine_wave();
+            err_sum = 0;
+            last_err = 0;
 
-            Motor::move(0, vr);
-            Motor::move(1, vr);
+			v = Waves::sine_wave();
+			w = 0;
+
+            Motor::move(0, v);
+            Motor::move(1, v);
         }
         else{
-            Motor::move(0, vl);
-            Motor::move(1, vr);
+            // Execute the control normally with the reference velocities
+            // Read the velocities through the sensor
+            readSpeeds(&currW);
+            control(v, w, currW, &erro);
+            delay(4000);
+
+
+            control(-v, w, currW, &erro);
+            delay(4000);
+
+            v = 0;
+            w = 10;
+            control(v, w, currW, &erro);
+            delay(4000);
+
+            v = 0;
+            w = 10;
+            control(v, -w, currW, &erro);
+            delay(4000);
+
         }
 
- 
+        return erro;
+    
     }
+
 
 }
