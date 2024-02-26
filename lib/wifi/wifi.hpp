@@ -33,6 +33,12 @@ namespace Wifi{
     bool isCommunicationLost();
     void sendResponse(double erro);
 
+    enum Mode {
+        no_control = 0,
+        control = 1,
+        twiddle = 2,
+    };
+
 }
 
 #endif
