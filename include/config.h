@@ -3,7 +3,7 @@
 
 /* Main configs*/
 #define WEMOS_DEBUG false
-#define ROBOT_NUMBER 0
+#define ROBOT_NUMBER 2
 
 /* Wi-Fi */
 const int communicationTimeout = 500000;

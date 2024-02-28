@@ -56,23 +56,7 @@ void loop() {
 		//=========End Motor===========
 		delay(500);
 	#else
-		if(!Wifi::doTwiddle){
-			static int32_t previous_t;
-			static int32_t t;
-			t = micros();
-
-			// Loop de controle deve ser executado em intervalos comportados
-			if(t-previous_t >= controlLoopInterval){
-				previous_t = t;
-				Control::stand();
-			}
-		}
-		if(Wifi::doTwiddle){
-			Wifi::sendResponse(Control::twiddle());
-		}
-
-
-
+		Control::stand();
 	#endif
 
 }

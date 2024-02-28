@@ -17,10 +17,6 @@ namespace Wifi{
         int16_t w;
     };
 
-    struct snd_message{
-        uint8_t id;
-        int16_t value;
-    };
 
     extern bool useControl;
     extern bool doTwiddle;

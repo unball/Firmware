@@ -50,17 +50,8 @@ namespace Wifi{
                 *twiddle = false;
             }            
             else if (msg.control == Mode::control){
-                if (!Wifi::useControl){
-                    *kp = ((float)msg.kp) / 100;
-                    *ki = ((float)msg.ki) / 100;
-                    *kd = ((float)msg.kd) / 100;
-                }
                 *control = true;
                 *twiddle = false;
-            }
-            else if (msg.control == Mode::twiddle){
-                *control = false;
-                *twiddle = true;
             }
         }
     }
@@ -76,19 +67,6 @@ namespace Wifi{
         }
     }
 
-    /// @brief Receive data copying from temp struct to global struct
-    /// @param kp reference to the proportional gain
-    /// @param ki reference to the integral gain
-    /// @param kd reference to the derivative gain
-    void receiveDataTwiddle(double *kp, double *ki, double *kd){
-        if(msg.id == robotNumber){
-            // Demultiplexing and decoding the velocities and constants
-            *kp = ((float)msg.kp) / 100;
-            *ki = ((float)msg.ki) / 100;
-            *kd = ((float)msg.kd) / 100;
-        }
-    }
-
     bool isCommunicationLost(){
         if((micros() - lastReceived) > communicationTimeout){
 			// Communication probably failed
@@ -98,12 +76,4 @@ namespace Wifi{
 		}
         return false;
     }
-
-    void sendResponse(double erro){
-        snd_message robotStatus;
-        robotStatus.id = ROBOT_NUMBER;
-        robotStatus.value = (int16_t)(erro * 100);
-        esp_now_send(broadcastAddress, (uint8_t *) &robotStatus, sizeof(snd_message));
-    }
-
 }

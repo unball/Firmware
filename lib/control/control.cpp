@@ -10,9 +10,28 @@ namespace Control {
     double erro = 0;
     double err_sum = 0;
     double last_err = 0;
-    double kp = 0.159521;
+    
+    
+    //Constantes originais
+    /*double kp = 0.159521;
     double ki = 0.016864;
-    double kd = 0.016686;
+    double kd = 0.016686;*/
+    
+    //Constantes Apodi
+    double kp = 10.9521;
+    double ki = 0.26864;
+    double kd = 0.16686;
+
+    //Constantes Tafarel
+    /*double kp = 39.9521;
+    double ki = -0.26864;
+    double kd = 0.16686;*/
+
+    //Constantes Romário
+    /*double kp = 0.0;
+    double ki = 0.0;
+    double kd = 0.0;*/
+    
 
     /*
         Função que corrige a deadzone de um motor
@@ -78,18 +97,22 @@ namespace Control {
         @param currW Velocidade angular medida por algum sensor (IMU) em rad/s
         @param *erro ponteiro para a variavel global de erro
     */
-    void control(double v, double w, double currW, double *erro){
+    void control(double v, double wold, double currW, double *erro){
         //TODO: deadzone?
-        if (v == 0 && w == 0){
+        if (v == 0 && wold == 0){
             Motor::stop();
             return;
         }
 
         // Angular velocity error
-        double eW = w - currW;
+        double eW = wold - currW;
         
 
-        w = PID(v, eW);
+        double w = PID(v, eW);
+
+        if (abs (w - wold) > 32){
+            w  = wold;
+        }
 
         if (v > 0 ) v = map(v, 0, 255, 60, 255);
         if (v < 0 ) v = map(v, 0, -255, -60, -255);
@@ -99,10 +122,7 @@ namespace Control {
 
         if (controlR < 15 && controlR > -15) controlR = 0;
         if (controlL < 15 && controlL > -15) controlL = 0;
-
-        // Passes the control output to the plant 
-        // Motor::move(0, deadzone(controlR, 7, -7));
-        // Motor::move(1, deadzone(controlL, 7, -7));
+        
         Motor::move(0, controlR);
         Motor::move(1, controlL);
 
@@ -171,55 +191,5 @@ namespace Control {
             }
         }
     }
-
-    double twiddle(){
-
-        // Velocities to be read by Wi-Fi, they are static in case Wifi::receiveData does not receive anything, it keeps the previous velocity
-        double v = 1; //vl
-        double w = 0; //vr
-
-        // Velocidades atuais medidas por sensores
-        double currW;
-        
-        // Lê velocidades pelo Wifi
-        Wifi::receiveDataTwiddle(&kp, &ki, &kd);
-
-        if(Wifi::isCommunicationLost()){
-            err_sum = 0;
-            last_err = 0;
-
-			v = Waves::sine_wave();
-			w = 0;
-
-            Motor::move(0, v);
-            Motor::move(1, v);
-        }
-        else{
-            // Execute the control normally with the reference velocities
-            // Read the velocities through the sensor
-            readSpeeds(&currW);
-            v = 1;
-            w = 0;
-            control(v, w, currW, &erro);
-            delay(4000);
-
-
-            control(-v, w, currW, &erro);
-            delay(4000);
-
-            v = 1;
-            w = 10;
-            control(v, w, currW, &erro);
-            delay(4000);
-
-            control(-v, -w, currW, &erro);
-            delay(4000);
-
-        }
-
-        return erro;
-    
-    }
-
 
 }
