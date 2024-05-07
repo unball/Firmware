@@ -8,6 +8,8 @@ namespace Wifi{
 
     rcv_message msg;
 
+    dataRobot robot_message;
+
     volatile static uint32_t lastReceived;
 
     uint8_t robotNumber;
@@ -42,8 +44,33 @@ namespace Wifi{
     // Callback function, execute when message is received via Wi-Fi
     void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len)
     {
+        
         memcpy(&temp_msg, incomingData, sizeof(msg));
+
+        /* Faz o checksum */
+        int16_t checksum = 0;
+        for(int i=0 ; i<3 ; i++){
+            checksum += temp_msg.data.vl + temp_msg.data.vr;
+        }
+
+        /* Verifica o checksum */
+        if(checksum == temp_msg.checksum){
+            /* Copia para o buffer global de robot_message */
+            robot_message = temp_msg.data;
+
+            /* Reporta que deu certo */
+            Serial.printf("%d\t%d\t%d\n", checksum, robot_message.vl, robot_message.vr);
+        
+        }
+        else {
+            Serial.printf("Checksum errado\n");
+        }
+
+
 	    lastReceived = micros();
+
+
+
         // TODO: last Received deveria estar aqui ou em receiveData?
     }
 
@@ -55,8 +82,8 @@ namespace Wifi{
         msg = temp_msg;
         if(msg.id == robotNumber){
             // Demultiplexing and decoding the velocities
-            *vl = msg.vl;
-            *vr = msg.vr;
+            *vl = msg.data.vl;
+            *vr = msg.data.vr;
         }
     }
 

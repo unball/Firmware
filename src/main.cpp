@@ -13,7 +13,7 @@ void setup() {
 	#endif
 	
 	#if WEMOS_DEBUG
-		IMU::setup_debug();
+		// IMU::setup_debug();
 		Wifi::setup_debug(ROBOT_NUMBER);
 	#else
 		// IMU::setup();
@@ -28,13 +28,14 @@ void loop() {
 	#if WEMOS_DEBUG
 		static int16_t vl; 
 		static int16_t vr; 
+		
 		Serial.println("LOOP!");
 
 		//=========IMU===============
-		Serial.println("###################");
-		Serial.println("IMU:");
-		Serial.print("theta: ");Serial.println(IMU::get_w());
-		Serial.println("###################");
+		// Serial.println("###################");
+		// Serial.println("IMU:");
+		// Serial.print("theta: ");Serial.println(IMU::get_w());
+		// Serial.println("###################");
 		//=========End IMU===========
 
 		//=========Wifi===============

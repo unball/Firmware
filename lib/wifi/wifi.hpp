@@ -6,11 +6,18 @@
 
 namespace Wifi{
 
+    struct dataRobot
+    {
+        int16_t vl;
+        int16_t vr;
+    };
+    
+
     struct rcv_message
     {
         int16_t id;
-        int16_t vl;
-        int16_t vr;
+        dataRobot data;
+        int16_t checksum;
     };
 
     void setup_debug(uint8_t robot);
