@@ -2,7 +2,7 @@
 #define CONFIG_HPP
 
 /* Main configs*/
-#define WEMOS_DEBUG true
+#define WEMOS_DEBUG false
 #define ROBOT_NUMBER 0
 
 /* Wi-Fi */
