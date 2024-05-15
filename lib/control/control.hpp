@@ -9,7 +9,9 @@
 
 namespace Control{
 
-    
+    extern double kp;
+    extern double ki;
+    extern double kd;
 
     int32_t deadzone(int32_t vin, int32_t up, int32_t down);
     void readSpeeds(double *w);

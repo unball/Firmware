@@ -1,5 +1,8 @@
 #include <control.hpp>
 
+
+
+
 namespace Control {
 
     using namespace Waves;
@@ -7,6 +10,9 @@ namespace Control {
     double erro = 0;
     double err_sum = 0;
     double last_err = 0;
+    double kp = 0.159521;
+    double ki = 0.016864;
+    double kd = 0.016686;
 
     /*
         Função que corrige a deadzone de um motor
@@ -139,7 +145,7 @@ namespace Control {
         double currW;
         
         // Lê velocidades pelo Wifi
-        Wifi::receiveData(&v, &w);
+        Wifi::receiveDataGame(&v, &w);
 
         if(Wifi::isCommunicationLost()){
             err_sum = 0;
@@ -155,9 +161,65 @@ namespace Control {
             // Execute the control normally with the reference velocities
             // Read the velocities through the sensor
             readSpeeds(&currW);
+
             // Execute the control loop
-            control(v, w, currW, &erro);
+            if (Wifi::useControl) {
+                control(v, w, currW, &erro);
+            }
+            else{
+                speed2motors(v, w);
+            }
         }
     }
+
+    double twiddle(){
+
+        // Velocities to be read by Wi-Fi, they are static in case Wifi::receiveData does not receive anything, it keeps the previous velocity
+        double v = 1; //vl
+        double w = 0; //vr
+
+        // Velocidades atuais medidas por sensores
+        double currW;
+        
+        // Lê velocidades pelo Wifi
+        Wifi::receiveDataTwiddle(&kp, &ki, &kd);
+
+        if(Wifi::isCommunicationLost()){
+            err_sum = 0;
+            last_err = 0;
+
+			v = Waves::sine_wave();
+			w = 0;
+
+            Motor::move(0, v);
+            Motor::move(1, v);
+        }
+        else{
+            // Execute the control normally with the reference velocities
+            // Read the velocities through the sensor
+            readSpeeds(&currW);
+            v = 1;
+            w = 0;
+            control(v, w, currW, &erro);
+            delay(4000);
+
+
+            control(-v, w, currW, &erro);
+            delay(4000);
+
+            v = 1;
+            w = 10;
+            control(v, w, currW, &erro);
+            delay(4000);
+
+            control(-v, -w, currW, &erro);
+            delay(4000);
+
+        }
+
+        return erro;
+    
+    }
+
 
 }
