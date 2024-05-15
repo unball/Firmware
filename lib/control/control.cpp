@@ -156,13 +156,17 @@ namespace Control {
 
     void actuateNoControl(){
         // Velocities to be read by Wi-Fi, they are static in case Wifi::receiveData does not receive anything, it keeps the previous velocity
+        static int16_t v = 0;
+        static int16_t w = 0;
+
         static int16_t vl = 0;
         static int16_t vr = 0;
         
         // Lê velocidades pelo Wifi
-        Wifi::receiveData(&vl, &vr);
+        Wifi::receiveData(&v, &w);
 
         if(Wifi::isCommunicationLost()){
+            vl, vr = Motor::speed2motors(v,w);
 			vl = 0;
 			vr = Waves::sine_wave();
 
@@ -170,6 +174,7 @@ namespace Control {
             Motor::move(1, vr);
         }
         else{
+            vl, vr = Motor::speed2motors(v,w);
             Motor::move(0, vl);
             Motor::move(1, vr);
         }
