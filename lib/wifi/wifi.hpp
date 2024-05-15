@@ -8,8 +8,8 @@ namespace Wifi{
 
     struct dataRobot
     {
-        int16_t vl;
-        int16_t vr;
+        int16_t v;
+        int16_t w;
     };
     
 
@@ -17,7 +17,7 @@ namespace Wifi{
     {
         int16_t id;
         dataRobot data;
-        int16_t checksum;
+        int32_t checksum;
     };
 
     void setup_debug(uint8_t robot);

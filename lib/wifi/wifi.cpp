@@ -50,7 +50,7 @@ namespace Wifi{
         /* Faz o checksum */
         int16_t checksum = 0;
         for(int i=0 ; i<3 ; i++){
-            checksum += temp_msg.data.vl + temp_msg.data.vr;
+            checksum += temp_msg.data.v + temp_msg.data.w;
         }
 
         /* Verifica o checksum */
@@ -59,7 +59,7 @@ namespace Wifi{
             robot_message = temp_msg.data;
 
             /* Reporta que deu certo */
-            Serial.printf("%d\t%d\t%d\n", checksum, robot_message.vl, robot_message.vr);
+            Serial.printf("%d\t%d\t%d\n", checksum, robot_message.v, robot_message.w);
         
         }
         else {
@@ -77,13 +77,13 @@ namespace Wifi{
     /// @brief Receive data copying from temp struct to global struct
     /// @param vl reference to the velocity
     /// @param vr reference to the velocity
-    void receiveData(int16_t *vl, int16_t *vr){
+    void receiveData(int16_t *v, int16_t *w){
         // Protecting original data
         msg = temp_msg;
         if(msg.id == robotNumber){
             // Demultiplexing and decoding the velocities
-            *vl = msg.data.vl;
-            *vr = msg.data.vr;
+            *v = msg.data.v;
+            *w = msg.data.w;
         }
     }
 
