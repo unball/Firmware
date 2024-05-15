@@ -22,6 +22,8 @@ void setup() {
 
 void loop() {
 
+	Wifi::receiveConfig(&Wifi::useControl, &Wifi::doTwiddle, &Control::kp, &Control::ki, &Control::kd);
+	
 	#if WEMOS_DEBUG
 		static double v; 
 		static double w;
@@ -54,15 +56,22 @@ void loop() {
 		//=========End Motor===========
 		delay(500);
 	#else
-		static int32_t previous_t;
-		static int32_t t;
-		t = micros();
+		if(!Wifi::doTwiddle){
+			static int32_t previous_t;
+			static int32_t t;
+			t = micros();
 
-		// Loop de controle deve ser executado em intervalos comportados
-		if(t-previous_t >= controlLoopInterval){
-			previous_t = t;
-			Control::stand();
+			// Loop de controle deve ser executado em intervalos comportados
+			if(t-previous_t >= controlLoopInterval){
+				previous_t = t;
+				Control::stand();
+			}
 		}
+		if(Wifi::doTwiddle){
+			Wifi::sendResponse(Control::twiddle());
+		}
+
+
 
 	#endif
 
