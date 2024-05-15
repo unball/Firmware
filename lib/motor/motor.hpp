@@ -11,6 +11,7 @@ namespace Motor{
     void move(uint8_t motor, int32_t power);
     void stop();
     int8_t getMotorDirection(int8_t motor);
+    int16_t speed2motors(int16_t v, int16_t w);
 }
 
 #endif
