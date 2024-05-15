@@ -18,4 +18,8 @@ const float r =	0.016;
 const float L = 0.075;
 const int motor_deadzone = 32;
 
+const double kp = 0.159521;
+const double ki = 0.016864;
+const double kd = 0.016686;
+
 #endif
