@@ -16,7 +16,6 @@ namespace Control{
     double PID(double v, double err);
     void control(double v, double w, double currW, double *erro);
     void stand();
-    double twiddle();
 }
 
 #endif
