@@ -64,6 +64,38 @@ namespace Control {
 	    return output;
     }
 
+       /// @brief Move the motors without control, based on the radius of the wheel and distance between them.
+    /// @param v Linear velocity of the robot
+    /// @param w Angualr velocity of the robot
+    void speed2motors(double v, double w){
+        
+        if (v == 0 && w == 0){
+            Motor::stop();
+            return;
+        }
+        
+        // Calculates the angular speed of rotation to each wheel
+        int32_t vr = (v + (L/2)*w) / r;
+        int32_t vl = (v - (L/2)*w) / r;
+
+        vr = (int32_t)saturation((deadzone(vr, motor_deadzone, -motor_deadzone)));
+        vl = (int32_t)saturation((deadzone(vl, motor_deadzone, -motor_deadzone)));
+
+        Motor::move(0, vr);
+        Motor::move(1, vl);
+
+        Serial.println("##########################################");
+        Serial.println("""""""""""""""""'controlR'""""""""""""""""");
+        Serial.println(vr);
+        Serial.println("""""""""""""""""'controlLL'""""""""""""""""");
+        Serial.println(vl);
+        Serial.println("""""""""""""""""'w'""""""""""""""""");
+        Serial.println(w);
+        Serial.println("""""""""""""""""'v'""""""""""""""""");
+        Serial.println(v);
+        Serial.println("##########################################");
+    }
+
     /*
         Implementa a malha de controle baixo nível
 
@@ -85,11 +117,16 @@ namespace Control {
 
         w = PID(v, eW);
 
-        if (v > 0 ) v = map(v, 0, 255, 60, 255);
+        speed2motors(v,w);
+
+        /*if (v > 0 ) v = map(v, 0, 255, 60, 255);
         if (v < 0 ) v = map(v, 0, -255, -60, -255);
 
         int32_t controlR = (int32_t)saturation((v - w));
         int32_t controlL = (int32_t)saturation((v + w));
+
+        controlR = (int32_t)saturation((deadzone(controlR, motor_deadzone, -motor_deadzone)));
+        controlL = (int32_t)saturation((deadzone(controlL, motor_deadzone, -motor_deadzone)));
 
         if (controlR < 15 && controlR > -15) controlR = 0;
         if (controlL < 15 && controlL > -15) controlL = 0;
@@ -99,35 +136,21 @@ namespace Control {
         // Motor::move(1, deadzone(controlL, 7, -7));
         Motor::move(0, controlR);
         Motor::move(1, controlL);
+        Serial.println("##########################################");
+        Serial.println("""""""""""""""""'controlR'""""""""""""""""");
+        Serial.println(controlR);
+        Serial.println("""""""""""""""""'controlLL'""""""""""""""""");
+        Serial.println(controlL);
+        Serial.println("""""""""""""""""'w'""""""""""""""""");
+        Serial.println(w);
+        Serial.println("""""""""""""""""'v'""""""""""""""""");
+        Serial.println(v);
+        Serial.println("##########################################");
 
-        *erro = eW;
+        *erro = eW;*/
         
     }
     
-    /// @brief Move the motors without control, based on the radius of the wheel and distance between them.
-    /// @param v Linear velocity of the robot
-    /// @param w Angualr velocity of the robot
-    void speed2motors(double v, double w){
-        
-        if (v == 0 && w == 0){
-            Motor::stop();
-            return;
-        }
-        
-        // Calculates the angular speed of rotation to each wheel
-        int32_t vr = (v + (L/2)*w) / r;
-        int32_t vl = (v - (L/2)*w) / r;
-
-        vr = (int32_t)saturation((deadzone(vr, motor_deadzone, -motor_deadzone)));
-        vl = (int32_t)saturation((deadzone(vl, motor_deadzone, -motor_deadzone)));
-
-        Motor::move(0, vr);
-        Motor::move(1, vl);
-    }
-
-    /*
-        Lê velocidades do rádio, lê velocidades de referência e executa o controle
-    */
     
     void stand(){
 
