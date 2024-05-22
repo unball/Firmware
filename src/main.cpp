@@ -23,8 +23,8 @@ void setup() {
 void loop() {
 
 	#if WEMOS_DEBUG
-		static double v; 
-		static double w; 
+		int16_t v; 
+		int16_t w; 
 		Serial.println("LOOP!");
 
 		//=========IMU===============
