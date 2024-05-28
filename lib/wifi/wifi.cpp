@@ -5,8 +5,6 @@
 namespace Wifi{
 
     rcv_message temp_msg;
-    
-    rcv_message rcv_message_final;
 
     rcv_message msg;
 
@@ -61,19 +59,11 @@ namespace Wifi{
             robot_message = temp_msg.data;
 
             /* Reporta que deu certo */
-            if(WEMOS_DEBUG){
-                Serial.printf("Verificação do checksum\n");
-                Serial.printf("%d\t%d\t%d\t%d\n", temp_msg.checksum, temp_msg.id,  robot_message.vl, robot_message.vr);
-                delay(100);
-            }
-
-            rcv_message_final = temp_msg;
+            Serial.printf("%d\t%d\t%d\n", checksum, robot_message.v, robot_message.w);
         
         }
         else {
-            if(WEMOS_DEBUG){
-                Serial.printf("Checksum errado - esperado %d : recebido %d\n",checksum, temp_msg.checksum);
-            }
+            Serial.printf("Checksum errado\n");
         }
 
 
@@ -89,12 +79,12 @@ namespace Wifi{
     /// @param vr reference to the velocity
     void receiveData(int16_t *v, int16_t *w){
         // Protecting original data
-        msg = rcv_message_final;
+        msg = temp_msg;
         if(msg.id == robotNumber){
             // Demultiplexing and decoding the velocities
             *v = msg.data.v;
             *w = msg.data.w;
-        } 0.01668
+        }
     }
 
     bool isCommunicationLost(){
