@@ -47,6 +47,8 @@ void loop() {
 		Motor::move(1, 100);
 		//=========End Motor===========
 		delay(500);
+	#elif CONTROL_TESTER
+		Control::test();
 	#else
 		static int32_t previous_t;
 		static int32_t t;
@@ -57,7 +59,6 @@ void loop() {
 			previous_t = t;
 			Control::stand();
 		}
-
 	#endif
 
 }
