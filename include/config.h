@@ -3,7 +3,8 @@
 
 /* Main configs*/
 #define WEMOS_DEBUG false
-#define CONTROL_TESTER true
+#define CONTROL_TESTER false
+#define TWIDDLE false
 #define ROBOT_NUMBER 0
 
 /* Wi-Fi */
@@ -18,9 +19,5 @@ const int controlLoopInterval= 2000;   // actuation interval in ms
 const float r =	0.016;
 const float L = 0.075;
 const int motor_deadzone = 65;
-
-const double kp = 0.159521;
-const double ki = 0.016864;
-const double kd = 0.016686;
 
 #endif
