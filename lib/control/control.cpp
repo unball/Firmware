@@ -148,4 +148,59 @@ namespace Control {
         }
     }
 
+    void test(){
+        // Velocidade
+        static double v = 0;
+        static double w = 0;
+        
+        // Velocidades atuais medidas por sensores
+        double currW;
+
+
+        static int32_t previous_t;
+        static int32_t t;
+
+        //faz um quadrado de frente
+        for (int i = 0; i < 4; i++){
+            previous_t = millis();
+            while (t - previous_t < 1000 ){
+                t = millis();
+                //rotina de controle anda de frente
+                v = 0.2;
+                w = 0;
+                control(v, w, currW, &erro);
+            }
+            previous_t = millis();
+            while (t - previous_t < 314 ){
+                t = millis();
+                //rotina de virar
+                v = 0;
+                w = 5;
+                control(v, w, currW, &erro);
+            }
+        }
+
+        //faz um quadrado de re 
+        for (int i = 0; i < 4; i++){
+            previous_t = millis();
+            while (t - previous_t < 1000 ){
+                t = millis();
+                //rotina de controle anda de frente
+                v = -0.2;
+                w = 0;
+                control(v, w, currW, &erro);
+            }
+            previous_t = millis();
+            while (t - previous_t < 314 ){
+                t = millis();
+                //rotina de virar
+                v = 0;
+                w = -5;
+                control(v, w, currW, &erro);
+            }
+        }  
+        
+
+    }
+
 }
