@@ -114,8 +114,8 @@ namespace Control {
     void stand(){
 
         // Velocities to be read by Wi-Fi, they are static in case Wifi::receiveData does not receive anything, it keeps the previous velocity
-        static double v = 0; //vl
-        static double w = 0; //vr
+        static double v = 0;
+        static double w = 0;
         int16_t v_int = 0;
         int16_t w_int = 0;
 
@@ -124,6 +124,8 @@ namespace Control {
         
         // Lê velocidades pelo Wifi
         Wifi::receiveData(&v_int, &w_int);
+
+        //demutiplexa velocidades
         v = ((float)v_int) * 2.0 / 32767;
         w  = ((float)w_int) * 64.0 / 32767;
 
