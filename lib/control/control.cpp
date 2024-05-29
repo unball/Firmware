@@ -8,6 +8,10 @@ namespace Control {
     double err_sum = 0;
     double last_err = 0;
 
+    double kp = 0.7;
+    double ki = 0.05;
+    double kd = 0.02;
+
     /*
         Função que corrige a deadzone de um motor
 
@@ -42,6 +46,16 @@ namespace Control {
     void readSpeeds(double *w){
         // *w = angSpeed(-IMU::get_w());
         *w = -IMU::get_w();
+    }
+
+    double abs(double a){
+        if (a > 0){
+            return a;
+        }
+        else{
+            return a*(-1);
+        }
+         
     }
 
     /*
@@ -148,13 +162,16 @@ namespace Control {
         }
     }
 
-    void test(){
+    double test(){
         // Velocidade
         static double v = 0;
         static double w = 0;
         
         // Velocidades atuais medidas por sensores
-        double currW;
+        double currW = 0;
+
+        //zera erro
+        erro = 0;
 
 
         static int32_t previous_t;
@@ -168,15 +185,37 @@ namespace Control {
                 //rotina de controle anda de frente
                 v = 0.2;
                 w = 0;
+                readSpeeds(&currW);
                 control(v, w, currW, &erro);
+                if (abs((currW - w))>erro){
+                    erro = abs((currW - w));
+                }
+                
             }
+            
             previous_t = millis();
             while (t - previous_t < 314 ){
                 t = millis();
                 //rotina de virar
                 v = 0;
                 w = 5;
+                readSpeeds(&currW);
                 control(v, w, currW, &erro);
+                if (abs((currW - w))>erro){
+                    erro = abs((currW - w));
+                }
+            }
+        }
+
+        while (t - previous_t < 300 ){
+            t = millis();
+            //rotina de virar
+            v = 0;
+            w = 0;
+            readSpeeds(&currW);
+            control(v, w, currW, &erro);
+            if (abs((currW - w))>erro){
+                erro = abs((currW - w));
             }
         }
 
@@ -188,7 +227,11 @@ namespace Control {
                 //rotina de controle anda de frente
                 v = -0.2;
                 w = 0;
+                readSpeeds(&currW);
                 control(v, w, currW, &erro);
+                if (abs((currW - w))>erro){
+                    erro = abs((currW - w));
+                }
             }
             previous_t = millis();
             while (t - previous_t < 314 ){
@@ -196,11 +239,89 @@ namespace Control {
                 //rotina de virar
                 v = 0;
                 w = -5;
+                readSpeeds(&currW);
                 control(v, w, currW, &erro);
+                if (abs((currW - w))>erro){
+                    erro = abs((currW - w));
+                }
+            }
+
+            while (t - previous_t < 300 ){
+                t = millis();
+                //rotina de virar
+                v = 0;
+                w = 0;
+                readSpeeds(&currW);
+                control(v, w, currW, &erro);
+                if (abs((currW - w))>erro){
+                    erro = abs((currW - w));
+                }
             }
         }  
         
-
+        return erro;
     }
+
+
+
+    void twiddle(){
+        double target;
+        double k[3];
+        double dk[3];
+        double ksi = 0.3;
+        dk[0] = 0.538265;
+        dk[1] = 0.049981750000000005; 
+        dk[2] = 0.049981750000000005;
+        k[0] = kp;
+        k[1] = ki;
+        k[2] = kd;
+        target = test();
+        for (int i = 0; i < 3; i++){
+            k[i] += dk[i];
+            kp = k[0];
+            ki = k[1];
+            kd = k[2];
+            erro = test();
+            
+            if (erro < target){
+                target = erro;
+                dk[i] *= 1+ksi; 
+            }
+            else{
+                k[i] -= 2*dk[i];
+
+                kp = k[0];
+                ki = k[1];
+                kd = k[2];
+                erro = test();
+
+                if (erro < target){
+                    target = erro;
+                    dk[i] *= 1+ksi;
+                }
+                else{
+                    k[i]  = dk[i];
+                    dk[i] *= 1 - ksi;
+                }
+            }
+
+        }
+
+        while (true){
+            control(0, 0, 0, &erro);
+            Serial.print("kp: ");
+            Serial.println(kp);
+            Serial.print("ki: ");
+            Serial.println(ki);
+            Serial.print("kd: ");
+            Serial.println(kd);
+            
+            
+            
+        }
+        
+            
+    }
+        
 
 }
