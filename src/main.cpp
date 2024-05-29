@@ -49,6 +49,8 @@ void loop() {
 		delay(500);
 	#elif CONTROL_TESTER
 		Control::test();
+	#elif TWIDDLE
+		Control::twiddle();
 	#else
 		static int32_t previous_t;
 		static int32_t t;
