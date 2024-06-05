@@ -10,11 +10,12 @@ namespace Wifi{
         int8_t id;
         int16_t v;
         int16_t w;
+        int32_t checksum;
     };
   
     void setup(uint8_t robot);
     void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len);
-    void receiveData(double *v, double *w);
+    void receiveData(int *v, int *w);
     bool isCommunicationLost();
 }
 
