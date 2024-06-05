@@ -15,20 +15,19 @@ namespace Wifi{
         robotNumber = robot;
 
         WiFi.mode(WIFI_STA);
+        WiFi.disconnect();
         if (esp_now_init() != 0) {
             #if WEMOS_DEBUG
             Serial.println("Erro ao inicializar o ESP-NOW");
             #endif
             return;
         }
-        WiFi.setOutputPower(MAX_POWER);
-
-        esp_now_set_self_role(ESP_NOW_ROLE_SLAVE);
+        WiFi.setTxPower(WIFI_POWER_19_5dBm);
         esp_now_register_recv_cb(OnDataRecv);            
     }
 
     // Callback function, execute when message is received via Wi-Fi
-    void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len){
+    void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len){
         memcpy(&temp_msg, incomingData, sizeof(msg));
 	    lastReceived = micros();
         // TODO: lastReceived deveria estar aqui ou em receiveData?
@@ -37,15 +36,14 @@ namespace Wifi{
     /// @brief Receive data copying from temp struct to global struct
     /// @param v reference to the linear velocity
     /// @param w reference to the angular velocity
-    void receiveData(int16_t *v, int16_t *w){
-        // Protecting original data
-        msg = temp_msg;
+    void receiveData(double *v, double *w){
         if(msg.id == robotNumber){
-            // Demultiplexing and decoding the velocities
-            *v = msg.v;
-            *w = msg.w;
+            // Demultiplexing and decoding the velocities and constants
+            *v  = ((float)msg.v) * 2.0 / 32767;
+            *w  = ((float)msg.w) * 64.0 / 32767;
         }
     }
+
     bool isCommunicationLost(){
         if((micros() - lastReceived) > communicationTimeout){
 			// Communication probably failed
