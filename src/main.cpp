@@ -7,6 +7,7 @@
 double erro = 0;
 
 void setup() {
+
 	Serial.begin(115200);	
 	#if WEMOS_DEBUG
   		Serial.begin(115200);
@@ -18,6 +19,10 @@ void setup() {
 	Wifi::setup(ROBOT_NUMBER);
 	IMU::setup();
 	Motor::setup();
+
+	//luz para indicar ligado
+	pinMode(15, OUTPUT);
+	digitalWrite(15, HIGH);
 }
 
 void loop() {
@@ -40,6 +45,9 @@ void loop() {
 		Wifi::receiveData(&v, &w);
 		Serial.print("v: ");Serial.print(v);Serial.print("w: ");Serial.println(w);
 		Serial.println("###################");
+		Serial.println("###################");
+		Serial.println("macAddress");
+		Serial.println(WiFi.macAddress());
 		//=========End Wifi===========
 
 		//=========Motor===============
