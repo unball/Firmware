@@ -36,11 +36,11 @@ namespace Wifi{
     /// @brief Receive data copying from temp struct to global struct
     /// @param v reference to the linear velocity
     /// @param w reference to the angular velocity
-    void receiveData(double *v, double *w){
+    void receiveData(int16_t *v, int16_t *w){
         if(msg.id == robotNumber){
             // Demultiplexing and decoding the velocities and constants
-            *v  = ((float)msg.v) * 2.0 / 32767;
-            *w  = ((float)msg.w) * 64.0 / 32767;
+            *v  = msg.v;
+            *w  = msg.w;
         }
     }
 
