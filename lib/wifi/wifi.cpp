@@ -28,8 +28,13 @@ namespace Wifi{
 
     // Callback function, execute when message is received via Wi-Fi
     void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len){
-        memcpy(&temp_msg, incomingData, sizeof(msg));
+        memcpy(&temp_msg, incomingData, sizeof(temp_msg));
 	    lastReceived = micros();
+        
+        //verifica o checksum
+        if(temp_msg.checksum == temp_msg.v + temp_msg.w){
+            msg = temp_msg;
+        }
         // TODO: lastReceived deveria estar aqui ou em receiveData?
     }
 
