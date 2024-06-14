@@ -8,9 +8,9 @@ namespace Control {
     double err_sum = 0;
     double last_err = 0;
 
-    double kp = 0.7;
-    double ki = 0.05;
-    double kd = 0.02;
+    double kp = 1.54;
+    double ki = 0.15;
+    double kd = -0.03;
 
     /*
         Função que corrige a deadzone de um motor
@@ -132,6 +132,7 @@ namespace Control {
         static double w = 0;
         int16_t v_int = 0;
         int16_t w_int = 0;
+       
 
         // Velocidades atuais medidas por sensores
         double currW;
