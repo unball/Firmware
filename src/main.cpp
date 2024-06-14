@@ -16,6 +16,8 @@ void setup() {
 		Serial.println("START");
 	#endif
 
+	Wire.begin(SDA_PIN, SCL_PIN);
+	
 	Wifi::setup(ROBOT_NUMBER);
 	IMU::setup();
 	Motor::setup();
