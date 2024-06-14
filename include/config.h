@@ -2,7 +2,7 @@
 #define CONFIG_HPP
 
 /* Main configs*/
-#define WEMOS_DEBUG false
+#define WEMOS_DEBUG false 
 #define CONTROL_TESTER false
 #define TWIDDLE false
 #define ROBOT_NUMBER 0
@@ -13,11 +13,11 @@ const int resetTimeout = 4000000;
 const float MAX_POWER = 10.0;
 
 /* Control */
-const int controlLoopInterval= 2000;   // actuation interval in ms
+const int controlLoopInterval= 200;   // actuation interval in ms
 
 /* Robot parameters */
-const float r =	0.016;
-const float L = 0.075;
+const float r =	0.01525;
+const float L = 0.0605;
 const int motor_deadzone = 65;
 
 #endif
