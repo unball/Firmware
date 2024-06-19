@@ -4,7 +4,7 @@
 /* Main configs*/
 #define WEMOS_DEBUG false 
 #define CONTROL_TESTER false
-#define TWIDDLE false
+#define TWIDDLE true
 #define ROBOT_NUMBER 0
 
 /* Wi-Fi */

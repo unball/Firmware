@@ -7,6 +7,9 @@ namespace Wifi{
     rcv_message temp_msg;
     rcv_message msg;
 
+    // const byte numChars = 32;
+    char receivedChars;   
+
     volatile static uint32_t lastReceived;
 
     uint8_t robotNumber;
@@ -28,25 +31,42 @@ namespace Wifi{
 
     // Callback function, execute when message is received via Wi-Fi
     void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len){
-        memcpy(&temp_msg, incomingData, sizeof(temp_msg));
+        memcpy(&receivedChars, incomingData, sizeof(receivedChars));
 	    lastReceived = micros();
         
         //verifica o checksum
-        if(temp_msg.checksum == temp_msg.v + temp_msg.w){
-            msg = temp_msg;
-        }
+        // if(temp_msg.checksum == temp_msg.v + temp_msg.w){
+        //     msg = temp_msg;
+        // }
         // TODO: lastReceived deveria estar aqui ou em receiveData?
     }
 
     /// @brief Receive data copying from temp struct to global struct
     /// @param v reference to the linear velocity
     /// @param w reference to the angular velocity
-    void receiveData(int16_t *v, int16_t *w){
-        if(msg.id == robotNumber){
-            // Demultiplexing and decoding the velocities and constants
-            *v  = msg.v;
-            *w  = msg.w;
-        }
+    void receiveData(char* command){
+        // if(msg.id == robotNumber){
+        //     // Demultiplexing and decoding the velocities and constants
+        //     *v  = msg.v;
+        //     *w  = msg.w;
+        // }
+        Serial.println("\n");
+        Serial.println("\n");
+        Serial.println("\n");
+        Serial.println("\n");
+        Serial.println("\n");
+        Serial.println("\n");
+
+
+        Serial.println("DOHOFAHDIHFODFDHHOHFDOHFA");
+        Serial.println(receivedChars);
+        Serial.println("DOHOFAHDIHFODFDHHOHFDOHFA");
+        Serial.println("\n");
+        Serial.println("\n");
+        Serial.println("\n");
+        Serial.println("\n");
+        
+        *command = receivedChars;
     }
 
     bool isCommunicationLost(){

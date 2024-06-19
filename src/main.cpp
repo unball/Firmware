@@ -6,9 +6,13 @@
 
 double erro = 0;
 
+const byte numChars = 32;
+char receivedChars[numChars];
+
 void setup() {
 
 	Serial.begin(115200);	
+	Serial.println("SETUP");
 	#if WEMOS_DEBUG
   		Serial.begin(115200);
 		while(!Serial);

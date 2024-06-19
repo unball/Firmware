@@ -8,9 +8,9 @@ namespace Control {
     double err_sum = 0;
     double last_err = 0;
 
-    double kp = 1.54;
-    double ki = 0.15;
-    double kd = -0.03;
+    double kp = 0.54;
+    double ki = 0.05;
+    double kd = -0.1;
 
     /*
         Função que corrige a deadzone de um motor
@@ -127,43 +127,43 @@ namespace Control {
     
     void stand(){
 
-        // Velocities to be read by Wi-Fi, they are static in case Wifi::receiveData does not receive anything, it keeps the previous velocity
-        static double v = 0;
-        static double w = 0;
-        int16_t v_int = 0;
-        int16_t w_int = 0;
+        // // Velocities to be read by Wi-Fi, they are static in case Wifi::receiveData does not receive anything, it keeps the previous velocity
+        // static double v = 0;
+        // static double w = 0;
+        // int16_t v_int = 0;
+        // int16_t w_int = 0;
        
 
-        // Velocidades atuais medidas por sensores
-        double currW;
+        // // Velocidades atuais medidas por sensores
+        // double currW;
         
-        // Lê velocidades pelo Wifi
-        Wifi::receiveData(&v_int, &w_int);
+        // // Lê velocidades pelo Wifi
+        // Wifi::receiveData(&v_int, &w_int);
 
-        //demutiplexa velocidades
-        v = ((float)v_int) * 2.0 / 32767;
-        w  = ((float)w_int) * 64.0 / 32767;
+        // //demutiplexa velocidades
+        // v = ((float)v_int) * 2.0 / 32767;
+        // w  = ((float)w_int) * 64.0 / 32767;
 
-        if(Wifi::isCommunicationLost()){
-            err_sum = 0;
-            last_err = 0;
+        // if(Wifi::isCommunicationLost()){
+        //     err_sum = 0;
+        //     last_err = 0;
 
-			v = Waves::sine_wave();
-			w = 0;
+		// 	v = Waves::sine_wave();
+		// 	w = 0;
 
-            Motor::move(0, v);
-            Motor::move(1, v);
-        }
-        else{
-            // Execute the control normally with the reference velocities
-            // Read the velocities through the sensor
-            readSpeeds(&currW);
-            // Execute the control loop
-            control(v, w, currW, &erro);
-        }
+        //     Motor::move(0, v);
+        //     Motor::move(1, v);
+        // }
+        // else{
+        //     // Execute the control normally with the reference velocities
+        //     // Read the velocities through the sensor
+        //     readSpeeds(&currW);
+        //     // Execute the control loop
+        //     control(v, w, currW, &erro);
+        // }
     }
 
-    double test(){
+    double test(char command){
         // Velocidade
         static double v = 0;
         static double w = 0;
@@ -178,87 +178,135 @@ namespace Control {
         static int32_t previous_t;
         static int32_t t;
 
-        //faz um quadrado de frente
-        for (int i = 0; i < 4; i++){
-            previous_t = millis();
-            while (t - previous_t < 1000 ){
-                t = millis();
-                //rotina de controle anda de frente
+        previous_t = millis();
+        // while (t - previous_t < 1000 ){
+            t = millis();
+            // Atuar motores
+            if(command == 'w'){
                 v = 0.2;
                 w = 0;
                 readSpeeds(&currW);
                 control(v, w, currW, &erro);
-                if (abs((currW - w))>erro){
+                if (abs((currW - w)) > erro){
                     erro = abs((currW - w));
                 }
-                
-            }
-            
-            previous_t = millis();
-            while (t - previous_t < 314 ){
-                t = millis();
-                //rotina de virar
-                v = 0;
-                w = 5;
-                readSpeeds(&currW);
-                control(v, w, currW, &erro);
-                if (abs((currW - w))>erro){
-                    erro = abs((currW - w));
-                }
-            }
-        }
-
-        while (t - previous_t < 300 ){
-            t = millis();
-            //rotina de virar
-            v = 0;
-            w = 0;
-            readSpeeds(&currW);
-            control(v, w, currW, &erro);
-            if (abs((currW - w))>erro){
-                erro = abs((currW - w));
-            }
-        }
-
-        //faz um quadrado de re 
-        for (int i = 0; i < 4; i++){
-            previous_t = millis();
-            while (t - previous_t < 1000 ){
-                t = millis();
-                //rotina de controle anda de frente
+            }else if (command == 's')
+            {
                 v = -0.2;
                 w = 0;
                 readSpeeds(&currW);
                 control(v, w, currW, &erro);
-                if (abs((currW - w))>erro){
+                if (abs((currW - w)) > erro){
                     erro = abs((currW - w));
                 }
-            }
-            previous_t = millis();
-            while (t - previous_t < 314 ){
-                t = millis();
-                //rotina de virar
-                v = 0;
+            }else if (command == 'a')
+            {
+                v = 0.1;
+                w = 5;
+                readSpeeds(&currW);
+                control(v, w, currW, &erro);
+                if (abs((currW - w)) > erro){
+                    erro = abs((currW - w));
+                }
+            }else if (command == 'd')
+            {
+                v = 0.1;
                 w = -5;
                 readSpeeds(&currW);
                 control(v, w, currW, &erro);
-                if (abs((currW - w))>erro){
+                if (abs((currW - w)) > erro){
                     erro = abs((currW - w));
                 }
             }
+        // }
+        
+        
+        
 
-            while (t - previous_t < 300 ){
-                t = millis();
-                //rotina de virar
-                v = 0;
-                w = 0;
-                readSpeeds(&currW);
-                control(v, w, currW, &erro);
-                if (abs((currW - w))>erro){
-                    erro = abs((currW - w));
-                }
-            }
-        }  
+        // static int32_t previous_t;
+        // static int32_t t;
+
+        // //faz um quadrado de frente
+        // for (int i = 0; i < 4; i++){
+        //     previous_t = millis();
+        //     while (t - previous_t < 1000 ){
+        //         t = millis();
+        //         //rotina de controle anda de frente
+        //         v = 0.2;
+        //         w = 0;
+        //         readSpeeds(&currW);
+        //         control(v, w, currW, &erro);
+        //         if (abs((currW - w))>erro){
+        //             erro = abs((currW - w));
+        //         }
+                
+        //     }
+            
+        //     previous_t = millis();
+        //     while (t - previous_t < 314 ){
+        //         t = millis();
+        //         //rotina de virar
+        //         v = 0;
+        //         w = 5;
+        //         readSpeeds(&currW);
+        //         control(v, w, currW, &erro);
+        //         if (abs((currW - w))>erro){
+        //             erro = abs((currW - w));
+        //         }
+        //     }
+        // }
+
+        // while (t - previous_t < 300 ){
+        //     t = millis();
+        //     //rotina de virar
+        //     v = 0;
+        //     w = 0;
+        //     readSpeeds(&currW);
+        //     control(v, w, currW, &erro);
+        //     if (abs((currW - w))>erro){
+        //         erro = abs((currW - w));
+        //     }
+        // }
+
+        // //faz um quadrado de re 
+        // for (int i = 0; i < 4; i++){
+        //     previous_t = millis();
+        //     while (t - previous_t < 1000 ){
+        //         t = millis();
+        //         //rotina de controle anda de frente
+        //         v = -0.2;
+        //         w = 0;
+        //         readSpeeds(&currW);
+        //         control(v, w, currW, &erro);
+        //         if (abs((currW - w))>erro){
+        //             erro = abs((currW - w));
+        //         }
+        //     }
+        //     previous_t = millis();
+        //     while (t - previous_t < 314 ){
+        //         t = millis();
+        //         //rotina de virar
+        //         v = 0;
+        //         w = -5;
+        //         readSpeeds(&currW);
+        //         control(v, w, currW, &erro);
+        //         if (abs((currW - w))>erro){
+        //             erro = abs((currW - w));
+        //         }
+        //     }
+
+        //     while (t - previous_t < 300 ){
+        //         t = millis();
+        //         //rotina de virar
+        //         v = 0;
+        //         w = 0;
+        //         readSpeeds(&currW);
+        //         control(v, w, currW, &erro);
+        //         if (abs((currW - w))>erro){
+        //             erro = abs((currW - w));
+        //         }
+        //     }
+        // }  
         
         return erro;
     }
@@ -266,6 +314,10 @@ namespace Control {
 
 
     void twiddle(){
+        char command;
+
+        // Receber wifi
+        Wifi::receiveData(&command);
         double target;
         double k[3];
         double dk[3];
@@ -276,13 +328,13 @@ namespace Control {
         k[0] = kp;
         k[1] = ki;
         k[2] = kd;
-        target = test();
+        target = test(command);
         for (int i = 0; i < 3; i++){
             k[i] += dk[i];
             kp = k[0];
             ki = k[1];
             kd = k[2];
-            erro = test();
+            erro = test(command);
             
             if (erro < target){
                 target = erro;
@@ -294,7 +346,7 @@ namespace Control {
                 kp = k[0];
                 ki = k[1];
                 kd = k[2];
-                erro = test();
+                erro = test(command);
 
                 if (erro < target){
                     target = erro;
@@ -308,18 +360,22 @@ namespace Control {
 
         }
 
-        while (true){
-            control(0, 0, 0, &erro);
-            Serial.print("kp: ");
-            Serial.println(kp);
-            Serial.print("ki: ");
-            Serial.println(ki);
-            Serial.print("kd: ");
-            Serial.println(kd);
-            
-            
-            
+       
+
+        // while (true){
+        //     control(0, 0, 0, &erro);
+        if(command == 'm'){
+            while (true){
+                control(0, 0, 0, &erro);
+                Serial.print("kp: ");
+                Serial.println(kp);
+                Serial.print("ki: ");
+                Serial.println(ki);
+                Serial.print("kd: ");
+                Serial.println(kd);
+            }
         }
+        
         
             
     }
