@@ -25,11 +25,11 @@ namespace Waves{
     */
     float sine_wave(){
         static int32_t sine_wave_cont;
-        if(sine_wave_cont >= 100000){
+        if(sine_wave_cont >= 200000){
             sine_wave_cont = 0;
         }
         sine_wave_cont ++;
-        return 50*sin(sine_wave_cont/400.0);
+        return 25*sin(sine_wave_cont/400.0);
     }
     
     /*
@@ -61,7 +61,7 @@ namespace Waves{
     */
     void sine_wave(int16_t *v1, int16_t *v2){
         static int32_t sine_wave_cont;
-        if(sine_wave_cont >= 100000){
+        if(sine_wave_cont >= 200000){
             sine_wave_cont = 0;
         }
         sine_wave_cont ++;
