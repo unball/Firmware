@@ -16,14 +16,14 @@ namespace Wifi{
 
         WiFi.mode(WIFI_STA);
         WiFi.disconnect();
-        if (esp_now_init() != 0) {
+        if (esp_now_init() != ESP_OK) {
             #if WEMOS_DEBUG
             Serial.println("Erro ao inicializar o ESP-NOW");
             #endif
             return;
         }
         WiFi.setTxPower(WIFI_POWER_19_5dBm);
-        esp_now_register_recv_cb(OnDataRecv);            
+        esp_now_register_recv_cb(esp_now_recv_cb_t(OnDataRecv));            
     }
 
     // Callback function, execute when message is received via Wi-Fi
@@ -34,6 +34,15 @@ namespace Wifi{
         //verifica o checksum
         if(temp_msg.checksum == temp_msg.v + temp_msg.w){
             msg = temp_msg;
+        }
+        else{
+            #if WEMOS_DEBUG
+                Serial.println("###################");
+		        Serial.println("###################");
+                Serial.println("ERRO DE CHECKSUM");
+                Serial.println("###################");
+                Serial.println("###################");
+            #endif
         }
         // TODO: lastReceived deveria estar aqui ou em receiveData?
     }
