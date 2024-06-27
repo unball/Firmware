@@ -8,9 +8,9 @@ namespace Control {
     double err_sum = 0;
     double last_err = 0;
 
-    double kp = 1.54;
-    double ki = 0.15;
-    double kd = -0.03;
+    double kp = 0.54;
+    double ki = 0.05;
+    double kd = 0.01;
 
     /*
         Função que corrige a deadzone de um motor
@@ -181,7 +181,7 @@ namespace Control {
         //faz um quadrado de frente
         for (int i = 0; i < 4; i++){
             previous_t = millis();
-            while (t - previous_t < 1000 ){
+            while (t - previous_t < 700 ){
                 t = millis();
                 //rotina de controle anda de frente
                 v = 0.2;
@@ -223,7 +223,7 @@ namespace Control {
         //faz um quadrado de re 
         for (int i = 0; i < 4; i++){
             previous_t = millis();
-            while (t - previous_t < 1000 ){
+            while (t - previous_t <  700 ){
                 t = millis();
                 //rotina de controle anda de frente
                 v = -0.2;
