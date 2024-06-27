@@ -56,7 +56,7 @@ void loop() {
 		Motor::move(0, 100);
 		Motor::move(1, 100);
 		//=========End Motor===========
-		delay(500);
+		delay(200);
 	#elif CONTROL_TESTER
 		Control::test();
 	#elif TWIDDLE
