@@ -19,4 +19,7 @@
 #define SCL_PIN 35
 #define SDA_PIN 33
 
+#define CHANNEL_A_PIN 1
+#define CHANNEL_B_PIN 2
+
 #endif
