@@ -1,4 +1,5 @@
 #include <control.hpp>
+#include <encoder.hpp>
 
 namespace Control {
 
@@ -36,6 +37,13 @@ namespace Control {
         Função que recebe velocidades dos encoders em ticks/ms e converte para velocidade linear em m/s
     */
     inline double linSpeed(Encoder::vel enc){
+        return (enc.motorA+enc.motorB)/2 * TICKS2METER;
+    }
+
+    /*
+        Função que recebe velocidades dos encoders em ticks/ms e converte para velocidade linear em m/s
+    */
+    double linSpeedTest(Encoder::vel enc){
         return (enc.motorA+enc.motorB)/2 * TICKS2METER;
     }
 
