@@ -1,6 +1,5 @@
 #ifndef ENCODER_HPP
 #define ENCODER_HPP
-#include "pins.h"
 #include "motor.hpp"
 
 namespace Encoder{
