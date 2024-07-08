@@ -3,6 +3,7 @@
 #include <motor.hpp>
 #include <waves.hpp>
 #include <wifi.hpp>
+#include <encoder.hpp>
 
 double erro = 0;
 
@@ -15,13 +16,14 @@ void setup() {
 		delay(1000);
 		Serial.println("START");
 	#endif
-
+	
 	Wire.begin(SDA_PIN, SCL_PIN);
 	
 	Wifi::setup(ROBOT_NUMBER);
 	IMU::setup();
 	Motor::setup();
-
+	Encoder::setup();
+	
 	//luz para indicar ligado
 	pinMode(15, OUTPUT);
 	digitalWrite(15, HIGH);
@@ -33,7 +35,7 @@ void loop() {
 		int16_t v; 
 		int16_t w; 
 		Serial.println("LOOP!");
-
+		
 		//=========IMU===============
 		Serial.println("###################");
 		Serial.println("IMU:");
@@ -56,6 +58,15 @@ void loop() {
 		Motor::move(0, 100);
 		Motor::move(1, 100);
 		//=========End Motor===========
+		
+		//=========Encoder==========
+		Serial.println("Encoder:");
+		Encoder::vel enc;
+		enc = Encoder::encoder();
+		Serial.print("Channel A: ");Serial.println(enc.motorA);
+		Serial.print("Channel B: ");Serial.println(enc.motorB);
+		//=========End Encoder==========
+
 		delay(200);
 	#elif CONTROL_TESTER
 		Control::test();
