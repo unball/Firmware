@@ -33,6 +33,13 @@ namespace Control {
     }
 
     /*
+        Função que recebe velocidades dos encoders em ticks/ms e converte para velocidade linear em m/s
+    */
+    inline double linSpeed(Encoder::vel enc){
+        return (enc.motorA+enc.motorB)/2 * TICKS2METER;
+    }
+
+    /*
         Função que recebe velocidade angular do IMU em º/ms e converte para velocidade angular em rad/s
     */
     inline double angSpeed(double imuW){
@@ -97,7 +104,7 @@ namespace Control {
 
         Motor::move(0, vr);
         Motor::move(1, vl);
-   }
+    }
 
     /*
         Implementa a malha de controle baixo nível
@@ -113,18 +120,17 @@ namespace Control {
             Motor::stop();
             return;
         }
-
+        
         // Angular velocity error
         double eW = w - currW;
         
 
         w = PID(v, eW);
 
-        speed2motors(v,w);
-        
+
     }
-    
-    
+
+
     void stand(){
 
         // Velocities to be read by Wi-Fi, they are static in case Wifi::receiveData does not receive anything, it keeps the previous velocity
