@@ -65,6 +65,8 @@ void loop() {
 		enc = Encoder::encoder();
 		Serial.print("Channel A: ");Serial.println(enc.motorA);
 		Serial.print("Channel B: ");Serial.println(enc.motorB);
+		double vel = Control::linSpeedTest(enc);
+		Serial.print("Speed: ");Serial.println(vel);
 		//=========End Encoder==========
 
 		delay(200);
