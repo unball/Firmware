@@ -8,9 +8,36 @@ namespace Control {
     double err_sum = 0;
     double last_err = 0;
 
+    /*
+        Controle dos robôs
+        Verde - Mané - Robô 0
+        Dz = 10   /  Dz = 32
+        Kp = 1.62 /  Kp = 0.54
+        Ki = 0.05 /  Ki = 0.05
+        Kd = -0.08/  Kd = -0.03
+        
+        Azul - Biriba - Robô 1
+        Dz = 5   /  Dz = 32
+        Kp = 2.05 /  Kp = 0.54
+        Ki = 0.05 /  Ki = 0.10
+        Kd = -0.13/  Kd = -0.08
+
+        Vermelho - Apodi - Robô 2
+        Dz = 10   /  Dz = 32
+        Kp = 1.62 /  Kp = 0.74
+        Ki = 0.05 /  Ki = 0.05
+        Kd = -0.15/  Kd = -0.13
+
+        Laranja - JohnTex
+        Dz = ??? /  Dz = 32
+        Kp = ??? /  Kp = ???
+        Ki = ??? /  Ki = ???
+        Kd = ??? /  Kd = ???
+
+    */
     double kp = 0.54;
-    double ki = 0.05;
-    double kd = 0.01;
+    double ki = 0.10;
+    double kd = -0.08;
 
     /*
         Função que corrige a deadzone de um motor
