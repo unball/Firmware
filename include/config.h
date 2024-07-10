@@ -17,7 +17,7 @@ const int controlLoopInterval= 200;   // actuation interval in ms
 
 /* Robot parameters */
 const float r =	0.01525;
-const float L = 0.0605;
+const float L = 0.0756;
 const int motor_deadzone = 32;
 
 #endif
