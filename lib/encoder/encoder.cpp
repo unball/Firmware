@@ -15,13 +15,9 @@ namespace Encoder {
     
     void somaA(){
         contadorA++;
-        // timeVarA = beta*(micros()-lastTimeA) + (1-beta)*timeVarA;
-        // lastTimeA = micros();
     }
     void somaB(){
         contadorB++;
-        // timeVarB = micros()-lastTimeB;
-        // lastTimeB = micros();
     }
 
     void setup() {
