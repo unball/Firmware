@@ -15,28 +15,12 @@ data1 = []
 data2 = []
 data3 = []
 
-plt.ion()  # Habilitar o modo interativo
-
-fig, ax = plt.subplots()
-line1, = ax.plot(data1, label='Variável 1')
-line2, = ax.plot(data2, label='Variável 2')
-line3, = ax.plot(data3, label='Variável 3')
-plt.legend()
-
-# Função para atualizar o gráfico
-def update_plot():
-    line1.set_ydata(data1)
-    line2.set_ydata(data2)
-    line3.set_ydata(data3)
-    ax.relim()
-    ax.autoscale_view()
-    plt.draw()
-    plt.pause(0.01)
-
-buffer_size = 50  # Tamanho do buffer para acumular leituras antes de atualizar o gráfico
+# Duração da coleta de dados em segundos
+duration = 10
+start_time = time.time()
 
 try:
-    while True:
+    while time.time() - start_time < duration:
         if ser.in_waiting > 0:
             # Ler linha do Arduino
             line = ser.readline().decode('utf-8').strip()
@@ -52,22 +36,24 @@ try:
                     data1.append(var1)
                     data2.append(var2)
                     data3.append(var3)
-                    
-                    # Manter as listas com tamanho fixo
-                    if len(data1) > 100:
-                        data1.pop(0)
-                        data2.pop(0)
-                        data3.pop(0)
-                    
-                    # Atualizar o gráfico a cada 'buffer_size' leituras
-                    if len(data1) % buffer_size == 0:
-                        update_plot()
                 except ValueError:
                     print(f"Erro ao converter os valores: {line}")
 
+    # Fechar a porta serial após a coleta de dados
+    ser.close()
+
+    # Plotar os dados coletados
+    plt.figure(figsize=(10, 5))
+    plt.plot(data1, label='Variável 1')
+    plt.plot(data2, label='Variável 2')
+    plt.plot(data3, label='Variável 3')
+    plt.legend()
+    plt.xlabel('Amostras')
+    plt.ylabel('Valores')
+    plt.title('Dados Coletados do Arduino')
+    plt.show()
+
 except KeyboardInterrupt:
     print("Leitura interrompida pelo usuário")
-
-finally:
     ser.close()
     print("Porta serial fechada")
