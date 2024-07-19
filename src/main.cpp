@@ -20,25 +20,42 @@ void setup() {
 void loop() {
 
 	#if WEMOS_DEBUG
-		Serial.println("LOOP!");
-        static double v = 0;
+		static int32_t previous_t;
+		static int32_t t;
+		t = micros();
+
+        static double v = 1.0;
+
+		// Loop de controle deve ser executado em intervalos comportados
+		if(t-previous_t >= controlLoopInterval){
+			previous_t = t;
+
+			Motor::move(0, v);
+			Motor::move(1, v);
+
+			Serial.println("Encoder:");
+			Encoder::vel enc;
+			enc = Encoder::encoder();
+			Serial.print("Channel A: ");Serial.println(enc.motorA);
+			Serial.print("Channel B: ");Serial.println(enc.motorB);
+			double vel = Control::linSpeedTest(enc);
+			Serial.print("Speed: ");Serial.println(vel);
+		}
 
 		//=========Motor===============
-		v = Waves::sine_wave();
+		// v = Waves::sine_wave();
 
-		Motor::move(0, v);
-		Motor::move(1, v);
 		//=========End Motor===========
 		
-		//=========Encoder==========
-		Serial.println("Encoder:");
-		Encoder::vel enc;
-		enc = Encoder::encoder();
-		Serial.print("Channel A: ");Serial.println(enc.motorA);
-		Serial.print("Channel B: ");Serial.println(enc.motorB);
-		double vel = Control::linSpeedTest(enc);
-		Serial.print("Speed: ");Serial.println(vel);
-		//=========End Encoder==========
+		// //=========Encoder==========
+		// Serial.println("Encoder:");
+		// Encoder::vel enc;
+		// enc = Encoder::encoder();
+		// Serial.print("Channel A: ");Serial.println(enc.motorA);
+		// Serial.print("Channel B: ");Serial.println(enc.motorB);
+		// double vel = Control::linSpeedTest(enc);
+		// Serial.print("Speed: ");Serial.println(vel);
+		// //=========End Encoder==========
 
 		delay(200);
 	#elif CONTROL_TESTER
