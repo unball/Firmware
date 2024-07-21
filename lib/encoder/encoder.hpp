@@ -15,5 +15,7 @@ namespace Encoder{
     void resetEncoders();
     double time_counter();
     vel encoder();
+    double get_ticks_per_ms();
+
 }
 #endif

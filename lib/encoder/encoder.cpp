@@ -8,6 +8,7 @@ namespace Encoder {
     volatile uint64_t counter_A = 0;
     volatile uint64_t counter_B = 0;
     double prev_time = 0;
+    double present_vel;
     double presentVelA;
     double presentVelB;
     volatile uint32_t timeVarA = 0, lastTimeA = 0;
@@ -59,5 +60,27 @@ namespace Encoder {
         prevVA = presentVelA;
         prevVB = presentVelB;
         return enc;
+    }
+
+    double get_ticks_per_ms() {
+        static double prev_vel;
+        double encoder_vel;
+        double t = time_counter();
+
+        detachInterrupt(CHANNEL_A_PIN);
+        detachInterrupt(CHANNEL_B_PIN);
+
+        present_vel = (double) ((1.0*(counter_A+counter_B))/t);
+
+        attachInterrupt(CHANNEL_A_PIN, add_A, CHANGE);
+        attachInterrupt(CHANNEL_B_PIN, add_B, CHANGE);
+
+        encoder_vel = alpha * present_vel + (1-alpha) * prev_vel;
+        
+        prev_time = micros()/1000.0;
+        counter_A = 0;
+        counter_B = 0;
+        prev_vel = present_vel;
+        return present_vel;
     }
 }
