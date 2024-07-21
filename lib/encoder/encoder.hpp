@@ -10,10 +10,10 @@ namespace Encoder{
     }vel;
     
     void setup();
-    void somaA();
-    void somaB();
+    void add_A();
+    void add_B();
     void resetEncoders();
-    double timeCounter();
+    double time_counter();
     vel encoder();
 }
 #endif
