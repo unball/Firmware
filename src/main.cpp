@@ -7,7 +7,6 @@
 
 void setup() {
 
-	Serial.begin(115200);	
 	#if WEMOS_DEBUG
   		Serial.begin(115200);
 		while(!Serial);
@@ -40,6 +39,16 @@ void loop() {
 			Serial.print("Channel B: ");Serial.println(enc.motorB);
 			double vel = Control::linSpeedTest(enc);
 			Serial.print("Speed: ");Serial.println(vel);
+
+
+			//// Velocidades para plotar
+			// Encoder::vel enc;
+			// enc = Encoder::encoder();
+			// // Serial.print(enc.motorA);Serial.print(",");
+			// // Serial.println(enc.motorB);
+			// // Serial.print(",");
+			// double vel = Control::linSpeedTest(enc);
+			// Serial.println((float)vel);
 		}
 
 		//=========Motor===============
