@@ -12,10 +12,13 @@ namespace Encoder{
     void setup();
     void add_A();
     void add_B();
+    void calc();
+    void calc2();
     void resetEncoders();
-    double time_counter();
-    vel encoder();
-    double get_ticks_per_ms();
+    uint32_t time_counter();
+    // vel encoder();
+    double get_ticks_per_us();
+    // double get_w();
 
 }
 #endif
