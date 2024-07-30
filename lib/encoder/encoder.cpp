@@ -3,6 +3,8 @@
 #define alpha 0.95
 #define beta 0.05
 
+const int watchdog_timer = 500000; // us
+
 namespace Encoder {
 
     // hw_timer_t *Timer0_Cfg = NULL;
@@ -11,6 +13,7 @@ namespace Encoder {
     // uint64_t Measured_Freq = 0;
 
     double present_speed;
+    uint32_t prev_time = 0;
 
     // void IRAM_ATTR Ext_INT1_ISR()  {
     //     if(Measurement_InProgress == false)  {
@@ -41,16 +44,20 @@ namespace Encoder {
     }
 
     void IRAM_ATTR calc() {
-        uint32_t static curr_time, prev_time; // tem que ver como iniciar
-
-        curr_time = micros();
+        uint32_t curr_time = micros();
         uint32_t T_us = curr_time - prev_time;
+
         present_speed = (2*PI)/(12*(T_us*1e-6));
 
         prev_time = curr_time;
     }
 
     double get_w() {
+
+        if ((micros() - prev_time) > watchdog_timer) {
+            present_speed = 0;
+        }
+
         return present_speed;
     }
 }
