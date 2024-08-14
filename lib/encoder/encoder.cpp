@@ -12,6 +12,8 @@ namespace Encoder {
     volatile double present_speed;
 
     void IRAM_ATTR Ext_INT1_ISR() {
+        detachInterrupt(CHANNEL_A_PIN);
+        
         uint64_t T_us = timerReadMicros(Timer0_Cfg);
 
         // Verificar estado do outro canal para saber qual deles veio primeiro
@@ -23,6 +25,8 @@ namespace Encoder {
         present_speed = (double) (direction)*(2*PI)/(12*(T_us*1e-6));
 
         timerRestart(Timer0_Cfg);
+
+        attachInterrupt(CHANNEL_A_PIN, Ext_INT1_ISR, RISING);
     }
 
     void setup() {
