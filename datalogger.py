@@ -1,59 +1,38 @@
 import serial
-import matplotlib.pyplot as plt
 import time
+import csv
 
-# Configurar a porta serial (ajuste conforme necessário)
-serial_port = '/dev/ttyUSB0'  # ou 'COM3' no Windows
-baud_rate = 115200
+def collect_and_save_data(port, baudrate, duration, filename):
+    ser = serial.Serial(port, baudrate)
+    time.sleep(2)  # Aguarde a inicialização do Arduino
+    start_time = time.time()
+    data1 = []
 
-# Inicializar a comunicação serial
-ser = serial.Serial(serial_port, baud_rate)
-time.sleep(2)  # Aguarde a inicialização do Arduino
+    try:
+        while time.time() - start_time < duration:
+            if ser.in_waiting > 0:
+                line = ser.readline().decode('utf-8').strip()
+                values = line.split(',')
+                if len(values) == 1:
+                    try:
+                        var1 = float(values[0])
+                        data1.append(var1)
+                    except ValueError:
+                        print(f"Erro ao converter os valores: {line}")
+        ser.close()
 
-# Listas para armazenar os valores lidos
-data1 = []
-data2 = []
-data3 = []
+        with open(filename, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(['Data1'])
+            for value in data1:
+                writer.writerow([value])
 
-# Duração da coleta de dados em segundos
-duration = 10
-start_time = time.time()
+        print(f"Data saved to {filename}")
 
-try:
-    while time.time() - start_time < duration:
-        if ser.in_waiting > 0:
-            # Ler linha do Arduino
-            line = ser.readline().decode('utf-8').strip()
-            # Dividir a linha em três variáveis float
-            values = line.split(',')
-            if len(values) == 3:
-                try:
-                    var1 = float(values[0])
-                    var2 = float(values[1])
-                    var3 = float(values[2])
-                    
-                    # Adicionar os valores às listas
-                    data1.append(var1)
-                    data2.append(var2)
-                    data3.append(var3)
-                except ValueError:
-                    print(f"Erro ao converter os valores: {line}")
+    except KeyboardInterrupt:
+        print("Leitura interrompida pelo usuário")
+        ser.close()
+        print("Porta serial fechada")
 
-    # Fechar a porta serial após a coleta de dados
-    ser.close()
-
-    # Plotar os dados coletados
-    plt.figure(figsize=(10, 5))
-    plt.plot(data1, label='Variável 1')
-    plt.plot(data2, label='Variável 2')
-    plt.plot(data3, label='Variável 3')
-    plt.legend()
-    plt.xlabel('Amostras')
-    plt.ylabel('Valores')
-    plt.title('Dados Coletados do Arduino')
-    plt.show()
-
-except KeyboardInterrupt:
-    print("Leitura interrompida pelo usuário")
-    ser.close()
-    print("Porta serial fechada")
+# Use the function to collect data twice
+collect_and_save_data('/dev/ttyUSB0', 115200, 10, 'data3.csv')
