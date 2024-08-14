@@ -14,13 +14,20 @@ namespace Encoder {
     void IRAM_ATTR Ext_INT1_ISR() {
         uint64_t T_us = timerReadMicros(Timer0_Cfg);
 
-        present_speed = (double) (2*PI)/(12*(T_us*1e-6));
+        // Verificar estado do outro canal para saber qual deles veio primeiro
+        int direction = digitalRead(CHANNEL_B_PIN);
+        // Quando canal A deu um sinal de subida, qual é a posição do canal B?
+        // Supondo que a velocidade é positiva caso B esteja em 1
+        direction = direction == 1? 1:-1;
+
+        present_speed = (double) (direction)*(2*PI)/(12*(T_us*1e-6));
 
         timerRestart(Timer0_Cfg);
     }
 
     void setup() {
         pinMode(CHANNEL_A_PIN, INPUT);
+        pinMode(CHANNEL_B_PIN, INPUT);
         attachInterrupt(CHANNEL_A_PIN, Ext_INT1_ISR, RISING);
         // Configure Timer0
         Timer0_Cfg = timerBegin(0, 2, true);
