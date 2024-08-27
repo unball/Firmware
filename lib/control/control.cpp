@@ -290,8 +290,6 @@ namespace Control {
         return erro;
     }
 
-
-
     void twiddle(){
         double target;
         double k[3];
@@ -347,8 +345,13 @@ namespace Control {
             
             
         }
-        
-            
+             
+    }
+
+    void deadzone_tester(){
+        int v = 2;
+        Motor::move(0, v);
+        Motor::move(1, v);
     }
         
 

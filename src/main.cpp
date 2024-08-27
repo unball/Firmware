@@ -61,6 +61,8 @@ void loop() {
 		Control::test();
 	#elif TWIDDLE
 		Control::twiddle();
+	#elif DEAD_ZONE_TESTER
+		Control::deadzone_tester();
 	#else
 		static int32_t previous_t;
 		static int32_t t;

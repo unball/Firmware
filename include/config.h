@@ -4,6 +4,7 @@
 /* Main configs*/
 #define WEMOS_DEBUG false 
 #define CONTROL_TESTER false
+#define DEAD_ZONE_TESTER false
 #define TWIDDLE false
 #define ROBOT_NUMBER 0
 

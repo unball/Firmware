@@ -15,6 +15,7 @@ namespace Control{
     void stand();
     double test();
     void twiddle();
+    void deadzone_tester();
 }
 
 #endif
