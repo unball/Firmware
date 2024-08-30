@@ -1,4 +1,5 @@
 #include <control.hpp>
+#include <encoder.hpp>
 
 namespace Control {
 
@@ -57,6 +58,20 @@ namespace Control {
     */
     inline double saturation(double vin){
         return min(max(vin, -255.0), 255.0);
+    }
+
+    /*
+        Função que recebe velocidades dos encoders em ticks/ms e converte para velocidade linear em m/s
+    */
+    inline double linSpeed(Encoder::vel enc){
+        return (enc.motorA+enc.motorB)/2 * TICKS2METER;
+    }
+
+    /*
+        Função que recebe velocidades dos encoders em ticks/ms e converte para velocidade linear em m/s
+    */
+    double linSpeedTest(Encoder::vel enc){
+        return (enc.motorA+enc.motorB)/2 * TICKS2METER;
     }
 
     /*
@@ -124,7 +139,7 @@ namespace Control {
 
         Motor::move(0, vr);
         Motor::move(1, vl);
-   }
+    }
 
     /*
         Implementa a malha de controle baixo nível
@@ -140,18 +155,17 @@ namespace Control {
             Motor::stop();
             return;
         }
-
+        
         // Angular velocity error
         double eW = w - currW;
         
 
         w = PID(v, eW);
 
-        speed2motors(v,w);
-        
+
     }
-    
-    
+
+
     void stand(){
 
         // Velocities to be read by Wi-Fi, they are static in case Wifi::receiveData does not receive anything, it keeps the previous velocity

@@ -15,6 +15,7 @@ const float MAX_POWER = 10.0;
 
 /* Control */
 const int controlLoopInterval= 200;   // actuation interval in ms
+const double TICKS2METER = 2*PI*0.03*1000/(48); // converts ticks/ms into m/s
 
 /* Robot parameters */
 const float r =	0.01525;
