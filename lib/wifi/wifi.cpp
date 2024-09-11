@@ -28,7 +28,7 @@ namespace Wifi{
 
     // Callback function, execute when message is received via Wi-Fi
     void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len){
-        memcpy(&temp_msg, incomingData, sizeof(temp_msg));
+        tokenize(incomingData);
 	    lastReceived = micros();
         
         //verifica o checksum
@@ -46,7 +46,34 @@ namespace Wifi{
         }
         // TODO: lastReceived deveria estar aqui ou em receiveData?
     }
+    void tokenize(const uint8_t *data){ //função para tokenizar a string que recebemos do transmissor 
+        //modelo esperado de data=="<id,v,w,checksum>"
+        if(data==NULL){
+            return;
+        }
+        char* str=new char[strlen((char*)data)+1]; 
+        if(str==NULL||str[0]!='<'){
+            return;
+        }
+        strcpy(str,(char*)data);
+        str[strlen((char*)data)]='\0';
+        str++;
+        
+        char* token;
+        token=strtok(str,","); //trocamos todas as ocorrências de "," por "\0"
+        temp_msg.id=std::strtol(token,NULL,10);
 
+        token=strtok(NULL,",");
+        temp_msg.v=std::strtol(token,NULL,10);
+
+        token=strtok(NULL,",");
+        temp_msg.w=std::strtol(token,NULL,10);
+
+        token=strtok(NULL,",");
+        temp_msg.checksum=std::strtol(token,NULL,10);
+
+        delete[] (str-1); //str-1 para incluir o '<' que ignoramos acima.
+    }
     /// @brief Receive data copying from temp struct to global struct
     /// @param v reference to the linear velocity
     /// @param w reference to the angular velocity
