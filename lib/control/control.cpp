@@ -13,10 +13,6 @@ namespace Control {
     double ki = 0.10;
     double kd = -0.08;
 
-    
-
-    
-
     /*
         Função que corrige a deadzone de um motor
 
