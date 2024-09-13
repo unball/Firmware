@@ -105,12 +105,17 @@ namespace Control {
         A[1][1] = -L/(2*r);
 
         //inicializa B
+        B[0][0] = r/2;
+        B[0][1] = r/2;
+        B[1][0] = r/L;
+        B[1][1] = -r/L;
+
+        //inicializa c
         C[0][0] = 1;
         C[0][1] = 0;
         C[1][0] = 0;
         C[1][1] = 1;
 
-        //inicializa c
 
         //inicialia D
         D[0][0] = 0;
