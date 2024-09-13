@@ -10,9 +10,10 @@ namespace Control {
     double erro = 0;
     double err_sum = 0;
     double last_err = 0;
-    double kp = 0.159521;
-    double ki = 0.016864;
-    double kd = 0.016686;
+
+    double kp = 0.54;
+    double ki = 0.10;
+    double kd = -0.08;
 
     /*
         Função que corrige a deadzone de um motor
@@ -34,6 +35,7 @@ namespace Control {
         return min(max(vin, -255.0), 255.0);
     }
 
+
     /*
         Função que recebe velocidade angular do IMU em º/ms e converte para velocidade angular em rad/s
     */
@@ -48,6 +50,16 @@ namespace Control {
     void readSpeeds(double *w){
         // *w = angSpeed(-IMU::get_w());
         *w = -IMU::get_w();
+    }
+
+    double abs(double a){
+        if (a > 0){
+            return a;
+        }
+        else{
+            return a*(-1);
+        }
+         
     }
 
     /*
@@ -70,46 +82,6 @@ namespace Control {
 	    return output;
     }
 
-    /*
-        Implementa a malha de controle baixo nível
-
-        @param v Velocidade linear de referência em m/s
-        @param w Velocidade angular de referência em rad/s
-        @param currW Velocidade angular medida por algum sensor (IMU) em rad/s
-        @param *erro ponteiro para a variavel global de erro
-    */
-    void control(double v, double w, double currW, double *erro){
-        //TODO: deadzone?
-        if (v == 0 && w == 0){
-            Motor::stop();
-            return;
-        }
-
-        // Angular velocity error
-        double eW = w - currW;
-        
-
-        w = PID(v, eW);
-
-        if (v > 0 ) v = map(v, 0, 255, 60, 255);
-        if (v < 0 ) v = map(v, 0, -255, -60, -255);
-
-        int32_t controlR = (int32_t)saturation((v - w));
-        int32_t controlL = (int32_t)saturation((v + w));
-
-        if (controlR < 15 && controlR > -15) controlR = 0;
-        if (controlL < 15 && controlL > -15) controlL = 0;
-
-        // Passes the control output to the plant 
-        // Motor::move(0, deadzone(controlR, 7, -7));
-        // Motor::move(1, deadzone(controlL, 7, -7));
-        Motor::move(0, controlR);
-        Motor::move(1, controlL);
-
-        *erro = eW;
-        
-    }
-    
     /// @brief Move the motors without control, based on the radius of the wheel and distance between them.
     /// @param v Linear velocity of the robot
     /// @param w Angualr velocity of the robot
@@ -132,20 +104,48 @@ namespace Control {
     }
 
     /*
-        Lê velocidades do rádio, lê velocidades de referência e executa o controle
+        Implementa a malha de controle baixo nível
+
+        @param v Velocidade linear de referência em m/s
+        @param w Velocidade angular de referência em rad/s
+        @param currW Velocidade angular medida por algum sensor (IMU) em rad/s
+        @param *erro ponteiro para a variavel global de erro
     */
-    
+    void control(double v, double w, double currW, double *erro){
+        //TODO: deadzone?
+        if (v == 0 && w == 0){
+            Motor::stop();
+            return;
+        }
+        
+        // Angular velocity error
+        double eW = w - currW;
+        
+
+        w = PID(v, eW);
+
+
+    }
+
+
     void stand(){
 
         // Velocities to be read by Wi-Fi, they are static in case Wifi::receiveData does not receive anything, it keeps the previous velocity
-        static double v = 0; //vl
-        static double w = 0; //vr
+        static double v = 0;
+        static double w = 0;
+        int16_t v_int = 0;
+        int16_t w_int = 0;
+       
 
         // Velocidades atuais medidas por sensores
         double currW;
         
         // Lê velocidades pelo Wifi
-        Wifi::receiveDataGame(&v, &w);
+        Wifi::receiveData(&v_int, &w_int);
+
+        //demutiplexa velocidades
+        v = ((float)v_int) * 2.0 / 32767;
+        w  = ((float)w_int) * 64.0 / 32767;
 
         if(Wifi::isCommunicationLost()){
             err_sum = 0;
@@ -161,64 +161,173 @@ namespace Control {
             // Execute the control normally with the reference velocities
             // Read the velocities through the sensor
             readSpeeds(&currW);
-
             // Execute the control loop
-            if (Wifi::useControl) {
-                control(v, w, currW, &erro);
-            }
-            else{
-                speed2motors(v, w);
-            }
+            control(v, w, currW, &erro);
         }
     }
 
-    double twiddle(){
-
-        // Velocities to be read by Wi-Fi, they are static in case Wifi::receiveData does not receive anything, it keeps the previous velocity
-        double v = 1; //vl
-        double w = 0; //vr
-
-        // Velocidades atuais medidas por sensores
-        double currW;
+    double test(){
+        // Velocidade
+        static double v = 0;
+        static double w = 0;
         
-        // Lê velocidades pelo Wifi
-        Wifi::receiveDataTwiddle(&kp, &ki, &kd);
+        // Velocidades atuais medidas por sensores
+        double currW = 0;
 
-        if(Wifi::isCommunicationLost()){
-            err_sum = 0;
-            last_err = 0;
+        //zera erro
+        erro = 0;
 
-			v = Waves::sine_wave();
-			w = 0;
 
-            Motor::move(0, v);
-            Motor::move(1, v);
+        static int32_t previous_t;
+        static int32_t t;
+
+        //faz um quadrado de frente
+        for (int i = 0; i < 4; i++){
+            previous_t = millis();
+            while (t - previous_t < 700 ){
+                t = millis();
+                //rotina de controle anda de frente
+                v = 0.2;
+                w = 0;
+                readSpeeds(&currW);
+                control(v, w, currW, &erro);
+                if (abs((currW - w))>erro){
+                    erro = abs((currW - w));
+                }
+                
+            }
+            
+            previous_t = millis();
+            while (t - previous_t < 314 ){
+                t = millis();
+                //rotina de virar
+                v = 0;
+                w = 5;
+                readSpeeds(&currW);
+                control(v, w, currW, &erro);
+                if (abs((currW - w))>erro){
+                    erro = abs((currW - w));
+                }
+            }
         }
-        else{
-            // Execute the control normally with the reference velocities
-            // Read the velocities through the sensor
-            readSpeeds(&currW);
-            v = 1;
+
+        while (t - previous_t < 300 ){
+            t = millis();
+            //rotina de virar
+            v = 0;
             w = 0;
+            readSpeeds(&currW);
             control(v, w, currW, &erro);
-            delay(4000);
+            if (abs((currW - w))>erro){
+                erro = abs((currW - w));
+            }
+        }
 
+        //faz um quadrado de re 
+        for (int i = 0; i < 4; i++){
+            previous_t = millis();
+            while (t - previous_t <  700 ){
+                t = millis();
+                //rotina de controle anda de frente
+                v = -0.2;
+                w = 0;
+                readSpeeds(&currW);
+                control(v, w, currW, &erro);
+                if (abs((currW - w))>erro){
+                    erro = abs((currW - w));
+                }
+            }
+            previous_t = millis();
+            while (t - previous_t < 314 ){
+                t = millis();
+                //rotina de virar
+                v = 0;
+                w = -5;
+                readSpeeds(&currW);
+                control(v, w, currW, &erro);
+                if (abs((currW - w))>erro){
+                    erro = abs((currW - w));
+                }
+            }
 
-            control(-v, w, currW, &erro);
-            delay(4000);
+            while (t - previous_t < 300 ){
+                t = millis();
+                //rotina de virar
+                v = 0;
+                w = 0;
+                readSpeeds(&currW);
+                control(v, w, currW, &erro);
+                if (abs((currW - w))>erro){
+                    erro = abs((currW - w));
+                }
+            }
+        }  
+        
+        return erro;
+    }
 
-            v = 1;
-            w = 10;
-            control(v, w, currW, &erro);
-            delay(4000);
+    void twiddle(){
+        double target;
+        double k[3];
+        double dk[3];
+        double ksi = 0.3;
+        dk[0] = 0.538265;
+        dk[1] = 0.049981750000000005; 
+        dk[2] = 0.049981750000000005;
+        k[0] = kp;
+        k[1] = ki;
+        k[2] = kd;
+        target = test();
+        for (int i = 0; i < 3; i++){
+            k[i] += dk[i];
+            kp = k[0];
+            ki = k[1];
+            kd = k[2];
+            erro = test();
+            
+            if (erro < target){
+                target = erro;
+                dk[i] *= 1+ksi; 
+            }
+            else{
+                k[i] -= 2*dk[i];
 
-            control(-v, -w, currW, &erro);
-            delay(4000);
+                kp = k[0];
+                ki = k[1];
+                kd = k[2];
+                erro = test();
+
+                if (erro < target){
+                    target = erro;
+                    dk[i] *= 1+ksi;
+                }
+                else{
+                    k[i]  = dk[i];
+                    dk[i] *= 1 - ksi;
+                }
+            }
 
         }
 
-        return erro;
-    
+        while (true){
+            control(0, 0, 0, &erro);
+            Serial.print("kp: ");
+            Serial.println(kp);
+            Serial.print("ki: ");
+            Serial.println(ki);
+            Serial.print("kd: ");
+            Serial.println(kd);
+            
+            
+            
+        }
+             
+    }
+
+    void deadzone_tester(){
+        int v = 2;
+        Motor::move(0, v);
+        Motor::move(1, v);
     }
 
 

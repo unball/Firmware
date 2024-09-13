@@ -7,6 +7,7 @@
 double erro = 0;
 
 void setup() {
+
 	Serial.begin(115200);	
 	#if WEMOS_DEBUG
   		Serial.begin(115200);
@@ -14,24 +15,25 @@ void setup() {
 		delay(1000);
 		Serial.println("START");
 	#endif
-
+	
+	Wire.begin(SDA_PIN, SCL_PIN);
+	
 	Wifi::setup(ROBOT_NUMBER);
 	IMU::setup();
 	Motor::setup();
+	
+	//luz para indicar ligado
+	pinMode(15, OUTPUT);
+	digitalWrite(15, HIGH);
 }
 
 void loop() {
 
-	Wifi::receiveConfig(&Wifi::useControl, &Wifi::doTwiddle, &Control::kp, &Control::ki, &Control::kd);
-	
 	#if WEMOS_DEBUG
-		static double v; 
-		static double w;
-		double kp;
-		double ki;
-		double kd; 
+		int16_t v; 
+		int16_t w; 
 		Serial.println("LOOP!");
-
+		
 		//=========IMU===============
 		Serial.println("###################");
 		Serial.println("IMU:");
@@ -42,37 +44,46 @@ void loop() {
 		//=========Wifi===============
 		Serial.println("###################");
 		Serial.println("Wi-Fi:");
-		Wifi::receiveConfig(&Wifi::useControl, &Wifi::doTwiddle, &Control::kp, &Control::ki, &Control::kd);
-		Serial.print("useControl: ");Serial.print(Wifi::useControl);Serial.print("doTwiddle: ");Serial.print(Wifi::doTwiddle);Serial.print("kp: ");Serial.print(Control::kp);Serial.print("ki: ");Serial.print(Control::ki);Serial.print("kd: ");Serial.println(Control::kd);
-		Serial.println("###################");
-		Wifi::receiveDataGame(&v, &w);
+		Wifi::receiveData(&v, &w);
 		Serial.print("v: ");Serial.print(v);Serial.print("w: ");Serial.println(w);
 		Serial.println("###################");
+		Serial.println("###################");
+		Serial.println("macAddress");
+		Serial.println(WiFi.macAddress());
 		//=========End Wifi===========
 
 		//=========Motor===============
 		Motor::move(0, 100);
 		Motor::move(1, 100);
 		//=========End Motor===========
-		delay(500);
+		
+		//=========Encoder==========
+		Serial.println("Encoder:");
+		Encoder::vel enc;
+		enc = Encoder::encoder();
+		Serial.print("Channel A: ");Serial.println(enc.motorA);
+		Serial.print("Channel B: ");Serial.println(enc.motorB);
+		double vel = Control::linSpeedTest(enc);
+		Serial.print("Speed: ");Serial.println(vel);
+		//=========End Encoder==========
+
+		delay(200);
+	#elif CONTROL_TESTER
+		Control::test();
+	#elif TWIDDLE
+		Control::twiddle();
+	#elif DEAD_ZONE_TESTER
+		Control::deadzone_tester();
 	#else
-		if(!Wifi::doTwiddle){
-			static int32_t previous_t;
-			static int32_t t;
-			t = micros();
+		static int32_t previous_t;
+		static int32_t t;
+		t = micros();
 
-			// Loop de controle deve ser executado em intervalos comportados
-			if(t-previous_t >= controlLoopInterval){
-				previous_t = t;
-				Control::stand();
-			}
+		// Loop de controle deve ser executado em intervalos comportados
+		if(t-previous_t >= controlLoopInterval){
+			previous_t = t;
+			Control::stand();
 		}
-		if(Wifi::doTwiddle){
-			Wifi::sendResponse(Control::twiddle());
-		}
-
-
-
 	#endif
 
 }

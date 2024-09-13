@@ -6,38 +6,23 @@
 
 namespace Wifi{
 
-    struct rcv_message
-    {
-        uint8_t control;
-        uint8_t id;
-        int16_t kp;
-        int16_t ki;
-        int16_t kd;
-        int16_t v;
-        int16_t w;
-    };
-
     struct snd_message{
         uint8_t id;
         int16_t value;
     };
 
-    extern bool useControl;
-    extern bool doTwiddle;
+    struct rcv_message{
+        int8_t id;
+        int16_t v;
+        int16_t w;
+        int32_t checksum;
+    };
     
     void setup(uint8_t robot);
     void OnDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len);
-    void receiveConfig(bool *control, bool *twiddle, double *kp, double *ki, double *kd);
-    void receiveDataGame(double *v, double *w);
-    void receiveDataTwiddle(double *kd, double *ki, double *kp);
+    void receiveData(int16_t *v, int16_t *w);
     bool isCommunicationLost();
-    void sendResponse(double erro);
-
-    enum Mode {
-        no_control = 0,
-        control = 1,
-        twiddle = 2,
-    };
+    void sendResponse(double bat_charge);
 
 }
 

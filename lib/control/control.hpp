@@ -9,16 +9,14 @@
 
 namespace Control{
 
-    extern double kp;
-    extern double ki;
-    extern double kd;
-
     int32_t deadzone(int32_t vin, int32_t up, int32_t down);
     void readSpeeds(double *w);
     double PID(double v, double err);
     void control(double v, double w, double currW, double *erro);
     void stand();
-    double twiddle();
+    double test();
+    void twiddle();
+    void deadzone_tester();
 }
 
 #endif
