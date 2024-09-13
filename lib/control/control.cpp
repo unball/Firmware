@@ -51,9 +51,11 @@ namespace Control {
         Lê os encoders e a velocidade angular do IMU filtrada em primeira ordem e
         retorna a velocidade linear em m/s e a velocidade angular em rad/s por referência
     */
-    void readSpeeds(double *w){
+    void readSpeeds(double *w, double *v){
         // *w = angSpeed(-IMU::get_w());
         *w = -IMU::get_w();
+         
+        *v = linSpeed(Encoder::encoder());
     }
 
     double abs(double a){
@@ -86,6 +88,7 @@ namespace Control {
 	    return output;
     }
 
+
     /// @brief Move the motors without control, based on the radius of the wheel and distance between them.
     /// @param v Linear velocity of the robot
     /// @param w Angualr velocity of the robot
@@ -115,15 +118,16 @@ namespace Control {
         @param currW Velocidade angular medida por algum sensor (IMU) em rad/s
         @param *erro ponteiro para a variavel global de erro
     */
-    void control(double v, double w, double currW, double *erro){
+    void control(double v, double w, double currW, double currV){
         //TODO: deadzone?
         if (v == 0 && w == 0){
             Motor::stop();
             return;
         }
         
-        // Angular velocity error
+        // Angular and linear velocity error
         double eW = w - currW;
+        double eV = v - currV;
         
 
         w = PID(v, eW);
@@ -145,6 +149,7 @@ namespace Control {
 
         // Velocidades atuais medidas por sensores
         double currW;
+        double currV;
         
         // Lê velocidades pelo Wifi
         Wifi::receiveData(&v_int, &w_int);
@@ -166,9 +171,9 @@ namespace Control {
         else{
             // Execute the control normally with the reference velocities
             // Read the velocities through the sensor
-            readSpeeds(&currW);
+            readSpeeds(&currW, &currV);
             // Execute the control loop
-            control(v, w, currW, &erro);
+            control(v, w, currW, currV);
         }
     }
 
