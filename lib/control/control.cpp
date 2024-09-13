@@ -13,6 +13,10 @@ namespace Control {
     double ki = 0.10;
     double kd = -0.08;
 
+    
+
+    
+
     /*
         Função que corrige a deadzone de um motor
 
@@ -80,12 +84,110 @@ namespace Control {
         double P = err * kp;
         double I = err_sum * ki;
         double D = (err - last_err) * kd;
-        // D = 0.0;
         
         double output = P+I+D;
         last_err = err;
 
 	    return output;
+    }
+
+    Control_cee CEE(double v, double eV, double w, double eW){
+
+        double x[2];
+        double u[2];
+        Control_cee y;
+
+        double A[2][2];
+        double B[2][2];
+        double C[2][2];
+        double D[2][2];
+
+        //inicialia A
+        A[0][0] = 1/r;
+        A[0][1] = L/(2*r);
+        A[1][0] = 1/r;
+        A[1][1] = -L/(2*r);
+
+        //inicializa B
+        C[0][0] = 1;
+        C[0][1] = 0;
+        C[1][0] = 0;
+        C[1][1] = 1;
+
+        //inicializa c
+
+        //inicialia D
+        D[0][0] = 0;
+        D[0][1] = 0;
+        D[1][0] = 0;
+        D[1][1] = 0;
+
+        double aux[2][2];
+        double aux2[2][2];
+        double new_x[2];
+
+        // inicializa vetores de estados e de entradas
+        u[0] = v;
+        u[1] = w;
+
+        x[0] = eV;
+        x[1] = eW;
+
+        // resolve new_x = A*x + B*u
+        for (int i = 0; i < 2; i++){
+            for (int j = 0; j < 2; j++){
+                aux[i][j] = B[i][j]*u[j];
+            }  
+        }
+
+        for (int j = 0; j < 2; j++){
+            aux[0][j] += aux[1][j];
+            aux[1][j] = 0;
+        } 
+
+        for (int i = 0; i < 2; i++){
+            for (int j = 0; i < 2; i++){
+                aux2[i][j] = A[i][j]*x[j];
+            }  
+        }
+
+        for (int j = 0; j < 2; j++){
+            aux2[0][j] += aux2[1][j];
+            aux2[1][j] = 0;
+        } 
+
+        for (int j = 0; j < 2; j++){
+            new_x[j] = aux[0][j] + aux2[0][j];
+        }
+
+        // resolve new_x = C*y + D*u
+        for (int i = 0; i < 2; i++){
+            for (int j = 0; j < 2; j++){
+                aux[i][j] = D[i][j]*u[j];
+            }  
+        }
+
+        for (int j = 0; j < 2; j++){
+            aux[0][j] += aux[1][j];
+            aux[1][j] = 0;
+        } 
+
+        for (int i = 0; i < 2; i++){
+            for (int j = 0; i < 2; i++){
+                aux2[i][j] = C[i][j]*new_x[j];
+            }  
+        }
+
+        for (int j = 0; j < 2; j++){
+            aux2[0][j] += aux2[1][j];
+            aux2[1][j] = 0;
+        } 
+
+        y.v = aux[0][0] + aux2[0][0];
+        y.w = aux[0][1] + aux2[0][1];
+
+        return y;
+        
     }
 
 
@@ -129,10 +231,11 @@ namespace Control {
         double eW = w - currW;
         double eV = v - currV;
         
+        Control_cee saida_cee;
+        //w = PID(v, eW);
+        saida_cee = CEE(v,eV, w, eW);
 
-        w = PID(v, eW);
-
-        speed2motors(v, w);
+        speed2motors(saida_cee.v, saida_cee.w);
 
 
     }

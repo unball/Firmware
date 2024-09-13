@@ -19,6 +19,11 @@ namespace Control{
     double test();
     void twiddle();
     void deadzone_tester();
+    struct Control_cee{
+        double v;
+        double w;
+    };
+    
 }
 
 #endif
