@@ -19,7 +19,7 @@ namespace Wifi{
     void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len);
     void receiveData(int16_t *v, int16_t *w);
     bool isCommunicationLost();
-    void tokenize(const uint8_t *data);
+    void tokenize(const uint8_t *data,int len);
 }
 
 #endif
