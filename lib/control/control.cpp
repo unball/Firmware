@@ -73,7 +73,7 @@ namespace Control {
 
         @param Recebe o erro
     */
-   
+
     Control_cee CEE(double v, double eV, double w, double eW){
 
         double x[2];
@@ -266,106 +266,6 @@ namespace Control {
             // Execute the control loop
             control(v, w, currW, currV);
         }
-    }
-
-    double test(){
-        // Velocidade
-        static double v = 0;
-        static double w = 0;
-        
-        // Velocidades atuais medidas por sensores
-        double currW = 0;
-
-        //zera erro
-        erro = 0;
-
-
-        static int32_t previous_t;
-        static int32_t t;
-
-        //faz um quadrado de frente
-        for (int i = 0; i < 4; i++){
-            previous_t = millis();
-            while (t - previous_t < 700 ){
-                t = millis();
-                //rotina de controle anda de frente
-                v = 0.2;
-                w = 0;
-                //readSpeeds(&currW);
-                //control(v, w, currW, &erro);
-                if (abs((currW - w))>erro){
-                    erro = abs((currW - w));
-                }
-                
-            }
-            
-            previous_t = millis();
-            while (t - previous_t < 314 ){
-                t = millis();
-                //rotina de virar
-                v = 0;
-                w = 5;
-                //readSpeeds(&currW);
-                //control(v, w, currW, &erro);
-                if (abs((currW - w))>erro){
-                    erro = abs((currW - w));
-                }
-            }
-        }
-
-        while (t - previous_t < 300 ){
-            t = millis();
-            //rotina de virar
-            v = 0;
-            w = 0;
-            //readSpeeds(&currW);
-            //control(v, w, currW, &erro);
-            if (abs((currW - w))>erro){
-                erro = abs((currW - w));
-            }
-        }
-
-        //faz um quadrado de re 
-        for (int i = 0; i < 4; i++){
-            previous_t = millis();
-            while (t - previous_t <  700 ){
-                t = millis();
-                //rotina de controle anda de frente
-                v = -0.2;
-                w = 0;
-                //readSpeeds(&currW);
-                //control(v, w, currW, &erro);
-                if (abs((currW - w))>erro){
-                    erro = abs((currW - w));
-                }
-            }
-            previous_t = millis();
-            while (t - previous_t < 314 ){
-                t = millis();
-                //rotina de virar
-                v = 0;
-                w = -5;
-                //readSpeeds(&currW);
-                //control(v, w, currW, &erro);
-                if (abs((currW - w))>erro){
-                    erro = abs((currW - w));
-                }
-            }
-
-            while (t - previous_t < 300 ){
-                t = millis();
-                //rotina de virar
-                v = 0;
-                w = 0;
-                //readSpeeds(&currW);
-                //control(v, w, currW, &erro);
-                if (abs((currW - w))>erro){
-                    erro = abs((currW - w));
-                }
-            }
-        }  
-        
-        return erro;
     }
 
 }

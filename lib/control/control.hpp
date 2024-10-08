@@ -16,9 +16,6 @@ namespace Control{
     void control(double v, double w, double currW, double currV);
     void speed2motors(double v, double w);
     void stand();
-    double test();
-    void twiddle();
-    void deadzone_tester();
     struct Control_cee{
         double v;
         double w;
