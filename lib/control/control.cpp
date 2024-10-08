@@ -259,10 +259,10 @@ namespace Control {
         Wifi::receiveData(&v_int, &w_int);
 
         //demutiplexa velocidades
-        v = ((float)v_int) * 2.0 / 32767;
-        w  = ((float)w_int) * 64.0 / 32767;
+        v = 1;//((float)v_int) * 2.0 / 32767;
+        w  = 0;//((float)w_int) * 64.0 / 32767;
 
-        if(Wifi::isCommunicationLost()){
+        if(false){
             err_sum = 0;
             last_err = 0;
 
@@ -304,8 +304,8 @@ namespace Control {
                 //rotina de controle anda de frente
                 v = 0.2;
                 w = 0;
-                readSpeeds(&currW);
-                control(v, w, currW, &erro);
+                //readSpeeds(&currW);
+                //control(v, w, currW, &erro);
                 if (abs((currW - w))>erro){
                     erro = abs((currW - w));
                 }
@@ -318,8 +318,8 @@ namespace Control {
                 //rotina de virar
                 v = 0;
                 w = 5;
-                readSpeeds(&currW);
-                control(v, w, currW, &erro);
+                //readSpeeds(&currW);
+                //control(v, w, currW, &erro);
                 if (abs((currW - w))>erro){
                     erro = abs((currW - w));
                 }
@@ -331,8 +331,8 @@ namespace Control {
             //rotina de virar
             v = 0;
             w = 0;
-            readSpeeds(&currW);
-            control(v, w, currW, &erro);
+            //readSpeeds(&currW);
+            //control(v, w, currW, &erro);
             if (abs((currW - w))>erro){
                 erro = abs((currW - w));
             }
@@ -346,8 +346,8 @@ namespace Control {
                 //rotina de controle anda de frente
                 v = -0.2;
                 w = 0;
-                readSpeeds(&currW);
-                control(v, w, currW, &erro);
+                //readSpeeds(&currW);
+                //control(v, w, currW, &erro);
                 if (abs((currW - w))>erro){
                     erro = abs((currW - w));
                 }
@@ -358,8 +358,8 @@ namespace Control {
                 //rotina de virar
                 v = 0;
                 w = -5;
-                readSpeeds(&currW);
-                control(v, w, currW, &erro);
+                //readSpeeds(&currW);
+                //control(v, w, currW, &erro);
                 if (abs((currW - w))>erro){
                     erro = abs((currW - w));
                 }
@@ -370,8 +370,8 @@ namespace Control {
                 //rotina de virar
                 v = 0;
                 w = 0;
-                readSpeeds(&currW);
-                control(v, w, currW, &erro);
+                //readSpeeds(&currW);
+                //control(v, w, currW, &erro);
                 if (abs((currW - w))>erro){
                     erro = abs((currW - w));
                 }
@@ -381,6 +381,7 @@ namespace Control {
         return erro;
     }
 
+/*
     void twiddle(){
         double target;
         double k[3];
@@ -425,7 +426,7 @@ namespace Control {
         }
 
         while (true){
-            control(0, 0, 0, &erro);
+            //control(0, 0, 0, &erro);
             Serial.print("kp: ");
             Serial.println(kp);
             Serial.print("ki: ");
@@ -444,6 +445,7 @@ namespace Control {
         Motor::move(0, v);
         Motor::move(1, v);
     }
-        
+
+    */ 
 
 }

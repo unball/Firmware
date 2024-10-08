@@ -6,6 +6,7 @@
 #include <encoder.hpp>
 
 double erro = 0;
+float VV = 0.0;
 
 void setup() {
 
@@ -30,46 +31,47 @@ void setup() {
 }
 
 void loop() {
-
 	#if WEMOS_DEBUG
 		int16_t v; 
 		int16_t w; 
-		Serial.println("LOOP!");
+		//Serial.println("LOOP!");
 		
 		//=========IMU===============
-		Serial.println("###################");
+		/*Serial.println("###################");
 		Serial.println("IMU:");
 		Serial.print("theta: ");Serial.println(IMU::get_w());
-		Serial.println("###################");
+		//Serial.println(Encoder::encoder());
+		Serial.println("###################");*/
+
 		//=========End IMU===========
 
 		//=========Wifi===============
-		Serial.println("###################");
+		/*Serial.println("###################");
 		Serial.println("Wi-Fi:");
 		Wifi::receiveData(&v, &w);
 		Serial.print("v: ");Serial.print(v);Serial.print("w: ");Serial.println(w);
 		Serial.println("###################");
 		Serial.println("###################");
 		Serial.println("macAddress");
-		Serial.println(WiFi.macAddress());
+		Serial.println(WiFi.macAddress());*/
 		//=========End Wifi===========
 
 		//=========Motor===============
-		Motor::move(0, 100);
-		Motor::move(1, 100);
+		Control::speed2motors(VV,0);
 		//=========End Motor===========
 		
 		//=========Encoder==========
-		Serial.println("Encoder:");
-		Encoder::vel enc;
+		//Serial.println("Encoder:");
+		Encoder::vel enc;	
 		enc = Encoder::encoder();
-		Serial.print("Channel A: ");Serial.println(enc.motorA);
-		Serial.print("Channel B: ");Serial.println(enc.motorB);
-		double vel = Control::linSpeedTest(enc);
-		Serial.print("Speed: ");Serial.println(vel);
+		Serial.print(VV);Serial.print(" ");Serial.println(Encoder::calibration_encoder(enc.motorA));
+		//Serial.print("Channel B: ");Serial.println(enc.motorB);
+		//double vel = Control::linSpeed(enc);
+		//Serial.print("Speed: ");Serial.println(vel);
 		//=========End Encoder==========
 
-		delay(200);
+		delay(1000);
+		VV += 0.01;
 	#elif CONTROL_TESTER
 		Control::test();
 	#elif TWIDDLE

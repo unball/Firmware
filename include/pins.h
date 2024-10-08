@@ -5,21 +5,24 @@
 //TODO: change to typedef file with all macros and structs
 
 //**Motor pins**
-#define PWMA_PIN 12
-#define AIN1_PIN 9
-#define AIN2_PIN 11
+#define PWMA_PIN 17
+#define AIN1_PIN 18
+#define AIN2_PIN 16
 
-#define PWMB_PIN 18
-#define BIN1_PIN 05
-#define BIN2_PIN 16
+#define PWMB_PIN 39
+#define BIN1_PIN 37
+#define BIN2_PIN 40
 
-#define STBY_PIN 7
+#define STBY_PIN 38
 
 //**IMU pins**
 #define SCL_PIN 35
 #define SDA_PIN 33
 
-#define CHANNEL_A_PIN 13
-#define CHANNEL_B_PIN 14
+#define CHANNEL_A_MOTOR_A_PIN 13
+#define CHANNEL_B_MOTOR_A_PIN 14
+
+#define CHANNEL_A_MOTOR_B_PIN 8
+#define CHANNEL_B_MOTOR_B_PIN 10
 
 #endif

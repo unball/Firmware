@@ -2,7 +2,7 @@
 #define CONFIG_HPP
 
 /* Main configs*/
-#define WEMOS_DEBUG false 
+#define WEMOS_DEBUG true 
 #define CONTROL_TESTER false
 #define DEAD_ZONE_TESTER false
 #define TWIDDLE false

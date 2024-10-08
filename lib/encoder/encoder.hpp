@@ -10,8 +10,11 @@ namespace Encoder{
     }vel;
     
     void setup();
-    void somaA();
-    void somaB();
+    void somaMotorAChanelA();
+    void somaMotorBChanelA();
+    void somaMotorAChanelB();
+    void somaMotorBChanelB();
+    float calibration_encoder(float v);
     void resetEncoders();
     double timeCounter();
     vel encoder();
