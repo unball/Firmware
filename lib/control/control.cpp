@@ -73,20 +73,7 @@ namespace Control {
 
         @param Recebe o erro
     */
-    double PID(double v, double err){
-        err_sum += err;
-        err_sum = (abs(err_sum) < 64.0)? err_sum : 0;
-        
-        double P = err * kp;
-        double I = err_sum * ki;
-        double D = (err - last_err) * kd;
-        
-        double output = P+I+D;
-        last_err = err;
-
-	    return output;
-    }
-
+   
     Control_cee CEE(double v, double eV, double w, double eW){
 
         double x[2];
@@ -380,72 +367,5 @@ namespace Control {
         
         return erro;
     }
-
-/*
-    void twiddle(){
-        double target;
-        double k[3];
-        double dk[3];
-        double ksi = 0.3;
-        dk[0] = 0.538265;
-        dk[1] = 0.049981750000000005; 
-        dk[2] = 0.049981750000000005;
-        k[0] = kp;
-        k[1] = ki;
-        k[2] = kd;
-        target = test();
-        for (int i = 0; i < 3; i++){
-            k[i] += dk[i];
-            kp = k[0];
-            ki = k[1];
-            kd = k[2];
-            erro = test();
-            
-            if (erro < target){
-                target = erro;
-                dk[i] *= 1+ksi; 
-            }
-            else{
-                k[i] -= 2*dk[i];
-
-                kp = k[0];
-                ki = k[1];
-                kd = k[2];
-                erro = test();
-
-                if (erro < target){
-                    target = erro;
-                    dk[i] *= 1+ksi;
-                }
-                else{
-                    k[i]  = dk[i];
-                    dk[i] *= 1 - ksi;
-                }
-            }
-
-        }
-
-        while (true){
-            //control(0, 0, 0, &erro);
-            Serial.print("kp: ");
-            Serial.println(kp);
-            Serial.print("ki: ");
-            Serial.println(ki);
-            Serial.print("kd: ");
-            Serial.println(kd);
-            
-            
-            
-        }
-             
-    }
-
-    void deadzone_tester(){
-        int v = 2;
-        Motor::move(0, v);
-        Motor::move(1, v);
-    }
-
-    */ 
 
 }
