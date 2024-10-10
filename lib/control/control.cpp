@@ -8,6 +8,10 @@ namespace Control {
     double err_sum = 0;
     double last_err = 0;
 
+    double kp = 1.08;
+    double ki = 0.15;
+    double kd = -0.03;
+
     /*
         Controle dos robôs
         Verde - Mané - Robô 0
@@ -58,7 +62,7 @@ namespace Control {
     }
 
     inline double angvel2PWM(double value){
-        return value*pwm_max/(v_max + (L/2)*w_max) / r;
+        return value*pwm_max/(v_max / r);
     }
 
 
@@ -124,7 +128,7 @@ namespace Control {
 
         vr = angvel2PWM(vr);
         vl = angvel2PWM(vl);
-        
+
         vr = (int32_t)saturation((deadzone(vr, motor_deadzone, -motor_deadzone)));
         vl = (int32_t)saturation((deadzone(vl, motor_deadzone, -motor_deadzone)));
 
@@ -177,7 +181,8 @@ namespace Control {
         v = ((float)v_int) * 2.0 / 32767;
         w  = ((float)w_int) * 64.0 / 32767;
 
-        if(Wifi::isCommunicationLost()){
+        if (false){
+        //if(Wifi::isCommunicationLost()){
             err_sum = 0;
             last_err = 0;
 
@@ -192,7 +197,8 @@ namespace Control {
             // Read the velocities through the sensor
             readSpeeds(&currW);
             // Execute the control loop
-            control(v, w, currW, &erro);
+            control(0.2, 0, currW, &erro);
+            //speed2motors(2, 65);
         }
     }
 
@@ -259,7 +265,7 @@ namespace Control {
             while (t - previous_t <  700 ){
                 t = millis();
                 //rotina de controle anda de frente
-                v = -0.2;
+                v = -0.02;
                 w = 0;
                 readSpeeds(&currW);
                 control(v, w, currW, &erro);
