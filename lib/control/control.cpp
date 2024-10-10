@@ -5,14 +5,6 @@ namespace Control {
 
     using namespace Waves;
 
-    double erro = 0;
-    double err_sum = 0;
-    double last_err = 0;
-
-    double kp = 0.54;
-    double ki = 0.10;
-    double kd = -0.08;
-
     /*
         Função que corrige a deadzone de um motor
 
@@ -30,7 +22,7 @@ namespace Control {
         Função que satura uma entrada para valores entre -255 e 255
     */
     inline double saturation(double vin){
-        return min(max(vin, -255.0), 255.0);
+        return min(max(vin, -pwm_max), pwm_max);
     }
 
     /*
@@ -52,10 +44,10 @@ namespace Control {
         retorna a velocidade linear em m/s e a velocidade angular em rad/s por referência
     */
     void readSpeeds(double *w, double *v){
-        // *w = angSpeed(-IMU::get_w());
+
         *w = -IMU::get_w();
          
-        *v = linSpeed(Encoder::encoder());
+        *v = Encoder::calibration_encoder(linSpeed(Encoder::encoder()));
     }
 
     double abs(double a){
@@ -68,6 +60,25 @@ namespace Control {
          
     }
 
+    inline double angvel2PWM(double value){
+        return value*pwm_max/(v_max + (L/2)*w_max) / r;
+    }
+
+    void matrix_multiply(double mat[2][2], double vec[2], double result[2]) {
+        for (int i = 0; i < 2; i++) {
+            result[i] = 0;
+            for (int j = 0; j < 2; j++) {
+                result[i] += mat[i][j] * vec[j];
+            }
+        }
+    }
+
+    void vector_add(double vec1[2], double vec2[2], double result[2]) {
+        for (int i = 0; i < 2; i++) {
+            result[i] = vec1[i] + vec2[i];
+        }
+    }
+
     /*
         Implementa um PI digital com anti-windup para o motor A
 
@@ -76,103 +87,53 @@ namespace Control {
 
     Control_cee CEE(double v, double eV, double w, double eW){
 
-        double x[2];
-        double u[2];
         Control_cee y;
 
-        double A[2][2];
-        double B[2][2];
-        double C[2][2];
-        double D[2][2];
+        
 
-        //inicialia A
-        A[0][0] = 1/r;
-        A[0][1] = L/(2*r);
-        A[1][0] = 1/r;
-        A[1][1] = -L/(2*r);
-
-        //inicializa B
-        B[0][0] = r/2;
-        B[0][1] = r/2;
-        B[1][0] = r/L;
-        B[1][1] = -r/L;
-
-        //inicializa c
-        C[0][0] = 1;
-        C[0][1] = 0;
-        C[1][0] = 0;
-        C[1][1] = 1;
+        double e[2] = {eV, eW};  // Vetor de erros
+        double x[2] = {v, w};    // Vetor de estados
+        double u[2];             // Vetor de entrada
 
 
-        //inicialia D
-        D[0][0] = 0;
-        D[0][1] = 0;
-        D[1][0] = 0;
-        D[1][1] = 0;
+        //Matriz de ganho
+        double K[2][2] = {{Kv, 0},
+                          {0, Kw}};
 
-        double aux[2][2];
-        double aux2[2][2];
+        //calcula a entrada de controle
+        matrix_multiply(K, e, u);
+
+        //Matrizes de estados
+        double A[2][2] = {{1, 0},
+                          {0, 1}};
+
+        double B[2][2] = {{1, 0},
+                          {0, 1}};
+
+        double C[2][2] = {{1, 0},
+                          {0, 1}};
+
+        double D[2][2] = {{0, 0},
+                          {0, 0}};
+
+        double aux[2];
+        double aux2[2];
         double new_x[2];
 
-        // inicializa vetores de estados e de entradas
-        u[0] = v;
-        u[1] = w;
+        // Calcular new_x = A*x + B*u
+        matrix_multiply(A, x, aux2);
+        matrix_multiply(B, u, aux);
+        vector_add(aux, aux2, new_x);
 
-        x[0] = eV;
-        x[1] = eW;
+        // Calcular a saída y = C*new_x + D*u
+        matrix_multiply(C, new_x, aux2);
+        matrix_multiply(D, u, aux);
+        vector_add(aux, aux2, new_x);       
+        
+        
+        y.v = new_x[0];
+        y.w = new_x[1];
 
-        // resolve new_x = A*x + B*u
-        for (int i = 0; i < 2; i++){
-            for (int j = 0; j < 2; j++){
-                aux[i][j] = B[i][j]*u[j];
-            }  
-        }
-
-        for (int j = 0; j < 2; j++){
-            aux[0][j] += aux[1][j];
-            aux[1][j] = 0;
-        } 
-
-        for (int i = 0; i < 2; i++){
-            for (int j = 0; i < 2; i++){
-                aux2[i][j] = A[i][j]*x[j];
-            }  
-        }
-
-        for (int j = 0; j < 2; j++){
-            aux2[0][j] += aux2[1][j];
-            aux2[1][j] = 0;
-        } 
-
-        for (int j = 0; j < 2; j++){
-            new_x[j] = aux[0][j] + aux2[0][j];
-        }
-
-        // resolve new_x = C*y + D*u
-        for (int i = 0; i < 2; i++){
-            for (int j = 0; j < 2; j++){
-                aux[i][j] = D[i][j]*u[j];
-            }  
-        }
-
-        for (int j = 0; j < 2; j++){
-            aux[0][j] += aux[1][j];
-            aux[1][j] = 0;
-        } 
-
-        for (int i = 0; i < 2; i++){
-            for (int j = 0; i < 2; i++){
-                aux2[i][j] = C[i][j]*new_x[j];
-            }  
-        }
-
-        for (int j = 0; j < 2; j++){
-            aux2[0][j] += aux2[1][j];
-            aux2[1][j] = 0;
-        } 
-
-        y.v = aux[0][0] + aux2[0][0];
-        y.w = aux[0][1] + aux2[0][1];
 
         return y;
         
@@ -192,7 +153,8 @@ namespace Control {
         // Calculates the angular speed of rotation to each wheel
         int32_t vr = (v + (L/2)*w) / r;
         int32_t vl = (v - (L/2)*w) / r;
-
+        vr = angvel2PWM(vr);
+        vl = angvel2PWM(vl);
         vr = (int32_t)saturation((deadzone(vr, motor_deadzone, -motor_deadzone)));
         vl = (int32_t)saturation((deadzone(vl, motor_deadzone, -motor_deadzone)));
 
@@ -220,11 +182,10 @@ namespace Control {
         double eV = v - currV;
         
         Control_cee saida_cee;
-        //w = PID(v, eW);
+        
         saida_cee = CEE(v,eV, w, eW);
-
+        
         speed2motors(saida_cee.v, saida_cee.w);
-
 
     }
 
@@ -232,10 +193,10 @@ namespace Control {
     void stand(){
 
         // Velocities to be read by Wi-Fi, they are static in case Wifi::receiveData does not receive anything, it keeps the previous velocity
-        static double v = 0;
-        static double w = 0;
-        int16_t v_int = 0;
-        int16_t w_int = 0;
+        static double v;
+        static double w;
+        static int16_t v_int;
+        static int16_t w_int;
        
 
         // Velocidades atuais medidas por sensores
@@ -246,13 +207,10 @@ namespace Control {
         Wifi::receiveData(&v_int, &w_int);
 
         //demutiplexa velocidades
-        v = 1;//((float)v_int) * 2.0 / 32767;
-        w  = 0;//((float)w_int) * 64.0 / 32767;
+        v =  ((float)v_int) * 2.0 / 32767;
+        w  = ((float)w_int) * 64.0 / 32767;
 
-        if(false){
-            err_sum = 0;
-            last_err = 0;
-
+        if(false){           
 			v = Waves::sine_wave();
 			w = 0;
 
@@ -263,6 +221,7 @@ namespace Control {
             // Execute the control normally with the reference velocities
             // Read the velocities through the sensor
             readSpeeds(&currW, &currV);
+            
             // Execute the control loop
             control(v, w, currW, currV);
         }
