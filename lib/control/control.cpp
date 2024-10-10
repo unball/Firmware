@@ -35,9 +35,7 @@ namespace Control {
         Kd = ??? /  Kd = ???
 
     */
-    double kp = 0.54;
-    double ki = 0.10;
-    double kd = -0.08;
+    
 
     /*
         Função que corrige a deadzone de um motor
@@ -56,8 +54,13 @@ namespace Control {
         Função que satura uma entrada para valores entre -255 e 255
     */
     inline double saturation(double vin){
-        return min(max(vin, -255.0), 255.0);
+        return min(max(vin, -pwm_max), pwm_max);
     }
+
+    inline double angvel2PWM(double value){
+        return value*pwm_max/(v_max + (L/2)*w_max) / r;
+    }
+
 
     /*
         Função que recebe velocidade angular do IMU em º/ms e converte para velocidade angular em rad/s
@@ -119,6 +122,9 @@ namespace Control {
         int32_t vr = (v + (L/2)*w) / r;
         int32_t vl = (v - (L/2)*w) / r;
 
+        vr = angvel2PWM(vr);
+        vl = angvel2PWM(vl);
+        
         vr = (int32_t)saturation((deadzone(vr, motor_deadzone, -motor_deadzone)));
         vl = (int32_t)saturation((deadzone(vl, motor_deadzone, -motor_deadzone)));
 
