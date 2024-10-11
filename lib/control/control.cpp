@@ -203,7 +203,7 @@ namespace Control {
         else{
             saida_cee = CEE(v,0, w, eW);
         }
-                
+
         speed2motors(saida_cee.v, saida_cee.w);
 
     }
