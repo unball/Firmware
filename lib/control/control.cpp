@@ -124,6 +124,9 @@ namespace Control {
         double eP_w = eW;
         double eD_w = eW - last_err_w;
 
+        //filtro anti-windup
+        err_sum_w = (abs(err_sum_w) < 64.0)? err_sum_w : 0;
+
         double u[2];
         u[0] = kp_v * eP_v;
         u[1] = kp_w * eP_w + ki_w * err_sum_w + kd_w * eD_w;
