@@ -197,7 +197,7 @@ namespace Control {
             // Read the velocities through the sensor
             readSpeeds(&currW);
             // Execute the control loop
-            control(0.2, 0, currW, &erro);
+            control(v, w, currW, &erro);
             //speed2motors(2, 65);
         }
     }
