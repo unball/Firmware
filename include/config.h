@@ -7,6 +7,7 @@
 #define DEAD_ZONE_TESTER false
 #define TWIDDLE false
 #define ROBOT_NUMBER 0
+#define CEE_ON false 
 
 /* Wi-Fi */ 
 const int communicationTimeout = 500000;
