@@ -47,7 +47,7 @@ namespace Control {
 
         *w = -IMU::get_w();
          
-        *v = Encoder::calibration_encoder(linSpeed(Encoder::encoder()));
+        *v = linSpeed(Encoder::encoder());
     }
 
     double abs(double a){
@@ -61,7 +61,7 @@ namespace Control {
     }
 
     inline double angvel2PWM(double value){
-        return value*pwm_max/(v_max + (L/2)*w_max) / r;
+        return value*pwm_max/(v_max/r);
     }
 
     void matrix_multiply(double mat[2][2], double vec[2], double result[2]) {
@@ -207,8 +207,8 @@ namespace Control {
         Wifi::receiveData(&v_int, &w_int);
 
         //demutiplexa velocidades
-        v =  ((float)v_int) * 2.0 / 32767;
-        w  = ((float)w_int) * 64.0 / 32767;
+        v = ((float)v_int) * 2.0 / 32767;
+        w = ((float)w_int) * 64.0 / 32767;
 
         if(false){           
 			v = Waves::sine_wave();
