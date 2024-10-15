@@ -178,11 +178,10 @@ namespace Control {
         //Wifi::receiveData(&v_int, &w_int);
 
         //demutiplexa velocidades
-        v = 1.0;//((float)v_int) * 2.0 / 32767;
-        w  = 0.0;((float)w_int) * 64.0 / 32767;
+        v = ((float)v_int) * 2.0 / 32767;
+        w  = ((float)w_int) * 64.0 / 32767;
 
-        if (false){
-        //if(Wifi::isCommunicationLost()){
+        if(Wifi::isCommunicationLost()){
             err_sum = 0;
             last_err = 0;
 
