@@ -14,25 +14,25 @@ namespace Control {
 
     /*
         Controle dos robôs
-        Verde - Mané - Robô 0
+         - Allia Massouh - Robô 0
         Dz = 10   /  Dz = 32
         Kp = 1.62 /  Kp = 0.54
         Ki = 0.05 /  Ki = 0.05
         Kd = -0.08/  Kd = -0.03
         
-        Azul - Biriba - Robô 1
+         - Tatima Cetando - Robô 1
         Dz = 5   /  Dz = 32
         Kp = 2.05 /  Kp = 0.54
         Ki = 0.05 /  Ki = 0.10
         Kd = -0.13/  Kd = -0.08
 
-        Vermelho - Apodi - Robô 2
-        Dz = 10   /  Dz = 32
+         - Paula Traz - Robô 2
+        Dz = 10   /  Dz = 02
         Kp = 1.62 /  Kp = 0.74
         Ki = 0.05 /  Ki = 0.05
         Kd = -0.15/  Kd = -0.13
 
-        Laranja - JohnTex
+         - Ondrej Kudela
         Dz = ??? /  Dz = 32
         Kp = ??? /  Kp = ???
         Ki = ??? /  Ki = ???
@@ -175,11 +175,11 @@ namespace Control {
         double currW;
         
         // Lê velocidades pelo Wifi
-        Wifi::receiveData(&v_int, &w_int);
+        //Wifi::receiveData(&v_int, &w_int);
 
         //demutiplexa velocidades
-        v = ((float)v_int) * 2.0 / 32767;
-        w  = ((float)w_int) * 64.0 / 32767;
+        v = 1.0;//((float)v_int) * 2.0 / 32767;
+        w  = 0.0;((float)w_int) * 64.0 / 32767;
 
         if (false){
         //if(Wifi::isCommunicationLost()){
