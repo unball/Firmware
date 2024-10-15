@@ -29,8 +29,8 @@ namespace Motor {
         digitalWrite(STBY_PIN, HIGH);
 
         //Saturador
-        power = power > 255 ? 255 : power;
-        power = power < -255 ? -255 : power;
+        power = power > pwm_max ? pwm_max : power;
+        power = power < -pwm_max ? -pwm_max : power;
 
         //Defines motor direction
         motor_direction[motor] = (power > 0 ? 1:-1);
