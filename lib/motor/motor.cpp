@@ -6,7 +6,7 @@ namespace Motor {
 
     uint8_t pin1[2] = {AIN1_PIN, BIN1_PIN};
     uint8_t pin2[2] = {AIN2_PIN, BIN2_PIN};
-    uint8_t PWM[2] = {PWMA_PIN, PWMB_PIN};
+    uint8_t PWM_Channel[2] = {pwmChannelA, pwmChannelB};
 
     int8_t getMotorDirection(int8_t motor){
         return motor_direction[motor];
@@ -22,6 +22,12 @@ namespace Motor {
         pinMode(PWMB_PIN, OUTPUT);
         pinMode(BIN1_PIN, OUTPUT);
         pinMode(BIN2_PIN, OUTPUT);
+
+        ledcSetup(pwmChannelA, frequency, resolution);
+        ledcSetup(pwmChannelB, frequency, resolution);
+
+        ledcAttachPin(PWMA_PIN, pwmChannelA);
+        ledcAttachPin(PWMB_PIN, pwmChannelB);
     }
 
     void move(uint8_t motor, int32_t power) {
@@ -48,7 +54,7 @@ namespace Motor {
         //Writes the motor direction and power
         digitalWrite(pin1[motor], inPin1);
         digitalWrite(pin2[motor], inPin2);
-        analogWrite(PWM[motor], abs(power));
+        ledcWrite(PWM_Channel[motor], abs(power));
     }
 
     //Stops current for the motors
