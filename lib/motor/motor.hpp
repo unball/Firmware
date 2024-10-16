@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <stdint-gcc.h>
 #include "../../include/pins.h"
+#include "../../include/config.h"
 
 namespace Motor{
 
