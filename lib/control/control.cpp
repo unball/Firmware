@@ -175,11 +175,11 @@ namespace Control {
         double currW;
         
         // Lê velocidades pelo Wifi
-        //Wifi::receiveData(&v_int, &w_int);
+        Wifi::receiveData(&v_int, &w_int);
 
         //demutiplexa velocidades
-        v = ((float)v_int) * 2.0 / 32767;
-        w  = ((float)w_int) * 64.0 / 32767;
+        v = static_cast<float>(v_int);
+        w  = static_cast<float>(w_int);
 
         if(Wifi::isCommunicationLost()){
             err_sum = 0;
