@@ -264,7 +264,7 @@ namespace Control {
             while (t - previous_t <  700 ){
                 t = millis();
                 //rotina de controle anda de frente
-                v = -0.02;
+                v = -0.2;
                 w = 0;
                 readSpeeds(&currW);
                 control(v, w, currW, &erro);
@@ -352,8 +352,6 @@ namespace Control {
             Serial.println(ki);
             Serial.print("kd: ");
             Serial.println(kd);
-            
-            
             
         }
              
