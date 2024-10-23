@@ -60,7 +60,12 @@ void loop() {
 	#elif CONTROL_TESTER
 		Control::test();
 	#elif TWIDDLE
-		Control::twiddle();
+		static int32_t t;
+		t = millis ();
+		if(t > twiddledelay){
+			Control::twiddle();
+		}
+		
 	#elif DEAD_ZONE_TESTER
 		Control::deadzone_tester();
 	#else

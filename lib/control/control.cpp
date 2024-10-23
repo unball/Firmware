@@ -8,9 +8,9 @@ namespace Control {
     double err_sum = 0;
     double last_err = 0;
 
-    double kp = 1.08;
-    double ki = 0.15;
-    double kd = -0.03;
+    double kp = 1.62;
+    double ki = 0.05;
+    double kd = -0.08;
 
     /*
         Controle dos robôs
