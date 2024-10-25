@@ -15,6 +15,7 @@ const float MAX_POWER = 10.0;
 
 /* Control */
 const int controlLoopInterval= 200;   // actuation interval in ms
+const int twiddledelay = 10000;
 
 
 /* Robot parameters */
