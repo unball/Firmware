@@ -14,7 +14,7 @@ namespace Control {
 
     /*
         Controle dos robôs
-         - Allia Massouh - Robô 0
+           - Allia Massouh - Robô 0
         Dz = 10   /  Dz = 32
         Kp = 1.62 /  Kp = 0.54
         Ki = 0.05 /  Ki = 0.05
