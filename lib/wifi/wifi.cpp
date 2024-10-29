@@ -31,7 +31,7 @@ namespace Wifi{
         tokenize(incomingData,len);
 	    lastReceived = micros();
 
-        if(temp_msg.checksum == temp_msg.v + temp_msg.w){
+        if(temp_msg.checksum == static_cast<int32_t>(temp_msg.v) + static_cast<int32_t>(temp_msg.w) ){
             msg = temp_msg;
         }
         else{
@@ -65,10 +65,10 @@ namespace Wifi{
                                     //com ponteiro é mais fácil de driblar isso mas não quero usar alocação dinâmica pois a stack é mais rápida =)
 
         token=strtok(NULL,",");
-        temp_msg.v=std::strtol(token,NULL,10);
+        temp_msg.v=std::strtof(token,NULL);
 
         token=strtok(NULL,",");
-        temp_msg.w=std::strtol(token,NULL,10);
+        temp_msg.w=std::strtof(token,NULL);
 
         token=strtok(NULL,",");
         temp_msg.checksum=std::strtol(token,NULL,10);
@@ -76,7 +76,7 @@ namespace Wifi{
     /// @brief Receive data copying from temp struct to global struct
     /// @param v reference to the linear velocity
     /// @param w reference to the angular velocity
-    void receiveData(int16_t *v, int16_t *w){
+    void receiveData(float *v, float *w){
         if(msg.id == robotNumber){
             // Demultiplexing and decoding the velocities and constants
             *v  = msg.v;
