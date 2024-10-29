@@ -167,8 +167,8 @@ namespace Control {
         // Velocities to be read by Wi-Fi, they are static in case Wifi::receiveData does not receive anything, it keeps the previous velocity
         static double v = 0;
         static double w = 0;
-        int16_t v_int = 0;
-        int16_t w_int = 0;
+        float v_int = 0;
+        float w_int = 0;
        
 
         // Velocidades atuais medidas por sensores
@@ -177,9 +177,8 @@ namespace Control {
         // Lê velocidades pelo Wifi
         Wifi::receiveData(&v_int, &w_int);
 
-        //demutiplexa velocidades
-        v = static_cast<float>(v_int);
-        w  = static_cast<float>(w_int);
+        v = static_cast<double>(v_int);
+        w  = static_cast<double>(w_int);
 
         if(Wifi::isCommunicationLost()){
             err_sum = 0;
