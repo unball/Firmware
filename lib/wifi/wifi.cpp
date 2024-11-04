@@ -23,7 +23,7 @@ namespace Wifi{
             return;
         }
         WiFi.setTxPower(WIFI_POWER_19_5dBm);
-        esp_err_t error = esp_wifi_set_channel(12, WIFI_SECOND_CHAN_NONE);
+        esp_err_t error = esp_wifi_set_channel(14, WIFI_SECOND_CHAN_NONE);
 
         esp_now_register_recv_cb(esp_now_recv_cb_t(OnDataRecv));            
     }
