@@ -30,8 +30,8 @@ void setup() {
 void loop() {
 
 	#if WEMOS_DEBUG
-		float v; 
-		float w; 
+		int16_t v; 
+		int16_t w; 
 		Serial.println("LOOP!");
 
 		//=========IMU===============
@@ -45,7 +45,7 @@ void loop() {
 		Serial.println("###################");
 		Serial.println("Wi-Fi:");
 		Wifi::receiveData(&v, &w);
-		Serial.print("v: ");Serial.printf("%.4f",v);Serial.print(" w: ");Serial.printf("%.4f\n",w);
+		Serial.print("v: ");Serial.print(v);Serial.print("w: ");Serial.println(w);
 		Serial.println("###################");
 		Serial.println("###################");
 		Serial.println("macAddress");
