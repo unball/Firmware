@@ -218,10 +218,10 @@ namespace Control {
         //faz um quadrado de frente
         for (int i = 0; i < 4; i++){
             previous_t = millis();
-            while (t - previous_t < 700 ){
+            while (t - previous_t < 350 ){
                 t = millis();
                 //rotina de controle anda de frente
-                v = 0.2;
+                v = 0.5;
                 w = 0;
                 readSpeeds(&currW);
                 control(v, w, currW, &erro);
@@ -260,10 +260,10 @@ namespace Control {
         //faz um quadrado de re 
         for (int i = 0; i < 4; i++){
             previous_t = millis();
-            while (t - previous_t <  700 ){
+            while (t - previous_t <  350 ){
                 t = millis();
                 //rotina de controle anda de frente
-                v = -0.02;
+                v = -0.5;
                 w = 0;
                 readSpeeds(&currW);
                 control(v, w, currW, &erro);
