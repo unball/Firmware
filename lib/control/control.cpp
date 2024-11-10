@@ -8,31 +8,31 @@ namespace Control {
     double err_sum = 0;
     double last_err = 0;
 
-    double kp = 1.08;
-    double ki = 0.15;
-    double kd = -0.03;
+    double kp = 2.70;
+    double ki = 0.10;
+    double kd = -0.08;
 
     /*
         Controle dos robôs
-         - Allia Massouh - Robô 0
-        Dz = 10   /  Dz = 32
-        Kp = 1.62 /  Kp = 0.54
-        Ki = 0.05 /  Ki = 0.05
-        Kd = -0.08/  Kd = -0.03
+        Fita Verde - Allia Massouh - Robô 0
+        Dz = 02
+        Kp = 2.70
+        Ki = 0.10
+        Kd = -0.08
         
-         - Tatima Cetando - Robô 1
-        Dz = 5   /  Dz = 32
-        Kp = 2.05 /  Kp = 0.54
-        Ki = 0.05 /  Ki = 0.10
-        Kd = -0.13/  Kd = -0.08
+        Fita Azul - Tatima Cetando - Robô 1
+        Dz = 02
+        Kp = 2.16
+        Ki = 0.05
+        Kd = -0.03
 
-         - Paula Traz - Robô 2
-        Dz = 10   /  Dz = 02
-        Kp = 1.62 /  Kp = 0.74
-        Ki = 0.05 /  Ki = 0.05
-        Kd = -0.15/  Kd = -0.13
+        Fita Rosa - Paula Traz - Robô 2
+        Dz = 02
+        Kp = 1.62
+        Ki = 0.05
+        Kd = -0.08
 
-         - Ondrej Kudela
+        Fita  - Ondrej Kudela
         Dz = ??? /  Dz = 32
         Kp = ??? /  Kp = ???
         Ki = ??? /  Ki = ???
