@@ -7,14 +7,15 @@
 #include "wifi.hpp"
 #include "../../include/config.h"
 
-
 namespace Control{
     int32_t deadzone(int32_t vin, int32_t up, int32_t down);
     void readSpeeds(double *w);
     double PID(double v, double err);
-    void control(double v, double w, double currW);
+    void control(double v, double w, double currW, double *erro);
     void stand();
-    void actuateNoControl();
+    double test();
+    void twiddle();
+    void deadzone_tester();
 }
 
 #endif

@@ -1,62 +1,88 @@
 #include "wifi.hpp"
 
-//TODO: Resetar ESP 
-
 namespace Wifi{
 
-    rcv_message temp_msg;
+    uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
+    rcv_message temp_msg;
     rcv_message msg;
 
     volatile static uint32_t lastReceived;
 
     uint8_t robotNumber;
 
-    void setup_debug(uint8_t robot){
-        robotNumber = robot;
-
-        WiFi.mode(WIFI_STA);
-        if (esp_now_init() != 0) {
-            Serial.println("Erro ao inicializar o ESP-NOW");
-            return;
-        }
-
-        esp_now_set_self_role(ESP_NOW_ROLE_SLAVE);
-        esp_now_register_recv_cb(OnDataRecv);
-    }
-
     void setup(uint8_t robot){
         robotNumber = robot;
 
         WiFi.mode(WIFI_STA);
-        if (esp_now_init() != 0) {
+        WiFi.disconnect();
+        if (esp_now_init() != ESP_OK) {
+            #if WEMOS_DEBUG
+            Serial.println("Erro ao inicializar o ESP-NOW");
+            #endif
             return;
         }
-        WiFi.setOutputPower(MAX_POWER);
+        WiFi.setTxPower(WIFI_POWER_19_5dBm);
+        esp_err_t error = esp_wifi_set_channel(14, WIFI_SECOND_CHAN_NONE);
 
-        esp_now_set_self_role(ESP_NOW_ROLE_SLAVE);
-        esp_now_register_recv_cb(OnDataRecv);
-        lastReceived = micros();
+        esp_now_register_recv_cb(esp_now_recv_cb_t(OnDataRecv));            
     }
 
     // Callback function, execute when message is received via Wi-Fi
-    void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len)
-    {
-        memcpy(&temp_msg, incomingData, sizeof(msg));
+    void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len){
+        tokenize(incomingData,len);
 	    lastReceived = micros();
-        // TODO: last Received deveria estar aqui ou em receiveData?
-    }
 
+        if(temp_msg.checksum == temp_msg.v + temp_msg.w){
+            msg = temp_msg;
+        }
+        else{
+            #if WEMOS_DEBUG
+                Serial.println("###################");
+		        Serial.println("###################");
+                Serial.println("ERRO DE CHECKSUM");
+                Serial.println("###################");
+                Serial.println("###################");
+            #endif
+        }
+        // TODO: lastReceived deveria estar aqui ou em receiveData?
+    }
+    void tokenize(const uint8_t *data,int len){ //função para tokenizar a string que recebemos do transmissor 
+        //modelo esperado de data=="[id,v,w,checksum]"
+        if(data==NULL){
+            return;
+        }
+        char str[len+1];
+        memcpy(str,data,len);
+        if(str[0]!='['){
+            return;
+        }
+        str[len]='\0';
+
+        char* token;
+        //não é necessário fazer verificação no strtok pois só temos 4 variáveis e não um número indefinido
+        token=strtok(str,","); //trocamos todas as ocorrências de "," por "\0"
+        temp_msg.id=token[1]-'0';   //sabendo que a variável ID tem range [0,2] usamos essa forma, se mudar por algum motivo...
+                                    //faça igual abaixo, mas cuidado com token[0] que é '<'
+                                    //com ponteiro é mais fácil de driblar isso mas não quero usar alocação dinâmica pois a stack é mais rápida =)
+
+        token=strtok(NULL,",");
+        temp_msg.v=std::strtol(token,NULL,10);
+
+        token=strtok(NULL,",");
+        temp_msg.w=std::strtol(token,NULL,10);
+
+        token=strtok(NULL,",");
+        temp_msg.checksum=std::strtol(token,NULL,10);
+    }
     /// @brief Receive data copying from temp struct to global struct
-    /// @param vl reference to the velocity
-    /// @param vr reference to the velocity
-    void receiveData(int16_t *vl, int16_t *vr){
-        // Protecting original data
-        msg = temp_msg;
+    /// @param v reference to the linear velocity
+    /// @param w reference to the angular velocity
+    void receiveData(int16_t *v, int16_t *w){
         if(msg.id == robotNumber){
-            // Demultiplexing and decoding the velocities
-            *vl = msg.vl;
-            *vr = msg.vr;
+            // Demultiplexing and decoding the velocities and constants
+            *v  = msg.v;
+            *w  = msg.w;
         }
     }
 

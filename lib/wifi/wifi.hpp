@@ -1,24 +1,27 @@
 #ifndef WIFI_H
 #define WIFI_H
-#include <ESP8266WiFi.h>
-#include <espnow.h>
+#include <WiFi.h>
+#include <esp_now.h>
+#include <cstdlib>
+#include <cstring>
+#include <esp_wifi.h>
+
 #include "../../include/config.h"
 
 namespace Wifi{
 
-    struct rcv_message
-    {
-        int16_t id;
-        int16_t vl;
-        int16_t vr;
+    struct rcv_message{
+        int8_t id;
+        float v;
+        float w;
+        int32_t checksum;
     };
-
-    void setup_debug(uint8_t robot);
+  
     void setup(uint8_t robot);
-    void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len);
-    void receiveData(int16_t *vl, int16_t *vr);
+    void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len);
+    void receiveData(int16_t *v, int16_t *w);
     bool isCommunicationLost();
-
+    void tokenize(const uint8_t *data,int len);
 }
 
 #endif
