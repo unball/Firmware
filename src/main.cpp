@@ -4,6 +4,7 @@
 #include <waves.hpp>
 #include <wifi.hpp>
 #include <encoder.hpp>
+#include <battery.hpp>
 
 double erro = 0;
 
