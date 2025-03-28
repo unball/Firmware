@@ -1,58 +1,39 @@
-#include <Arduino.h>
+#include <motor.hpp>
+#include <encoder.hpp>
 
-#define MOTOR_A_PWM 32
-#define MOTOR_A_IN1 25
-#define MOTOR_A_IN2 33
+#define TEST_DURATION_MS 2000
+#define MIN_SPEED_RAD_S 1.0
 
-#define MOTOR_B_PWM 12
-#define MOTOR_B_IN1 27
-#define MOTOR_B_IN2 14
+void testMotorWithEncoder(uint8_t motorId, const char* name) {
+  Motor::move(motorId, 200);  // Positive power for forward motion
+  delay(TEST_DURATION_MS);
+  Motor::stop();
 
-#define STBY_PIN 26
+  double w = Encoder::get_w();
+  Serial.printf("%s speed: %.2f rad/s\n", name, w);
 
-void motorTest(int in1, int in2, int pwm, const char* label) {
-  Serial.print("Testing ");
-  Serial.println(label);
-
-  digitalWrite(in1, HIGH);
-  digitalWrite(in2, LOW);
-  analogWrite(pwm, 200);
-  delay(1500);
-
-  digitalWrite(in1, LOW);
-  digitalWrite(in2, LOW);
-  analogWrite(pwm, 0);
-  delay(500);
-
-  digitalWrite(in1, LOW);
-  digitalWrite(in2, HIGH);
-  analogWrite(pwm, 200);
-  delay(1500);
-
-  digitalWrite(in1, LOW);
-  digitalWrite(in2, LOW);
-  analogWrite(pwm, 0);
-  delay(1000);
+  if (w > MIN_SPEED_RAD_S) {
+    Serial.printf("[TEST RESULT] %s: PASS\n", name);
+  } else {
+    Serial.printf("[TEST RESULT] %s: FAIL\n", name);
+  }
 }
 
 void setup() {
   Serial.begin(115200);
   delay(1000);
-  Serial.println("🚦 Starting Motor Test");
+  Serial.println("[TEST START] Motor + Encoder (using user libs)");
 
-  pinMode(STBY_PIN, OUTPUT);
-  digitalWrite(STBY_PIN, HIGH);
+  Motor::setup();
+  Encoder::setup();
 
-  pinMode(MOTOR_A_IN1, OUTPUT);
-  pinMode(MOTOR_A_IN2, OUTPUT);
-  pinMode(MOTOR_A_PWM, OUTPUT);
+  delay(500);
 
-  pinMode(MOTOR_B_IN1, OUTPUT);
-  pinMode(MOTOR_B_IN2, OUTPUT);
-  pinMode(MOTOR_B_PWM, OUTPUT);
+  testMotorWithEncoder(0, "Motor A");
+  delay(1000);
+  testMotorWithEncoder(1, "Motor B");
 }
 
 void loop() {
-  motorTest(MOTOR_A_IN1, MOTOR_A_IN2, MOTOR_A_PWM, "Motor A");
-  motorTest(MOTOR_B_IN1, MOTOR_B_IN2, MOTOR_B_PWM, "Motor B");
+  // No loop needed
 }
