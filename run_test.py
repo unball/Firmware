@@ -3,69 +3,59 @@ import shutil
 import subprocess
 import sys
 
-def find_pio_executable():
-    # Try default command
+FIRMWARE_SRC = "src/main.cpp"
+BACKUP_SRC = "src/main.backup.cpp"
+TESTS_DIR = "tests_manual"
+AUTOMATED_TESTS = [
+    "test_esp32",
+    "test_dip_switch",
+    "test_battery_voltage",
+    "test_motors_and_encoders",
+    "test_imu"
+]
+
+def run_single_test(test_name):
+    test_path = os.path.join(TESTS_DIR, test_name, "main.cpp")
+    if not os.path.exists(test_path):
+        print(f"[SKIP] Test '{test_name}' not found.")
+        return False
+
+    print(f"\n=== Running test: {test_name} ===")
+
+    shutil.copy(FIRMWARE_SRC, BACKUP_SRC)
+    shutil.copy(test_path, FIRMWARE_SRC)
+
     try:
-        subprocess.run(["pio", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        return "pio"
-    except FileNotFoundError:
-        pass
+        result = subprocess.run(["pio", "run", "-t", "upload"], capture_output=True, text=True)
+        print(result.stdout)
+        if "[TEST RESULT] PASS" in result.stdout:
+            print(f"[PASS] {test_name}")
+            return True
+        else:
+            print(f"[FAIL] {test_name}")
+            return False
+    finally:
+        shutil.copy(BACKUP_SRC, FIRMWARE_SRC)
+        os.remove(BACKUP_SRC)
 
-    # Try default PlatformIO path on Windows
-    user_home = os.path.expanduser("~")
-    fallback_path = os.path.join(user_home, ".platformio", "penv", "Scripts", "pio.exe")
-    if os.path.exists(fallback_path):
-        return fallback_path
+def run_all_tests():
+    print("== Running full automated test suite ==")
+    results = {}
+    for test in AUTOMATED_TESTS:
+        result = run_single_test(test)
+        results[test] = result
 
-    print("❌ PlatformIO CLI (pio) not found.")
-    print("Please make sure PlatformIO is installed and available in your PATH.")
-    sys.exit(1)
+    print("\n=== TEST SUMMARY ===")
+    for test, passed in results.items():
+        status = "PASS" if passed else "FAIL"
+        print(f"{test}: {status}")
 
-def list_available_tests():
-    print("📋 Available tests:\n")
-    test_dir = os.path.join("tests_manual")
-    for name in os.listdir(test_dir):
-        path = os.path.join(test_dir, name)
-        if os.path.isdir(path) and os.path.isfile(os.path.join(path, "main.cpp")):
-            print(f"• {name}")
-    print()
-
-# Get test name from argument
-if len(sys.argv) < 2:
-    print("Usage: python run_test.py <test_name>\n")
-    list_available_tests()
-    sys.exit(1)
-
-TEST_NAME = sys.argv[1]
-TEST_PATH = os.path.join("tests_manual", TEST_NAME, "main.cpp")
-SRC_PATH = os.path.join("src", "main.cpp")
-BACKUP_PATH = os.path.join("tests_manual", "backup", "main.cpp")
-
-if not os.path.exists(TEST_PATH):
-    print(f"❌ Test '{TEST_NAME}' not found!\n")
-    list_available_tests()
-    sys.exit(1)
-
-# Backup current main.cpp
-os.makedirs(os.path.dirname(BACKUP_PATH), exist_ok=True)
-print("🔄 Backing up src/main.cpp...")
-shutil.copyfile(SRC_PATH, BACKUP_PATH)
-
-# Copy selected test file to src/
-print(f"🧪 Running test: {TEST_NAME}")
-shutil.copyfile(TEST_PATH, SRC_PATH)
-
-# Upload to device using PlatformIO
-pio_cmd = find_pio_executable()
-print("🚀 Uploading to device...")
-result = subprocess.run([pio_cmd, "run", "-t", "upload"])
-
-# Restore original main.cpp
-print("♻️ Restoring original main.cpp...")
-shutil.copyfile(BACKUP_PATH, SRC_PATH)
-os.remove(BACKUP_PATH)
-
-if result.returncode == 0:
-    print("✅ Upload successful. main.cpp restored.")
-else:
-    print("⚠️ Upload failed. main.cpp was restored anyway.")
+if __name__ == "__main__":
+    if len(sys.argv) == 2 and sys.argv[1] in ["--all", "all"]:
+        run_all_tests()
+    elif len(sys.argv) == 2:
+        run_single_test(sys.argv[1])
+    else:
+        print("Usage:")
+        print("  python run_test.py test_name")
+        print("  python run_test.py --all")
