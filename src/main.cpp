@@ -3,6 +3,7 @@
 #include <motor.hpp>
 #include <waves.hpp>
 #include <wifi.hpp>
+#include <encoder.hpp>
 
 double erro = 0;
 
