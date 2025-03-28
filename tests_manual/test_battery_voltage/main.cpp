@@ -1,23 +1,58 @@
 #include <Arduino.h>
+#include "battery.hpp"
 
-#define MBAT_PIN 22
-#define VOLTAGE_DIVIDER_RATIO 2.0
+#define BAT_MIN_VOLTAGE 5.0f
+#define BAT_MAX_VOLTAGE 7.85f
+#define NUM_SAMPLES 5
+#define SAMPLE_DELAY_MS 100
+#define MAX_STD_DEV 0.1f  // Maximum allowed noise
+
+float calcStdDev(float* values, int count, float mean) {
+  float sumSq = 0;
+  for (int i = 0; i < count; i++) {
+    sumSq += pow(values[i] - mean, 2);
+  }
+  return sqrt(sumSq / count);
+}
 
 void setup() {
   Serial.begin(115200);
   delay(1000);
-  Serial.println("🔋 Battery voltage reading started.");
+  Serial.println("[TEST START] Battery voltage (with stability check)");
 
-  analogReadResolution(12);
+  Battery::setup();
+
+  float readings[NUM_SAMPLES];
+  float sum = 0;
+
+  for (int i = 0; i < NUM_SAMPLES; i++) {
+    readings[i] = Battery::readVoltage();
+    sum += readings[i];
+    delay(SAMPLE_DELAY_MS);
+  }
+
+  float avg = sum / NUM_SAMPLES;
+  float stddev = calcStdDev(readings, NUM_SAMPLES, avg);
+
+  Serial.printf("Voltage readings (V): ");
+  for (int i = 0; i < NUM_SAMPLES; i++) {
+    Serial.printf("%.2f ", readings[i]);
+  }
+  Serial.println();
+  Serial.printf("Average: %.2f V | Std Dev: %.3f V\n", avg, stddev);
+
+  bool inRange = (avg >= BAT_MIN_VOLTAGE && avg <= BAT_MAX_VOLTAGE);
+  bool stable = (stddev <= MAX_STD_DEV);
+
+  if (inRange && stable) {
+    Serial.println("[TEST RESULT] PASS");
+  } else {
+    if (!inRange) Serial.println("⚠️ Voltage out of expected range.");
+    if (!stable) Serial.println("⚠️ Voltage reading is unstable.");
+    Serial.println("[TEST RESULT] FAIL");
+  }
 }
 
 void loop() {
-  int raw = analogRead(MBAT_PIN);
-  float voltage = (raw / 4095.0) * 3.3 * VOLTAGE_DIVIDER_RATIO;
-
-  Serial.print("Battery voltage: ");
-  Serial.print(voltage, 2);
-  Serial.println(" V");
-
-  delay(1000);
+  // Nothing to do
 }
