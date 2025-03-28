@@ -1,197 +1,111 @@
-// Basic demo for accelerometer/gyro readings from Adafruit LSM6DS33
-
+#include <Arduino.h>
 #include <Adafruit_LSM6DS33.h>
 
-// For SPI mode, we need a CS pin
-#define LSM_CS 10
-// For software-SPI mode we need SCK/MOSI/MISO pins
-#define LSM_SCK 13
-#define LSM_MISO 12
-#define LSM_MOSI 11
+Adafruit_LSM6DS33 imu;
 
-Adafruit_LSM6DS33 lsm6ds33;
-void setup(void) {
+// === Test parameters ===
+#define IMU_I2C_ADDR 0x6A
+#define TEST_DELAY_MS 1000
+
+void printAccelRange() {
+  Serial.print("Accelerometer range: ");
+  switch (imu.getAccelRange()) {
+    case LSM6DS_ACCEL_RANGE_2_G: Serial.println("±2G"); break;
+    case LSM6DS_ACCEL_RANGE_4_G: Serial.println("±4G"); break;
+    case LSM6DS_ACCEL_RANGE_8_G: Serial.println("±8G"); break;
+    case LSM6DS_ACCEL_RANGE_16_G: Serial.println("±16G"); break;
+  }
+}
+
+void printGyroRange() {
+  Serial.print("Gyro range: ");
+  switch (imu.getGyroRange()) {
+    case LSM6DS_GYRO_RANGE_125_DPS: Serial.println("125 degrees/s"); break;
+    case LSM6DS_GYRO_RANGE_250_DPS: Serial.println("250 degrees/s"); break;
+    case LSM6DS_GYRO_RANGE_500_DPS: Serial.println("500 degrees/s"); break;
+    case LSM6DS_GYRO_RANGE_1000_DPS: Serial.println("1000 degrees/s"); break;
+    case LSM6DS_GYRO_RANGE_2000_DPS: Serial.println("2000 degrees/s"); break;
+    default: Serial.println("Unknown or unsupported range");
+  }
+}
+
+void printAccelRate() {
+  Serial.print("Accelerometer data rate: ");
+  switch (imu.getAccelDataRate()) {
+    case LSM6DS_RATE_SHUTDOWN:   Serial.println("0 Hz"); break;
+    case LSM6DS_RATE_12_5_HZ:    Serial.println("12.5 Hz"); break;
+    case LSM6DS_RATE_26_HZ:      Serial.println("26 Hz"); break;
+    case LSM6DS_RATE_52_HZ:      Serial.println("52 Hz"); break;
+    case LSM6DS_RATE_104_HZ:     Serial.println("104 Hz"); break;
+    case LSM6DS_RATE_208_HZ:     Serial.println("208 Hz"); break;
+    case LSM6DS_RATE_416_HZ:     Serial.println("416 Hz"); break;
+    case LSM6DS_RATE_833_HZ:     Serial.println("833 Hz"); break;
+    case LSM6DS_RATE_1_66K_HZ:   Serial.println("1.66 kHz"); break;
+    case LSM6DS_RATE_3_33K_HZ:   Serial.println("3.33 kHz"); break;
+    case LSM6DS_RATE_6_66K_HZ:   Serial.println("6.66 kHz"); break;
+    default:                     Serial.println("Unknown");
+  }
+}
+
+void printGyroRate() {
+  Serial.print("Gyroscope data rate: ");
+  switch (imu.getGyroDataRate()) {
+    case LSM6DS_RATE_SHUTDOWN:   Serial.println("0 Hz"); break;
+    case LSM6DS_RATE_12_5_HZ:    Serial.println("12.5 Hz"); break;
+    case LSM6DS_RATE_26_HZ:      Serial.println("26 Hz"); break;
+    case LSM6DS_RATE_52_HZ:      Serial.println("52 Hz"); break;
+    case LSM6DS_RATE_104_HZ:     Serial.println("104 Hz"); break;
+    case LSM6DS_RATE_208_HZ:     Serial.println("208 Hz"); break;
+    case LSM6DS_RATE_416_HZ:     Serial.println("416 Hz"); break;
+    case LSM6DS_RATE_833_HZ:     Serial.println("833 Hz"); break;
+    case LSM6DS_RATE_1_66K_HZ:   Serial.println("1.66 kHz"); break;
+    case LSM6DS_RATE_3_33K_HZ:   Serial.println("3.33 kHz"); break;
+    case LSM6DS_RATE_6_66K_HZ:   Serial.println("6.66 kHz"); break;
+    default:                     Serial.println("Unknown");
+  }
+}
+
+void printAccelGyroData(const sensors_event_t& accel, const sensors_event_t& gyro) {
+  Serial.printf("Accel [m/s^2]: X=%.2f Y=%.2f Z=%.2f\n",
+                accel.acceleration.x, accel.acceleration.y, accel.acceleration.z);
+  Serial.printf("Gyro [rad/s]:  X=%.2f Y=%.2f Z=%.2f\n",
+                gyro.gyro.x, gyro.gyro.y, gyro.gyro.z);
+}
+
+void setup() {
   Serial.begin(115200);
-  while (!Serial)
-    delay(10); // will pause Zero, Leonardo, etc until serial console opens
+  delay(1000);
 
-  Serial.println("Adafruit LSM6DS33 test!");
+  Serial.println("[TEST START] IMU (LSM6DS33)");
 
-  if (!lsm6ds33.begin_I2C()) {
-    // if (!lsm6ds33.begin_SPI(LSM_CS)) {
-    // if (!lsm6ds33.begin_SPI(LSM_CS, LSM_SCK, LSM_MISO, LSM_MOSI)) {
-    Serial.println("Failed to find LSM6DS33 chip");
-    while (1) {
-      delay(10);
-    }
+  // Initialize IMU via I2C
+  if (!imu.begin_I2C(IMU_I2C_ADDR)) {
+    Serial.println("❌ IMU not detected at address 0x6A");
+    Serial.println("[TEST RESULT] FAIL");
+    return;
   }
 
-  Serial.println("LSM6DS33 Found!");
+  Serial.println("✅ IMU detected at address 0x6A");
+  printAccelRange();
+  printGyroRange();
+  printAccelRate();
+  printGyroRate();
 
-  // lsm6ds33.setAccelRange(LSM6DS_ACCEL_RANGE_2_G);
-  Serial.print("Accelerometer range set to: ");
-  switch (lsm6ds33.getAccelRange()) {
-  case LSM6DS_ACCEL_RANGE_2_G:
-    Serial.println("+-2G");
-    break;
-  case LSM6DS_ACCEL_RANGE_4_G:
-    Serial.println("+-4G");
-    break;
-  case LSM6DS_ACCEL_RANGE_8_G:
-    Serial.println("+-8G");
-    break;
-  case LSM6DS_ACCEL_RANGE_16_G:
-    Serial.println("+-16G");
-    break;
+  // Read one set of sensor data
+  sensors_event_t accel, gyro, temp;
+  imu.getEvent(&accel, &gyro, &temp);
+  Serial.printf("Temperature: %.2f °C\n", temp.temperature);
+  printAccelGyroData(accel, gyro);
+
+  // Basic sanity check
+  bool valid = !(isnan(accel.acceleration.x) || isnan(gyro.gyro.x));
+  if (valid) {
+    Serial.println("[TEST RESULT] PASS");
+  } else {
+    Serial.println("[TEST RESULT] FAIL");
   }
-
-  // lsm6ds33.setGyroRange(LSM6DS_GYRO_RANGE_250_DPS);
-  Serial.print("Gyro range set to: ");
-  switch (lsm6ds33.getGyroRange()) {
-  case LSM6DS_GYRO_RANGE_125_DPS:
-    Serial.println("125 degrees/s");
-    break;
-  case LSM6DS_GYRO_RANGE_250_DPS:
-    Serial.println("250 degrees/s");
-    break;
-  case LSM6DS_GYRO_RANGE_500_DPS:
-    Serial.println("500 degrees/s");
-    break;
-  case LSM6DS_GYRO_RANGE_1000_DPS:
-    Serial.println("1000 degrees/s");
-    break;
-  case LSM6DS_GYRO_RANGE_2000_DPS:
-    Serial.println("2000 degrees/s");
-    break;
-  case ISM330DHCX_GYRO_RANGE_4000_DPS:
-    break; // unsupported range for the DS33
-  }
-
-  // lsm6ds33.setAccelDataRate(LSM6DS_RATE_12_5_HZ);
-  Serial.print("Accelerometer data rate set to: ");
-  switch (lsm6ds33.getAccelDataRate()) {
-  case LSM6DS_RATE_SHUTDOWN:
-    Serial.println("0 Hz");
-    break;
-  case LSM6DS_RATE_12_5_HZ:
-    Serial.println("12.5 Hz");
-    break;
-  case LSM6DS_RATE_26_HZ:
-    Serial.println("26 Hz");
-    break;
-  case LSM6DS_RATE_52_HZ:
-    Serial.println("52 Hz");
-    break;
-  case LSM6DS_RATE_104_HZ:
-    Serial.println("104 Hz");
-    break;
-  case LSM6DS_RATE_208_HZ:
-    Serial.println("208 Hz");
-    break;
-  case LSM6DS_RATE_416_HZ:
-    Serial.println("416 Hz");
-    break;
-  case LSM6DS_RATE_833_HZ:
-    Serial.println("833 Hz");
-    break;
-  case LSM6DS_RATE_1_66K_HZ:
-    Serial.println("1.66 KHz");
-    break;
-  case LSM6DS_RATE_3_33K_HZ:
-    Serial.println("3.33 KHz");
-    break;
-  case LSM6DS_RATE_6_66K_HZ:
-    Serial.println("6.66 KHz");
-    break;
-  }
-
-  // lsm6ds33.setGyroDataRate(LSM6DS_RATE_12_5_HZ);
-  Serial.print("Gyro data rate set to: ");
-  switch (lsm6ds33.getGyroDataRate()) {
-  case LSM6DS_RATE_SHUTDOWN:
-    Serial.println("0 Hz");
-    break;
-  case LSM6DS_RATE_12_5_HZ:
-    Serial.println("12.5 Hz");
-    break;
-  case LSM6DS_RATE_26_HZ:
-    Serial.println("26 Hz");
-    break;
-  case LSM6DS_RATE_52_HZ:
-    Serial.println("52 Hz");
-    break;
-  case LSM6DS_RATE_104_HZ:
-    Serial.println("104 Hz");
-    break;
-  case LSM6DS_RATE_208_HZ:
-    Serial.println("208 Hz");
-    break;
-  case LSM6DS_RATE_416_HZ:
-    Serial.println("416 Hz");
-    break;
-  case LSM6DS_RATE_833_HZ:
-    Serial.println("833 Hz");
-    break;
-  case LSM6DS_RATE_1_66K_HZ:
-    Serial.println("1.66 KHz");
-    break;
-  case LSM6DS_RATE_3_33K_HZ:
-    Serial.println("3.33 KHz");
-    break;
-  case LSM6DS_RATE_6_66K_HZ:
-    Serial.println("6.66 KHz");
-    break;
-  }
-
-  lsm6ds33.configInt1(false, false, true); // accelerometer DRDY on INT1
-  lsm6ds33.configInt2(false, true, false); // gyro DRDY on INT2
 }
 
 void loop() {
-  //  /* Get a new normalized sensor event */
-  sensors_event_t accel;
-  sensors_event_t gyro;
-  sensors_event_t temp;
-  lsm6ds33.getEvent(&accel, &gyro, &temp);
-
-  Serial.print("\t\tTemperature ");
-  Serial.print(temp.temperature);
-  Serial.println(" deg C");
-
-  /* Display the results (acceleration is measured in m/s^2) */
-  Serial.print("\t\tAccel X: ");
-  Serial.print(accel.acceleration.x);
-  Serial.print(" \tY: ");
-  Serial.print(accel.acceleration.y);
-  Serial.print(" \tZ: ");
-  Serial.print(accel.acceleration.z);
-  Serial.println(" m/s^2 ");
-
-  /* Display the results (rotation is measured in rad/s) */
-  Serial.print("\t\tGyro X: ");
-  Serial.print(gyro.gyro.x);
-  Serial.print(" \tY: ");
-  Serial.print(gyro.gyro.y);
-  Serial.print(" \tZ: ");
-  Serial.print(gyro.gyro.z);
-  Serial.println(" radians/s ");
-  Serial.println();
-
-  delay(100);
-
-  //  // serial plotter friendly format
-
-  //  Serial.print(temp.temperature);
-  //  Serial.print(",");
-
-  //  Serial.print(accel.acceleration.x);
-  //  Serial.print(","); Serial.print(accel.acceleration.y);
-  //  Serial.print(","); Serial.print(accel.acceleration.z);
-  //  Serial.print(",");
-
-  // Serial.print(gyro.gyro.x);
-  // Serial.print(","); Serial.print(gyro.gyro.y);
-  // Serial.print(","); Serial.print(gyro.gyro.z);
-  // Serial.println();
-  //  delayMicroseconds(10000);
+  // No loop needed for single-shot test
 }
