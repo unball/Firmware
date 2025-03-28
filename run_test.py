@@ -4,7 +4,7 @@ import subprocess
 import sys
 
 def find_pio_executable():
-    # Try using default command
+    # Try default command
     try:
         subprocess.run(["pio", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         return "pio"
@@ -21,9 +21,19 @@ def find_pio_executable():
     print("Please make sure PlatformIO is installed and available in your PATH.")
     sys.exit(1)
 
+def list_available_tests():
+    print("📋 Available tests:\n")
+    test_dir = os.path.join("tests_manual")
+    for name in os.listdir(test_dir):
+        path = os.path.join(test_dir, name)
+        if os.path.isdir(path) and os.path.isfile(os.path.join(path, "main.cpp")):
+            print(f"• {name}")
+    print()
+
 # Get test name from argument
 if len(sys.argv) < 2:
-    print("Usage: python run_test.py <test_name>")
+    print("Usage: python run_test.py <test_name>\n")
+    list_available_tests()
     sys.exit(1)
 
 TEST_NAME = sys.argv[1]
@@ -32,7 +42,8 @@ SRC_PATH = os.path.join("src", "main.cpp")
 BACKUP_PATH = os.path.join("tests_manual", "backup", "main.cpp")
 
 if not os.path.exists(TEST_PATH):
-    print(f"❌ Test '{TEST_NAME}' not found!")
+    print(f"❌ Test '{TEST_NAME}' not found!\n")
+    list_available_tests()
     sys.exit(1)
 
 # Backup current main.cpp
@@ -40,7 +51,7 @@ os.makedirs(os.path.dirname(BACKUP_PATH), exist_ok=True)
 print("🔄 Backing up src/main.cpp...")
 shutil.copyfile(SRC_PATH, BACKUP_PATH)
 
-# Copy test file to src/
+# Copy selected test file to src/
 print(f"🧪 Running test: {TEST_NAME}")
 shutil.copyfile(TEST_PATH, SRC_PATH)
 
