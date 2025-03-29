@@ -12,12 +12,12 @@ namespace Encoder {
     volatile double present_speed;
 
     void IRAM_ATTR Ext_INT1_ISR() {
-        detachInterrupt(CHANNEL_A_PIN);
+        detachInterrupt(ENC_MOTOR_A_CHA_PIN);
         
         uint64_t T_us = timerReadMicros(Timer0_Cfg);
 
         // Verificar estado do outro canal para saber qual deles veio primeiro
-        int direction = digitalRead(CHANNEL_B_PIN);
+        int direction = digitalRead(ENC_MOTOR_A_CHB_PIN);
         // Quando canal A deu um sinal de subida, qual é a posição do canal B?
         // Supondo que a velocidade é positiva caso B esteja em 1
         direction = direction == 1? 1:-1;
@@ -26,13 +26,13 @@ namespace Encoder {
 
         timerRestart(Timer0_Cfg);
 
-        attachInterrupt(CHANNEL_A_PIN, Ext_INT1_ISR, RISING);
+        attachInterrupt(ENC_MOTOR_A_CHA_PIN, Ext_INT1_ISR, RISING);
     }
 
     void setup() {
-        pinMode(CHANNEL_A_PIN, INPUT);
-        pinMode(CHANNEL_B_PIN, INPUT);
-        attachInterrupt(CHANNEL_A_PIN, Ext_INT1_ISR, RISING);
+        pinMode(ENC_MOTOR_A_CHA_PIN, INPUT);
+        pinMode(ENC_MOTOR_A_CHB_PIN, INPUT);
+        attachInterrupt(ENC_MOTOR_A_CHA_PIN, Ext_INT1_ISR, RISING);
         // Configure Timer0
         Timer0_Cfg = timerBegin(0, 2, true);
         timerWrite(Timer0_Cfg, 0);

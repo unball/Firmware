@@ -1,25 +1,30 @@
-
 #ifndef PINS_HPP
 #define PINS_HPP
 
-//TODO: change to typedef file with all macros and structs
+// === Driver TB6612FNG ===
+#define STBY_PIN     26
 
-//**Motor pins**
-#define PWMA_PIN 17
-#define AIN1_PIN 18
-#define AIN2_PIN 16
+// === Motor A ===
+#define PWMA_PIN     32
+#define AIN1_PIN     25
+#define AIN2_PIN     33
+#define ENC_MOTOR_A_CHA_PIN  35
+#define ENC_MOTOR_A_CHB_PIN  34
 
-#define PWMB_PIN 39
-#define BIN1_PIN 37
-#define BIN2_PIN 40
+// === Motor B ===
+#define PWMB_PIN     12
+#define BIN1_PIN     27
+#define BIN2_PIN     14
+#define ENC_MOTOR_B_CHA_PIN  18
+#define ENC_MOTOR_B_CHB_PIN  19
 
-#define STBY_PIN 38
+// === IMU (LSM6DS3TR-C) ===
+#define SDA_PIN      4
+#define SCL_PIN      5
 
-//**IMU pins**
-#define SCL_PIN 35
-#define SDA_PIN 33
-
-#define CHANNEL_A_PIN 35
-#define CHANNEL_B_PIN 18
+// === DIP Switches ===
+#define DIP1_PIN     16
+#define DIP2_PIN     17
+#define DIP3_PIN     21
 
 #endif
