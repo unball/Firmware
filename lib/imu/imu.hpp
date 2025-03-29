@@ -1,19 +1,17 @@
 #ifndef IMU_HPP
-#define IMU_HP
+#define IMU_HPP
 
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
-#include <Adafruit_MPU6050.h>
+#include <Adafruit_LSM6DS3TRC.h>
 
-//TODO: Implement X and Y Offset
+namespace IMU {
 
-namespace IMU{
+    extern Adafruit_LSM6DS3TRC imu;
 
-    extern Adafruit_MPU6050 mpu;
-
-    void setup_debug();
     void setup();
-    float get_w();
+    float get_w(); // Angular velocity around Z axis in rad/s
+
 }
 
 #endif

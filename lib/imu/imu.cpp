@@ -1,37 +1,25 @@
 #include "imu.hpp"
 
-namespace IMU{
+namespace IMU {
 
-    Adafruit_MPU6050 mpu;
+    Adafruit_LSM6DS3TRC imu;
 
-    void setup_debug(){
-        // Try to initialize!
-        if (!mpu.begin()) {
-            Serial.println("Failed to find MPU6050 chip");
-            while (1) {
-            delay(10);
-            }
-        }
-        Serial.println("MPU6050 Found!");
+    void setup() {
+        imu.begin_I2C();
 
-        mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
+        // Configure accelerometer and gyro ranges
+        imu.setAccelRange(LSM6DS_ACCEL_RANGE_8_G);
+        imu.setGyroRange(LSM6DS_GYRO_RANGE_500_DPS);
 
-        mpu.setGyroRange(MPU6050_RANGE_500_DEG);
-
-        mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
+        // Configure data rates (also affects internal filtering)
+        imu.setAccelDataRate(LSM6DS_RATE_104_HZ);
+        imu.setGyroDataRate(LSM6DS_RATE_104_HZ);
     }
 
-    void setup(){
-        mpu.begin();
-        mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
-        mpu.setGyroRange(MPU6050_RANGE_500_DEG);
-        mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
+    float get_w() {
+        sensors_event_t accel, gyro, temp;
+        imu.getEvent(&accel, &gyro, &temp);
+        return gyro.gyro.z;
     }
 
-    float get_w(){
-        sensors_event_t a, g, temp;
-        mpu.getEvent(&a, &g, &temp);
-        float theta = g.gyro.z; 
-        return theta;
-    }
 }
