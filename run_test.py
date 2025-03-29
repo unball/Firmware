@@ -4,6 +4,13 @@ import subprocess
 import sys
 import time
 
+AUTOMATED_TESTS = [
+    "test_esp32",
+    "test_dip_switch",
+    "test_motors_and_encoders",
+    "test_imu"
+]
+
 def find_pio_executable():
     try:
         subprocess.run(["pio", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -52,44 +59,63 @@ def read_serial_output(timeout=15):
 
         if "[TEST RESULT] PASS" in output:
             print("✅ Test PASSED")
+            return True
         else:
             print("❌ Test FAILED")
+            return False
 
     except Exception as e:
         print("⚠️ Failed to read serial output:", e)
+        return False
 
-if len(sys.argv) < 2:
-    print("Usage: python run_test.py <test_name>\n")
-    list_available_tests()
-    sys.exit(1)
+def run_test(test_name):
+    TEST_PATH = os.path.join("tests_manual", test_name, "main.cpp")
+    SRC_PATH = os.path.join("src", "main.cpp")
+    BACKUP_PATH = os.path.join("tests_manual", "backup", "main.cpp")
 
-TEST_NAME = sys.argv[1]
-TEST_PATH = os.path.join("tests_manual", TEST_NAME, "main.cpp")
-SRC_PATH = os.path.join("src", "main.cpp")
-BACKUP_PATH = os.path.join("tests_manual", "backup", "main.cpp")
+    if not os.path.exists(TEST_PATH):
+        print(f"❌ Test '{test_name}' not found!\n")
+        list_available_tests()
+        return False
 
-if not os.path.exists(TEST_PATH):
-    print(f"❌ Test '{TEST_NAME}' not found!\n")
-    list_available_tests()
-    sys.exit(1)
+    os.makedirs(os.path.dirname(BACKUP_PATH), exist_ok=True)
+    print("🔄 Backing up src/main.cpp...")
+    shutil.copyfile(SRC_PATH, BACKUP_PATH)
 
-os.makedirs(os.path.dirname(BACKUP_PATH), exist_ok=True)
-print("🔄 Backing up src/main.cpp...")
-shutil.copyfile(SRC_PATH, BACKUP_PATH)
+    print(f"🧪 Running test: {test_name}")
+    shutil.copyfile(TEST_PATH, SRC_PATH)
 
-print(f"🧪 Running test: {TEST_NAME}")
-shutil.copyfile(TEST_PATH, SRC_PATH)
+    pio_cmd = find_pio_executable()
+    print("🚀 Uploading to device...")
+    upload = subprocess.run([pio_cmd, "run", "-t", "upload"])
 
-pio_cmd = find_pio_executable()
-print("🚀 Uploading to device...")
-upload = subprocess.run([pio_cmd, "run", "-t", "upload"])
+    print("♻️ Restoring original main.cpp...")
+    shutil.copyfile(BACKUP_PATH, SRC_PATH)
+    os.remove(BACKUP_PATH)
 
-print("♻️ Restoring original main.cpp...")
-shutil.copyfile(BACKUP_PATH, SRC_PATH)
-os.remove(BACKUP_PATH)
+    if upload.returncode == 0:
+        print("✅ Upload successful. Reading output...")
+        return read_serial_output(timeout=15)
+    else:
+        print("⚠️ Upload failed. main.cpp was restored anyway.")
+        return False
 
-if upload.returncode == 0:
-    print("✅ Upload successful. Reading output...")
-    read_serial_output(timeout=10)
-else:
-    print("⚠️ Upload failed. main.cpp was restored anyway.")
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Usage:")
+        print("  python run_test.py <test_name>")
+        print("  python run_test.py --all\n")
+        list_available_tests()
+        sys.exit(1)
+
+    if sys.argv[1] in ["--all", "all"]:
+        print("🔁 Running all automated tests...\n")
+        results = {}
+        for test in AUTOMATED_TESTS:
+            passed = run_test(test)
+            results[test] = passed
+        print("\n📋 Summary:")
+        for test, passed in results.items():
+            print(f"{test}: {'PASS' if passed else 'FAIL'}")
+    else:
+        run_test(sys.argv[1])
