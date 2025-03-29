@@ -16,9 +16,9 @@ void setup() {
   delay(1000);
   Serial.println("[TEST START] DIP Switch");
 
-  pinMode(DIP1_PIN, INPUT);
-  pinMode(DIP2_PIN, INPUT);
-  pinMode(DIP3_PIN, INPUT);
+  pinMode(DIP1_PIN, INPUT_PULLUP);
+  pinMode(DIP2_PIN, INPUT_PULLUP);
+  pinMode(DIP3_PIN, INPUT_PULLUP);
 
   int d1 = readStablePin(DIP1_PIN);
   int d2 = readStablePin(DIP2_PIN);
