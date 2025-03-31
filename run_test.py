@@ -41,8 +41,11 @@ def read_serial_output(timeout=15):
             ["pio", "device", "monitor", "--rts", "0", "--dtr", "1"],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            text=True
+            text=True,
+            encoding='utf-8',
+            errors='replace'
         )
+
 
         start = time.time()
         output = ""
