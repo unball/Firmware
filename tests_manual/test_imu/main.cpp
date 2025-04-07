@@ -125,5 +125,17 @@ void setup() {
 }
 
 void loop() {
-  // No loop needed for single-shot test
+  sensors_event_t accel, gyro, temp;
+  imu.getEvent(&accel, &gyro, &temp);
+
+  Serial.println("=== IMU Reading ===");
+  Serial.printf("Temperature: %.2f °C\n", temp.temperature);
+  Serial.printf("Accel [m/s^2]: X=%.2f Y=%.2f Z=%.2f\n",
+                accel.acceleration.x, accel.acceleration.y, accel.acceleration.z);
+  Serial.printf("Gyro  [rad/s]: X=%.2f Y=%.2f Z=%.2f\n",
+                gyro.gyro.x, gyro.gyro.y, gyro.gyro.z);
+  Serial.println();
+
+  delay(500);  // Adjust the delay as needed
 }
+
