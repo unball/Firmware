@@ -1,7 +1,9 @@
 #include <Arduino.h>
 #include <Adafruit_LSM6DS33.h>
+#include <Adafruit_LSM6DS3TRC.h>
+#include <Wire.h>
 
-Adafruit_LSM6DS33 imu;
+Adafruit_LSM6DS3TRC imu;
 
 // === Test parameters ===
 #define IMU_I2C_ADDR 0x6A
