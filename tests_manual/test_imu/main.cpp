@@ -6,7 +6,7 @@
 Adafruit_LSM6DS3TRC imu;
 
 // === Test parameters ===
-#define IMU_I2C_ADDR 0x6A
+#define IMU_I2C_ADDR 0x6B  // Altere para 0x6B se necessário
 #define TEST_DELAY_MS 1000
 
 void scanI2CBus() {
