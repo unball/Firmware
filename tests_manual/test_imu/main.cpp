@@ -96,6 +96,8 @@ void setup() {
 
   Serial.println("[TEST START] IMU (LSM6DS33)");
 
+  Wire.begin(4,5);
+
   // Initialize IMU via I2C
   if (!imu.begin_I2C(IMU_I2C_ADDR)) {
     Serial.println("❌ IMU not detected at address 0x6A");
