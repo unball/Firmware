@@ -7,6 +7,22 @@ Adafruit_LSM6DS33 imu;
 #define IMU_I2C_ADDR 0x6A
 #define TEST_DELAY_MS 1000
 
+void scanI2CBus() {
+  Serial.println("🔍 Scanning I2C bus...");
+  byte count = 0;
+  for (byte addr = 0x08; addr < 0x78; addr++) {
+    Wire.beginTransmission(addr);
+    if (Wire.endTransmission() == 0) {
+      Serial.print("✅ Device found at 0x");
+      Serial.println(addr, HEX);
+      count++;
+    }
+  }
+  if (count == 0) {
+    Serial.println("⚠️ No I2C devices found.");
+  }
+}
+
 void printAccelRange() {
   Serial.print("Accelerometer range: ");
   switch (imu.getAccelRange()) {
