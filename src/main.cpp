@@ -8,7 +8,7 @@
 double erro = 0;
 
 void setup() {
-
+	
 	Serial.begin(115200);	
 	#if WEMOS_DEBUG
   		Serial.begin(115200);
@@ -16,8 +16,6 @@ void setup() {
 		delay(1000);
 		Serial.println("START");
 	#endif
-
-	Wire.begin(SDA_PIN, SCL_PIN);
 	
 	Wifi::setup(ROBOT_NUMBER);
 	IMU::setup();

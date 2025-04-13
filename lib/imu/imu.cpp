@@ -5,7 +5,9 @@ namespace IMU {
     Adafruit_LSM6DS3TRC imu;
 
     void setup() {
-        imu.begin_I2C();
+    	Wire.begin(SDA_PIN, SCL_PIN);
+
+        imu.begin_I2C(IMU_I2C_ADDR);
 
         // Configure accelerometer and gyro ranges
         imu.setAccelRange(LSM6DS_ACCEL_RANGE_8_G);

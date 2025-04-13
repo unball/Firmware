@@ -4,6 +4,9 @@
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_LSM6DS3TRC.h>
+#include "../../include/pins.h"
+
+#define IMU_I2C_ADDR 0x6B
 
 namespace IMU {
 
