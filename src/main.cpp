@@ -10,13 +10,12 @@ double erro = 0;
 
 void setup() {
 	
-	Serial.begin(115200);	
-	#if WEMOS_DEBUG
-  		Serial.begin(115200);
+	Serial.begin(115200);
+	if (RobotConfig::isDebug()) {
 		while(!Serial);
 		delay(1000);
-		Serial.println("START");
-	#endif
+		Serial.println(F("START"));
+	}
 	
 	RobotConfig::setup();
 	Wifi::setup(RobotConfig::getRobotNumber());
@@ -30,7 +29,7 @@ void setup() {
 
 void loop() {
 
-	if (RobotConfig::isControlTester()) {
+	if (RobotConfig::isDebug()) {
 		int16_t v; 
 		int16_t w; 
 		Serial.println("LOOP!");

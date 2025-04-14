@@ -4,10 +4,11 @@
 
 namespace RobotConfig {
     enum class Mode {
-        NORMAL,
+        GAME,
         CONTROL_TESTER,
         DEAD_ZONE_TESTER,
-        TWIDDLE
+        TWIDDLE,
+        DEBUG
     };
 
     struct Config {
@@ -24,6 +25,7 @@ namespace RobotConfig {
     Mode getMode();
 
     // Bools para lógica condicional
+    bool isDebug();
     bool isTwiddle();
     bool isControlTester();
     bool isDeadZoneTester();

@@ -19,13 +19,14 @@ namespace {
         using namespace RobotConfig;
 
         switch (dipValue) {
-            case 0: return {0, Mode::NORMAL};
-            case 1: return {1, Mode::NORMAL};
-            case 2: return {2, Mode::NORMAL};
-            case 3: return {0, Mode::CONTROL_TESTER};
-            case 4: return {0, Mode::DEAD_ZONE_TESTER};
-            case 5: return {0, Mode::TWIDDLE};
-            default: return {0, Mode::NORMAL}; // fallback
+            case 0: return  {0, Mode::GAME};
+            case 1: return  {1, Mode::GAME};
+            case 2: return  {2, Mode::GAME};
+            case 3: return  {0, Mode::CONTROL_TESTER};
+            case 4: return  {0, Mode::DEAD_ZONE_TESTER};
+            case 5: return  {0, Mode::TWIDDLE};
+            case 7: return  {0, Mode::DEBUG};
+            default: return {0, Mode::GAME};
         }
     }
 }
@@ -67,6 +68,10 @@ namespace RobotConfig {
 
     Mode getMode() {
         return config.mode;
+    }
+
+    bool isDebug() {
+        return config.mode == Mode::DEBUG;
     }
 
     bool isTwiddle() {
