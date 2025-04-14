@@ -1,3 +1,4 @@
+#include <robot_config.hpp>
 #include <control.hpp>
 #include <imu.hpp>
 #include <motor.hpp>
@@ -17,7 +18,8 @@ void setup() {
 		Serial.println("START");
 	#endif
 	
-	Wifi::setup(ROBOT_NUMBER);
+	RobotConfig::setup();
+	Wifi::setup(RobotConfig::getRobotNumber());
 	IMU::setup();
 	Motor::setup();
 
@@ -28,7 +30,7 @@ void setup() {
 
 void loop() {
 
-	#if WEMOS_DEBUG
+	if (RobotConfig::isControlTester()) {
 		int16_t v; 
 		int16_t w; 
 		Serial.println("LOOP!");
@@ -56,19 +58,17 @@ void loop() {
 		Motor::move(1, 100);
 		//=========End Motor===========
 		delay(200);
-	#elif CONTROL_TESTER
+	} else if (RobotConfig::isControlTester()) {
 		Control::test();
-	#elif TWIDDLE
+	} else if (RobotConfig::isTwiddle()) {
 		static int32_t t;
 		t = millis ();
 		if(t > twiddledelay){
 			Control::twiddle();
 		}
-		
-	#elif DEAD_ZONE_TESTER
-
+	} else if (RobotConfig::isDeadZoneTester()) {
 		Control::deadzone_tester();
-	#else
+	} else {
 		static int32_t previous_t;
 		static int32_t t;
 		t = micros();
@@ -78,6 +78,6 @@ void loop() {
 			previous_t = t;
 			Control::stand();
 		}
-	#endif
+	}
 
 }
