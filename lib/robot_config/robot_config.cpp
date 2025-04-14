@@ -39,12 +39,27 @@ namespace RobotConfig {
         int dipValue = readDIP();
         config = decodeConfig(dipValue);
 
-        Serial.printf("[CONFIG] Robot: %d | Mode: %d\n", config.robotNumber, static_cast<int>(config.mode));
+        Serial.printf("[CONFIG] Robot: %d | Mode: %s\n", 
+            RobotConfig::getRobotNumber(),
+            RobotConfig::modeToString());
+
     }
 
     const Config& get() {
         return config;
     }
+
+    const char* modeToString() {
+        switch (config.mode) {
+            case Mode::GAME:                return "GAME";
+            case Mode::CONTROL_TESTER:      return "CONTROL_TESTER";
+            case Mode::DEAD_ZONE_TESTER:    return "DEAD_ZONE_TESTER";
+            case Mode::TWIDDLE:             return "TWIDDLE";
+            case Mode::DEBUG:               return "DEBUG";
+            default:                        return "UNKNOWN";
+        }
+    }
+    
 
     int getRobotNumber() {
         return config.robotNumber;

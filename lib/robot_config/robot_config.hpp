@@ -17,6 +17,7 @@ namespace RobotConfig {
 
     void setup();                 // Chamada no setup()
     const Config& get();         // Acesso à config lida do DIP
+    const char* modeToString();  // Returns the readable name of the current mode
 
     // Atalhos práticos:
     int getRobotNumber();
