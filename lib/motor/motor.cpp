@@ -33,10 +33,10 @@ namespace Motor {
         power = power < -255 ? -255 : power;
 
         //Defines motor direction
-        motor_direction[motor] = (power > 0 ? 1:-1);
+        motor_direction[motor] = (power > 0 ? FORWARD : BACKWARD);
         int inPin1;
         int inPin2;
-        if (motor_direction[motor] == -1) {
+        if (motor_direction[motor] == BACKWARD) {
             inPin1 = HIGH;
             inPin2 = LOW;
         }
