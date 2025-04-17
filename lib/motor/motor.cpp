@@ -28,9 +28,8 @@ namespace Motor {
         //Allows current for the motors
         digitalWrite(STBY_PIN, HIGH);
 
-        //Saturador
-        power = power > 255 ? 255 : power;
-        power = power < -255 ? -255 : power;
+        // Clamp power value to valid PWM range [-255, 255]
+        power = constrain(power, -255, 255);
 
         //Defines motor direction
         motor_direction[motor] = (power > 0 ? FORWARD : BACKWARD);
