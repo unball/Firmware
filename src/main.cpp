@@ -53,8 +53,8 @@ void loop() {
 		//=========End Wifi===========
 
 		//=========Motor===============
-		Motor::move(0, 100);
-		Motor::move(1, 100);
+		Motor::move(MOTOR_LEFT, 100);
+		Motor::move(MOTOR_RIGHT, 100);
 		//=========End Motor===========
 		delay(200);
 	} else if (RobotConfig::isControlTester()) {

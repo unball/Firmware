@@ -29,9 +29,9 @@ void setup() {
 
   delay(500);
 
-  testMotorWithEncoder(0, "Motor A");
+  testMotorWithEncoder(MOTOR_LEFT, "Motor A");
   delay(1000);
-  testMotorWithEncoder(1, "Motor B");
+  testMotorWithEncoder(MOTOR_RIGHT, "Motor B");
 }
 
 void loop() {

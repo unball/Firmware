@@ -132,8 +132,8 @@ namespace Control {
         vr = (int32_t)saturation((deadzone(vr, motor_deadzone, -motor_deadzone)));
         vl = (int32_t)saturation((deadzone(vl, motor_deadzone, -motor_deadzone)));
 
-        Motor::move(0, vr);
-        Motor::move(1, vl);
+        Motor::move(MOTOR_RIGHT, vr);
+        Motor::move(MOTOR_LEFT, vl);
    }
 
     /*
@@ -187,8 +187,8 @@ namespace Control {
 			v = Waves::sine_wave();
 			w = 0;
 
-            Motor::move(0, v);
-            Motor::move(1, v);
+            Motor::move(MOTOR_RIGHT, v);
+            Motor::move(MOTOR_LEFT, v);
         }
         else{
             // Execute the control normally with the reference velocities
@@ -360,8 +360,8 @@ namespace Control {
 
     void deadzone_tester(){
         int v = 2;
-        Motor::move(0, v);
-        Motor::move(1, v);
+        Motor::move(MOTOR_RIGHT, v);
+        Motor::move(MOTOR_LEFT, v);
     }
         
 
