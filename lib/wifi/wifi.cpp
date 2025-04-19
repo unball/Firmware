@@ -17,9 +17,9 @@ namespace Wifi{
         WiFi.mode(WIFI_STA);
         WiFi.disconnect();
         if (esp_now_init() != ESP_OK) {
-            #if WEMOS_DEBUG
-            Serial.println("Erro ao inicializar o ESP-NOW");
-            #endif
+            if (RobotConfig::isDebug()) {
+                Serial.println(F("Error initializing ESP-NOW"));
+            }
             return;
         }
         WiFi.setTxPower(WIFI_POWER_19_5dBm);
@@ -37,13 +37,11 @@ namespace Wifi{
             msg = temp_msg;
         }
         else{
-            #if WEMOS_DEBUG
-                Serial.println("###################");
-		        Serial.println("###################");
-                Serial.println("ERRO DE CHECKSUM");
-                Serial.println("###################");
-                Serial.println("###################");
-            #endif
+            if (RobotConfig::isDebug) {
+                Serial.println(F("###################"));
+                Serial.println(F("CHECKSUM ERROR"));
+                Serial.println(F("###################"));
+            }
         }
         // TODO: lastReceived deveria estar aqui ou em receiveData?
     }

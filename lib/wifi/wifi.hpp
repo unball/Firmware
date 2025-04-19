@@ -6,6 +6,7 @@
 #include <cstring>
 #include <esp_wifi.h>
 
+#include <robot_config.hpp>
 #include "../../include/config.h"
 
 namespace Wifi{
