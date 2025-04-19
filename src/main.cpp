@@ -6,8 +6,6 @@
 #include <wifi.hpp>
 #include <encoder.hpp>
 
-double erro = 0;
-
 void setup() {
 	
 	Serial.begin(115200);
@@ -22,7 +20,7 @@ void setup() {
 	IMU::setup();
 	Motor::setup();
 
-	//luz para indicar ligado
+	// LED to indicate power on
 	pinMode(15, OUTPUT);
 	digitalWrite(15, HIGH);
 }
@@ -37,20 +35,20 @@ void loop() {
 		//=========IMU===============
 		Serial.println("###################");
 		Serial.println("IMU:");
-		Serial.print("theta: ");Serial.println(IMU::get_w());
+		Serial.print("theta: "); Serial.println(IMU::get_w());
 		Serial.println("###################");
 		//=========End IMU===========
 
-		//=========Wifi===============
+		//=========Wi-Fi===============
 		Serial.println("###################");
 		Serial.println("Wi-Fi:");
 		Wifi::receiveData(&v, &w);
-		Serial.print("v: ");Serial.print(v);Serial.print("w: ");Serial.println(w);
+		Serial.print("v: "); Serial.print(v); Serial.print(" w: "); Serial.println(w);
 		Serial.println("###################");
 		Serial.println("###################");
-		Serial.println("macAddress");
+		Serial.println("macAddress:");
 		Serial.println(WiFi.macAddress());
-		//=========End Wifi===========
+		//=========End Wi-Fi===========
 
 		//=========Motor===============
 		Motor::move(MOTOR_LEFT, 100);
@@ -61,8 +59,8 @@ void loop() {
 		Control::test();
 	} else if (RobotConfig::isTwiddle()) {
 		static int32_t t;
-		t = millis ();
-		if(t > twiddledelay){
+		t = millis();
+		if (t > twiddledelay) {
 			Control::twiddle();
 		}
 	} else if (RobotConfig::isDeadZoneTester()) {
@@ -72,11 +70,10 @@ void loop() {
 		static int32_t t;
 		t = micros();
 
-		// Loop de controle deve ser executado em intervalos comportados
-		if(t-previous_t >= controlLoopInterval){
+		// Control loop must run at well-defined intervals
+		if (t - previous_t >= controlLoopInterval) {
 			previous_t = t;
 			Control::stand();
 		}
 	}
-
 }
