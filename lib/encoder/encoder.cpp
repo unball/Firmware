@@ -39,7 +39,7 @@ namespace Encoder {
         timerStart(Timer0_Cfg);
     }
 
-    double get_w() {
+    double getMotorSpeeds() {
         if (timerReadMicros(Timer0_Cfg) > watchdog_timer) {
             present_speed = 0;
         }

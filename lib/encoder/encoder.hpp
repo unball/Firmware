@@ -10,8 +10,7 @@ namespace Encoder{
     }vel;
     
     void setup();
-    void IRAM_ATTR calc();
-    double get_w();
+    double getMotorSpeeds();
 
 }
 #endif

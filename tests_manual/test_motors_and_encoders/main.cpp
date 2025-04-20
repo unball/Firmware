@@ -9,7 +9,7 @@ void testMotorWithEncoder(uint8_t motorId, const char* name) {
   delay(TEST_DURATION_MS);
   Motor::stop();
 
-  double w = Encoder::get_w();
+  double w = Encoder::getMotorSpeeds();
   Serial.printf("%s speed: %.2f rad/s\n", name, w);
 
   if (w > MIN_SPEED_RAD_S) {
