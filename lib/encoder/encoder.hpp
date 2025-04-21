@@ -5,12 +5,12 @@
 namespace Encoder{
 
     typedef struct{
-        float motorA;
-        float motorB;
+        float motorLeft;
+        float motorRight;
     }vel;
     
     void setup();
-    double getMotorSpeeds();
+    vel getMotorSpeeds();
 
 }
 #endif
