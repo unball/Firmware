@@ -45,6 +45,7 @@ namespace Wifi{
         }
         // TODO: lastReceived deveria estar aqui ou em receiveData?
     }
+
     void tokenize(const uint8_t *data,int len){ //função para tokenizar a string que recebemos do transmissor 
         //modelo esperado de data=="[id,v,w,checksum]"
         if(data==NULL){
@@ -73,15 +74,18 @@ namespace Wifi{
         token=strtok(NULL,",");
         temp_msg.checksum=std::strtol(token,NULL,10);
     }
+
     /// @brief Receive data copying from temp struct to global struct
     /// @param v reference to the linear velocity
     /// @param w reference to the angular velocity
-    void receiveData(int16_t *v, int16_t *w){
-        if(msg.id == robotNumber){
-            // Demultiplexing and decoding the velocities and constants
-            *v  = msg.v;
-            *w  = msg.w;
+    /// @return true if the message is from the robot, false otherwise
+    bool receiveData(int16_t *v, int16_t *w) {
+        if (msg.id == robotNumber) {
+            *v = msg.v;
+            *w = msg.w;
+            return true;
         }
+        return false;
     }
 
     bool isCommunicationLost(){

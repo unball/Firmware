@@ -20,7 +20,7 @@ namespace Wifi{
   
     void setup(uint8_t robot);
     void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len);
-    void receiveData(int16_t *v, int16_t *w);
+    bool receiveData(int16_t *v, int16_t *w);
     bool isCommunicationLost();
     void tokenize(const uint8_t *data,int len);
 }
