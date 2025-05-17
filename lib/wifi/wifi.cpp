@@ -11,11 +11,32 @@ namespace Wifi{
 
     uint8_t robotNumber;
 
-    void setup(uint8_t robot){
+    void setup(uint8_t robot) {
         robotNumber = robot;
-
+    
         WiFi.mode(WIFI_STA);
+        
+        uint8_t newMAC[6] = {0x02, 0x55, 0x4E, 0x42, 0x00, robot};
+        esp_err_t err = esp_wifi_set_mac(WIFI_IF_STA, newMAC);
+    
+        if (err == ESP_OK) {
+            if (RobotConfig::isDebug()) {
+                Serial.print(F("✅ New MAC Address set to: "));
+                for (int i = 0; i < 6; i++) {
+                    if (i > 0) Serial.print(":");
+                    Serial.printf("%02X", newMAC[i]);
+                }
+                Serial.println();
+            }
+        } else {
+            if (RobotConfig::isDebug()) {
+                Serial.print(F("❌ Failed to set MAC Address. Error: "));
+                Serial.println(err);
+            }
+        }
+        
         WiFi.disconnect();
+    
         if (esp_now_init() != ESP_OK) {
             if (RobotConfig::isDebug()) {
                 Serial.println(F("Error initializing ESP-NOW"));
