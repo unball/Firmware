@@ -1,79 +1,63 @@
 #include <motor.hpp>
 #include <encoder.hpp>
-#include <wifi.hpp>
-#include <imu.hpp>
-#include <waves.hpp>
-#include <motor.hpp>
-#include <encoder.hpp>
-#include <wifi.hpp>
-#include <imu.hpp>
 
-#define PWM_STEP  100  // valor do degrau
+#define LOG_INTERVAL_US 2000     // 500 Hz = 2000 µs
+#define NUM_SAMPLES     1000     // Adjust based on memory available
 
-typedef struct {
+struct LogData {
   uint32_t time_us;
-  int16_t pwm_left;
-  int16_t pwm_right;
-  float w_left;
-  float w_right;
-  float w_imu;
-} LogMessage;
+  int16_t pwm;
+  float w;
+};
 
-uint8_t receiverAddress[] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }; // MAC do receptor
+LogData logBuffer[NUM_SAMPLES];
+uint16_t sample_count = 0;
 
-LogMessage msg;
-
-// === Geração do degrau ===
-// void step(int16_t *v1, int16_t *v2) {
-//   static uint32_t step_cont = 0;
-//   static int8_t step_flag = 0;
-
-//   if (step_cont > 200) step_flag = 1;
-//   if (step_cont > 2000) step_flag = 0;
-
-//   step_cont++;
-//   *v1 = PWM_STEP * step_flag;
-//   *v2 = PWM_STEP * step_flag;
-// }
+uint32_t start_time_us;
+uint32_t next_sample_us;
 
 void setup() {
   Serial.begin(115200);
-  WiFi.mode(WIFI_STA);
-  esp_now_init();
-
-  esp_now_peer_info_t peerInfo = {};
-  memcpy(peerInfo.peer_addr, receiverAddress, 6);
-  peerInfo.channel = 0;
-  peerInfo.encrypt = false;
-  esp_now_add_peer(&peerInfo);
+  delay(1000);
 
   Motor::setup();
   Encoder::setup();
-  IMU::setup();
-  Serial.println(F("Setup done!"));
+
+  // Step input applied immediately (you can modify if needed)
+  Motor::move(MOTOR_LEFT, 30);
+
+  start_time_us = micros();
+  next_sample_us = start_time_us;
 }
 
 void loop() {
-  int16_t pwmL, pwmR;
-  Waves::step(&pwmL, &pwmR);
-//   step(&pwmL, &pwmR);
+  uint32_t now = micros();
+  if (sample_count < NUM_SAMPLES && now >= next_sample_us) {
+    // Read speed
+    Encoder::vel vel = Encoder::getMotorSpeeds();
 
-  msg.time_us = micros();
-  msg.pwm_left = pwmL;
-  msg.pwm_right = pwmR;
-  Encoder::vel vel = Encoder::getMotorSpeeds();
-  msg.w_left = vel.motorLeft;
-  msg.w_right = vel.motorRight;
-  msg.w_imu = IMU::get_w();
+    // Log data
+    logBuffer[sample_count].time_us = now - start_time_us;
+    logBuffer[sample_count].pwm = 30;
+    logBuffer[sample_count].w = vel.motorLeft;
 
-  Motor::move(MOTOR_LEFT, pwmL);
-  Motor::move(MOTOR_RIGHT, pwmR);
-  Serial.print(F("pwms:"));
-  Serial.print(pwmL);
-  Serial.print(F(","));
-  Serial.println(pwmR);
+    sample_count++;
+    next_sample_us += LOG_INTERVAL_US;
+  }
 
+  // Done collecting: stop motor and print
+  if (sample_count == NUM_SAMPLES) {
+    Motor::move(MOTOR_LEFT, 0);
+    Serial.println("time_us,pwm,w");
 
-  esp_now_send(receiverAddress, (uint8_t *)&msg, sizeof(msg));
-  delay(10); // 100 Hz
+    for (uint16_t i = 0; i < NUM_SAMPLES; i++) {
+      Serial.print(logBuffer[i].time_us);
+      Serial.print(',');
+      Serial.print(logBuffer[i].pwm);
+      Serial.print(',');
+      Serial.println(logBuffer[i].w, 5);
+    }
+
+    while (true);  // halt
+  }
 }

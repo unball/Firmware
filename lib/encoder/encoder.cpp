@@ -1,82 +1,95 @@
-#include "encoder.hpp"
 
-#define alpha 0.95
-#define beta 0.05
 
-const int watchdog_timer = 500000; // us
 
-namespace Encoder {
+// #include "encoder.hpp"
 
-    hw_timer_t *Timer0_Cfg = NULL;
-    hw_timer_t *Timer1_Cfg = NULL;
+// #define alpha 0.95
+// #define beta 0.05
 
-    volatile double present_speed_A;
-    volatile double present_speed_B;
+// const int watchdog_timer = 500000; // us
+// constexpr uint64_t MIN_VALID_T_US = 500;    // Max RPM = 650 -> T_us = 7700us
 
-    void IRAM_ATTR Ext_INT1_ISR() {
-        detachInterrupt(ENC_MOTOR_A_CHA_PIN);
+// namespace Encoder {
+
+//     hw_timer_t *Timer0_Cfg = NULL;
+//     hw_timer_t *Timer1_Cfg = NULL;
+
+//     volatile float present_speed_A;
+//     volatile float present_speed_B;
+
+//     void IRAM_ATTR Ext_INT1_ISR() {
+//         detachInterrupt(ENC_MOTOR_A_CHA_PIN);
         
-        uint64_t T_us = timerReadMicros(Timer0_Cfg);
+//         uint64_t T_us = timerReadMicros(Timer0_Cfg);
 
-        int direction = digitalRead(ENC_MOTOR_A_CHB_PIN);
-        direction = direction == 1? 1:-1;
+//         int direction = digitalRead(ENC_MOTOR_A_CHB_PIN);
+//         direction = direction == 1? 1:-1;
 
-        present_speed_A = (double) (direction)*(2*PI)/(12*(T_us*1e-6));
+//         // Filters out unrealistically short pulses caused by noise or startup
+//         if (T_us >= MIN_VALID_T_US) {
+//             present_speed_A = (direction)*(2*PI)/(12*(T_us*1e-6));
+//         }
 
-        timerRestart(Timer0_Cfg);
+//         timerRestart(Timer0_Cfg);
 
-        attachInterrupt(ENC_MOTOR_A_CHA_PIN, Ext_INT1_ISR, RISING);
-    }
+//         attachInterrupt(ENC_MOTOR_A_CHA_PIN, Ext_INT1_ISR, RISING);
+//     }
 
-    void IRAM_ATTR Ext_INT2_ISR() {
-        detachInterrupt(ENC_MOTOR_B_CHA_PIN);
+//     void IRAM_ATTR Ext_INT2_ISR() {
+//         detachInterrupt(ENC_MOTOR_B_CHA_PIN);
         
-        uint64_t T_us = timerReadMicros(Timer1_Cfg);
+//         uint64_t T_us = timerReadMicros(Timer1_Cfg);
 
-        int direction = digitalRead(ENC_MOTOR_B_CHB_PIN);
-        direction = direction == 1? 1:-1;
+//         int direction = digitalRead(ENC_MOTOR_B_CHB_PIN);
+//         direction = direction == 1? 1:-1;
+        
+//         // Filters out unrealistically short pulses caused by noise or startup.
+//         if (T_us >= MIN_VALID_T_US) {
+//             present_speed_B = (direction)*(2*PI)/(12*(T_us*1e-6));
+//         }
 
-        present_speed_B = (double) (direction)*(2*PI)/(12*(T_us*1e-6));
+//         timerRestart(Timer1_Cfg);
 
-        timerRestart(Timer1_Cfg);
+//         attachInterrupt(ENC_MOTOR_B_CHA_PIN, Ext_INT2_ISR, RISING);
+//     }
 
-        attachInterrupt(ENC_MOTOR_B_CHA_PIN, Ext_INT2_ISR, RISING);
-    }
+//     void setup() {
+//         present_speed_A = 0;
+//         present_speed_B = 0;
 
-    void setup() {
-        // Motor A
-        pinMode(ENC_MOTOR_A_CHA_PIN, INPUT);
-        pinMode(ENC_MOTOR_A_CHB_PIN, INPUT);
-        attachInterrupt(ENC_MOTOR_A_CHA_PIN, Ext_INT1_ISR, RISING);
-        // Configure Timer0
-        Timer0_Cfg = timerBegin(0, 2, true);
-        timerWrite(Timer0_Cfg, 0);
-        timerStart(Timer0_Cfg);
+//         // Motor A
+//         pinMode(ENC_MOTOR_A_CHA_PIN, INPUT);
+//         pinMode(ENC_MOTOR_A_CHB_PIN, INPUT);
+//         attachInterrupt(ENC_MOTOR_A_CHA_PIN, Ext_INT1_ISR, RISING);
+//         // Configure Timer0
+//         Timer0_Cfg = timerBegin(0, 2, true);
+//         timerWrite(Timer0_Cfg, 0);
+//         timerStart(Timer0_Cfg);
 
-        // Motor B
-        pinMode(ENC_MOTOR_B_CHA_PIN, INPUT);
-        pinMode(ENC_MOTOR_B_CHB_PIN, INPUT);
-        attachInterrupt(ENC_MOTOR_B_CHA_PIN, Ext_INT2_ISR, RISING);
-        // Configure Timer0
-        Timer1_Cfg = timerBegin(1, 2, true);
-        timerWrite(Timer1_Cfg, 0);
-        timerStart(Timer1_Cfg);
-    }
+//         // Motor B
+//         pinMode(ENC_MOTOR_B_CHA_PIN, INPUT);
+//         pinMode(ENC_MOTOR_B_CHB_PIN, INPUT);
+//         attachInterrupt(ENC_MOTOR_B_CHA_PIN, Ext_INT2_ISR, RISING);
+//         // Configure Timer0
+//         Timer1_Cfg = timerBegin(1, 2, true);
+//         timerWrite(Timer1_Cfg, 0);
+//         timerStart(Timer1_Cfg);
+//     }
 
-    vel getMotorSpeeds() {
-        vel result;
+//     vel getMotorSpeeds() {
+//         vel result;
 
-        if (timerReadMicros(Timer0_Cfg) > watchdog_timer) {
-            present_speed_A = 0;
-        }
+//         if (timerReadMicros(Timer0_Cfg) > watchdog_timer) {
+//             present_speed_A = 0;
+//         }
 
-        if (timerReadMicros(Timer1_Cfg) > watchdog_timer) {
-            present_speed_B = 0;
-        }
+//         if (timerReadMicros(Timer1_Cfg) > watchdog_timer) {
+//             present_speed_B = 0;
+//         }
 
-        result.motorLeft = present_speed_A;
-        result.motorRight = present_speed_B;
+//         result.motorLeft = present_speed_A;
+//         result.motorRight = present_speed_B;
 
-        return result;
-    }
-}
+//         return result;
+//     }
+// }

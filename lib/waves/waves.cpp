@@ -98,7 +98,7 @@ namespace Waves{
             step_flag = 1;
         }
         
-        if(step_cont>2000){
+        if(step_cont>500){
             step_flag = 0;
             
         }
