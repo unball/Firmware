@@ -190,6 +190,10 @@ namespace Control {
             Motor::move(0, v);
             Motor::move(1, v);
         }
+	else if(v == 0 && (w == 60.0 || w == -60.0)){
+		// Execute spin
+		speed2motors(v, w);
+	}
         else{
             // Execute the control normally with the reference velocities
             // Read the velocities through the sensor
