@@ -90,8 +90,8 @@ namespace Encoder {
             present_speed_B = 0;
         }
 
-        result.motorLeft = present_speed_A;
-        result.motorRight = present_speed_B;
+        result.motorRight = present_speed_A;
+        result.motorLeft = present_speed_B;
 
         return result;
     }
