@@ -123,8 +123,8 @@ namespace Control {
         }
         
         // Calculates the angular speed of rotation to each wheel
-        int32_t vr = (v + (L/2)*w) / r;
-        int32_t vl = (v - (L/2)*w) / r;
+        int32_t vr = (v + (L/2)*w) / R;
+        int32_t vl = (v - (L/2)*w) / R;
 
         vr = angvel2PWM(vr);
         vl = angvel2PWM(vl);

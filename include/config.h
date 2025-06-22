@@ -2,10 +2,10 @@
 #define CONFIG_HPP
 
 /* Main configs*/
-#define CONTROL_TESTER false
-#define DEAD_ZONE_TESTER false
-#define TWIDDLE false
-#define ROBOT_NUMBER 0
+// #define CONTROL_TESTER false
+// #define DEAD_ZONE_TESTER false
+// #define TWIDDLE false
+// #define ROBOT_NUMBER 0
 
 /* Wi-Fi */ 
 const int communicationTimeout = 500000;
@@ -18,7 +18,7 @@ const int twiddledelay = 10000;
 
 
 /* Robot parameters */
-const float r =	0.015;
+const float R =	0.02;
 const float L = 0.075;
 const int motor_deadzone = 2;
 const float v_max = 2;
