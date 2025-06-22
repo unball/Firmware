@@ -19,7 +19,7 @@ with open(output_file, 'w') as f:
 
             # Wait for CSV header to start logging
             if not start_logging:
-                if line.startswith("time_us,pwm,w"):
+                if line.startswith("time,pwm,w"):
                     start_logging = True
                     f.write(line + '\n')
                 continue

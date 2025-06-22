@@ -8,15 +8,15 @@ CSV_FILE = 'motor_log.csv'
 df = pd.read_csv(CSV_FILE)
 
 # Converte colunas para tipos numéricos, se necessário
-df['time_s'] = pd.to_numeric(df['time_s'], errors='coerce')
+df['time'] = pd.to_numeric(df['time'], errors='coerce')
 df['w'] = pd.to_numeric(df['w'], errors='coerce')
 
 # Remove linhas inválidas
-df.dropna(subset=['time_s', 'w'], inplace=True)
+df.dropna(subset=['time', 'w'], inplace=True)
 
 # Plot
 plt.figure(figsize=(10, 5))
-plt.plot(df['time_s'], df['w'], label='w (rad/s)')
+plt.plot(df['time'], df['w'], label='w (rad/s)')
 plt.xlabel('Time (s)')
 plt.ylabel('Angular speed (rad/s)')
 plt.title('Motor response to step input')
