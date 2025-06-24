@@ -47,6 +47,11 @@ void update_adaptive_control() {
     static float theta1 = (pwm_max*R)/v_max;
     static float theta2 = 0.0;
 
+    // Reference limits
+    const float theta1_max = 50.0f;
+    const float theta2_min = -50.0f;
+    const float theta2_max = 4.0f; // limite seguro extraído dos logs
+
     // Read encoder
     Encoder::vel vel = Encoder::getMotorSpeeds();
     ommega = vel.motorRight;
@@ -70,22 +75,34 @@ void update_adaptive_control() {
 
     // Compute error
     float e = ommega - ommega_m;
-    
-    // Apply directional constraint to u
-    if (r >= 0.0f)
-        u = constrain(u, 0.0f, 100.0f);
-    else
-        u = constrain(u, -100.0f, 0.0f);
-    
+
+    // Compute control signal (unsaturated)
     float u_unsat = theta1 * r - theta2 * ommega;
 
-    theta1 = constrain(theta1 - T * gamma_adapt * r * e, -50.0f, 50.0f);
-    theta2 = constrain(theta2 + T * gamma_adapt * ommega * e, -50.0f, 5.0f);
+    // Saturate u
+    if (r >= 0.0f)
+        u = constrain(u_unsat, 0.0f, 100.0f);
+    else
+        u = constrain(u_unsat, -100.0f, 0.0f);
 
-    // Compute control signal
+    // Adaptation terms
+    float delta_theta1 = -T * gamma_adapt * r * e;
+    float delta_theta2 =  T * gamma_adapt * ommega * e;
+
+    // Update theta1 with simple constraint
+    theta1 = constrain(theta1 + delta_theta1, -theta1_max, theta1_max);
+
+    // === Projection for theta2 ===
+    if ((theta2 >= theta2_max && delta_theta2 > 0.0f) ||
+        (theta2 <= theta2_min && delta_theta2 < 0.0f)) {
+        delta_theta2 = 0.0f; // block when pushing beyond bounds
+    }
+    theta2 += delta_theta2;
+
+    // Recompute u with updated thetas
     u = theta1 * r - theta2 * ommega;
-        
-    // Apply control
+
+    // Apply deadzone
     float u_adj = applyDeadzone(u);
     Motor::move(MOTOR_RIGHT, u_adj);
 
