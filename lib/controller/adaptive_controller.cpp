@@ -110,12 +110,19 @@ namespace AdaptiveController {
         u_L = theta1_L * r_L - theta2_L * omega_L;
         float u_L_adj = applyDeadzone(u_L, motor_deadzone_c, motor_deadzone_c);
         Motor::move(MOTOR_LEFT, u_L_adj);
+    }
 
-        // Optional logging
-        // Serial.print("Ref L: "); Serial.print(r_L);
-        // Serial.print(" | Ref R: "); Serial.print(r_R);
-        // Serial.print(" | u_L: "); Serial.print(u_L);
-        // Serial.print(" | u_R: "); Serial.println(u_R);
+    void bypassControl() {
+        // Apply direct PWM from reference (feedforward only)
+        float pwm_R = r_R * pwm_max * R / 1.0f;  // Arbitrary scaling
+        float pwm_L = r_L * pwm_max * R / 1.0f;
+
+        pwm_R = applyDeadzone(constrain(pwm_R, -max_safe_pwm, max_safe_pwm), motor_deadzone_c, motor_deadzone_c);
+        pwm_L = applyDeadzone(constrain(pwm_L, -max_safe_pwm, max_safe_pwm), motor_deadzone_c, motor_deadzone_c);
+
+        Motor::move(MOTOR_RIGHT, pwm_R);
+        Motor::move(MOTOR_LEFT, pwm_L);
+        return;
     }
 
     float getTheta1Left() { return theta1_L; }
