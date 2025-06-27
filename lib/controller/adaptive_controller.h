@@ -6,6 +6,7 @@
 namespace AdaptiveController {
     void setup();
     void update();
+    void bypassControl();
 
     void setReferences(float omega_L_ref, float omega_R_ref);
 
