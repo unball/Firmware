@@ -4,22 +4,22 @@ import re
 
 # === Arquivos e rótulos ===
 log_files = [
-    "log_gamma_n5c.csv",
-    "log_gamma_0051.csv",
-    "log_err.csv"
+    "ref_out.csv",
+    "log_nofilter_control.csv",
+    "log_no_control.csv"
 ]
 
 labels = [
-    "no control",
+    "ref",
     "control",
-    "control"
+    "no control"
 ]
 
 # === Variáveis disponíveis no log ===
 all_variables = ["t", "r", "y", "ym", "u", "theta1", "theta2", "e"]
 
 # === Variáveis a serem exibidas (altere aqui) ===
-variables_to_plot = ["y", "ym", "u", "theta1", "theta2", "e"]  # <- escolha só as que quiser
+variables_to_plot = ["y", "u", "theta1", "theta2","e"]  # <- escolha só as que quiser
 
 # === Cores (ajustadas automaticamente)
 colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown']
