@@ -62,7 +62,7 @@ namespace Control {
     }
 
     inline double angvel2PWM(double value){
-        return value*pwm_max/(v_max / r);
+        return value*pwm_max/(v_max / R);
     }
 
 
