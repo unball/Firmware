@@ -1,74 +1,64 @@
-#include "state_space_controller.h"
+#include "state_space_controller.hpp"
 #include "encoder.hpp"
 #include "IMU.hpp"
-#include "motor.hpp"
-#include "control.hpp"
+#include "config.h"
 
-StateSpaceController::StateSpaceController(float K11, float K12, float K21, float K22, float R, float L)
-  : wheel_radius(R), wheel_base(L), last_update_us(0)
-{
-    K[0][0] = K11;
-    K[0][1] = K12;
-    K[1][0] = K21;
-    K[1][1] = K22;
-}
+const float R = 0.02f; // Wheel radius in meters
+const float L = 0.075f; // Distance between wheels in meters
 
-void printAlignedFloat(float value, int width, int decimals) {
-    char buffer[20];
-    dtostrf(value, width, decimals, buffer); // width inclui sinal, espaço, etc.
-    Serial.print(buffer);
-}
+namespace StateSpaceController {
 
-void StateSpaceController::update(float v_ref, float w_ref) {
-    unsigned long now = micros();
-    if (now - last_update_us >= Ts_us) {
-        last_update_us = now;
-        computeControl(v_ref, w_ref);
+    const float K[2][2] = {{1.0f, 0.0f},
+                           {0.0f, 3.0f}};
+    const float A[2][2] = {{1.0f, 0.0f},
+                           {0.0f, 1.0f}};
+    const float B[2][2] = {{1.0f, 0.0f},
+                           {0.0f, 1.0f}};
+    const float C[2][2] = {
+                           {1.0f / R,  (R * L) / 2.0f},
+                           {1.0f / R, -(R * L) / 2.0f}};
+
+    float omega_ref_left = 0.0f;
+    float omega_ref_right = 0.0f;
+
+
+    void update(float v_ref, float w_ref) {
+        Encoder::vel vel = Encoder::getMotorSpeeds();
+        float omega_L = vel.motorLeft;
+        float omega_R = vel.motorRight;
+        float v = (R / 2.0f) * (omega_R + omega_L);
+        float w = IMU::get_w();
+
+        float x[2] = {v, w};
+        float r[2] = {v_ref, w_ref};
+        float e[2] = {r[0] - x[0], r[1] - x[1]};
+
+        float u[2];
+        matrix_multiply(K, e, u);
+
+        float Ax[2], Bu[2], x_next[2];
+        matrix_multiply(A, x, Ax);
+        matrix_multiply(B, u, Bu);
+        vector_add(Ax, Bu, x_next);
+
+        float y[2];
+        matrix_multiply(C, x_next, y);
+
+        omega_ref_right = y[0];
+        omega_ref_left = y[1];
+
+        // Debug print
+        printAlignedFloat(millis() / 1000.0f, 5, 2); Serial.print(" | [REF] v:"); printAlignedFloat(v_ref, 5, 2);
+        Serial.print(" | w:"); printAlignedFloat(w_ref, 5, 2);
+        Serial.print(" || [MEAS] v:"); printAlignedFloat(v, 5, 2);
+        Serial.print(" | w:"); printAlignedFloat(w, 5, 2);
+        Serial.print(" || [e_v, e_w]:"); printAlignedFloat(e[0], 6, 2); Serial.print(","); printAlignedFloat(e[1], 6, 2);
+        Serial.print(" || [u] v_d:"); printAlignedFloat(u[0], 6, 2); Serial.print(" | w_d:"); printAlignedFloat(u[1], 6, 2);
+        Serial.print(" || [ωL_r, ωR_r]:"); printAlignedFloat(omega_ref_left, 6, 2); Serial.print(","); printAlignedFloat(omega_ref_right, 6, 2);
+        Serial.print(" || [ωL_meas, ωR_meas]:"); printAlignedFloat(omega_L, 6, 2); Serial.print(","); printAlignedFloat(omega_R, 6, 2);Serial.println();
+
     }
-}
 
-void StateSpaceController::computeControl(float v_ref, float w_ref) {
-    // Get actual values
-    Encoder::vel vel = Encoder::getMotorSpeeds();  // in rad/s
-    float omega_L = vel.motorLeft;
-    float omega_R = vel.motorRight;
-
-    // Estimate linear and angular velocity
-    float v = (wheel_radius / 2.0f) * (omega_R + omega_L);
-    float w = IMU::get_w();
-
-    // Calculate errors
-    float e_v = v_ref - v;
-    float e_w = w_ref - w;
-
-    // Control law: u = K * e
-    float v_d = K[0][0] * e_v + K[0][1] * e_w;
-    float w_d = K[1][0] * e_v + K[1][1] * e_w;
-
-    // Inverse kinematics: convert to wheel references
-    omega_L_d = (1.0f / wheel_radius) * (v_d - (wheel_base / 2.0f) * w_d);
-    omega_R_d = (1.0f / wheel_radius) * (v_d + (wheel_base / 2.0f) * w_d);
-
-    // Debug output
-Serial.print("[REF] v:"); printAlignedFloat(v_ref, 5, 2);
-Serial.print(" | w:"); printAlignedFloat(w_ref, 6, 2);
-Serial.print(" || [MEAS] v:"); printAlignedFloat(v, 6, 2);
-Serial.print(" | w:"); printAlignedFloat(w, 6, 2);
-Serial.print(" || [e_v, e_w]: "); printAlignedFloat(e_v, 6, 2); Serial.print(", "); printAlignedFloat(e_w, 6, 2);
-Serial.print(" || [u] v_d:"); printAlignedFloat(v_d, 6, 2);
-Serial.print(" | w_d:"); printAlignedFloat(w_d, 6, 2);
-Serial.print(" || [ωL_r, ωR_r]:");
-printAlignedFloat(omega_L_d, 5, 2); Serial.print(",");
-printAlignedFloat(omega_R_d, 5, 2);
-Serial.print(" || [ωL_meas, ωR_meas]:");
-printAlignedFloat(omega_L, 6, 2); Serial.print(",");
-printAlignedFloat(omega_R, 6, 2); Serial.println();
-}
-
-float StateSpaceController::getOmegaRefLeft() const {
-    return omega_L_d;
-}
-
-float StateSpaceController::getOmegaRefRight() const {
-    return omega_R_d;
+    float getOmegaRefLeft() { return omega_ref_left; }
+    float getOmegaRefRight() { return omega_ref_right; }
 }
