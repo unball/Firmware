@@ -1,4 +1,3 @@
-// File: src/main.cpp
 #include <Arduino.h>
 #include "encoder.hpp"
 #include "motor.hpp"
@@ -6,19 +5,19 @@
 #include "control.hpp"
 
 // === Parameters ===
-const float T = 0.02;               // Sampling time [s]
-const float tau_m = 0.01;           // Reference model time constant [s]
-const float gamma_adapt = 0.05;    // Adaptation gain
+const double T = 0.01;               // Sampling time [s]
+const double tau_m = 0.01;           // Reference model time constant [s]
+const double gamma_adapt = 0.05;     // Adaptation gain
 
 // Reference model coefficients
-const float am = exp(-T / tau_m);
-const float bm = 1.0f - am;
+const double am = exp(-T / tau_m);
+const double bm = 1.0f - am;
 
 // System variables
-float ommega = 0.0f;
-float ommega_m = 0.0f;
-float u = 0.0f;
-float r = 0.0f;
+double ommega = 0.0f;
+double ommega_m = 0.0f;
+double u = 0.0f;
+double r = 0.0f;
 
 // Timer control
 unsigned long last_time = 0;
@@ -29,7 +28,7 @@ void setup() {
     Motor::setup();
 }
 
-float applyDeadzone(float u_in, float dz_positive = 20.0f, float dz_negative = 20.0f) {
+double applyDeadzone(double u_in, double dz_positive = 20.0f, double dz_negative = 20.0f) {
     if (u_in > 0.0f)
         return (u_in > dz_positive) ? u_in : dz_positive;
     else if (u_in < 0.0f)
@@ -37,85 +36,66 @@ float applyDeadzone(float u_in, float dz_positive = 20.0f, float dz_negative = 2
     return 0.0f;
 }
 
-float applyDeadzoneError(float e, float delta) {
-    if (e > delta) return e - delta;
-    else if (e < -delta) return e + delta;
-    else return 0.0f;
-}
-
 void update_adaptive_control() {
     // Adaptive parameters
-    static float theta1 = (pwm_max * R) / v_max;
-    static float theta2 = 0.0;
+    static double theta1 = (pwm_max * R) / 1.0f;
+    static double theta2 = 0.0;
 
     // Reference limits
-    const float theta1_max = 25.0f;
-    const float theta1_min = -25.0f;
-    const float theta2_max = 3.8f;
-    const float theta2_min = -3.8f;
+    const double theta1_max = 25.0f;
+    const double theta1_min = -25.0f;
+    const double theta2_max = 3.5f;
+    const double theta2_min = -3.5f;
+    // E-modification parameter
+    const double sigma = 0.05f;
+
 
     // Read encoder
     Encoder::vel vel = Encoder::getMotorSpeeds();
     ommega = vel.motorRight;
 
-    // Apply low-pass filter
-    static float ommega_filtered = 0.0f;
-    const float alpha = 0.2f;
-    ommega_filtered = alpha * ommega + (1.0f - alpha) * ommega_filtered;
-    ommega = ommega_filtered;
-
     // Generate square wave reference
-    float t = millis() / 1000.0f;
-    float period = 4.0f;
-    float amplitude = 15.0f;
-    float phase = fmod(t, period);
+    double t = millis() / 1000.0f;
+    double period = 4.0f;
+    double amplitude = 5.0f;
+    double phase = fmod(t, period);
     r = (phase < period / 2.0f) ? amplitude : -amplitude;
-    // r = 5.0f;
+    // r = (amplitude / period) * phase;  // Sawtooth ramp from 0 to amplitude
 
     // Reference model
     ommega_m = am * ommega_m + bm * r;
 
     // Compute tracking error
-    float e = ommega - ommega_m;
+    double e = ommega - ommega_m;
 
-    // Apply deadzone to error
-    const float deadzone_threshold = 0.15f;
-    float e_eff = applyDeadzoneError(e, deadzone_threshold);
+    // Apply deadzone method: only adapt if |e| > threshold
+    const double deadzone_threshold = 0.15f;
+    if (fabs(e) > deadzone_threshold) {
+        double delta_theta1 = -T * gamma_adapt * r * e;
+        double delta_theta2 = T * (gamma_adapt * ommega * e - sigma * fabs(e) * theta2);
 
-    // Compute control signal (unsaturated)
-    float u_unsat = theta1 * r - theta2 * ommega;
+        // Projection for theta1
+        if (!((theta1 >= theta1_max && delta_theta1 > 0.0f) ||
+              (theta1 <= theta1_min && delta_theta1 < 0.0f))) {
+            theta1 += delta_theta1;
+        }
+
+        // Projection for theta2
+        if (!((theta2 >= theta2_max && delta_theta2 > 0.0f) ||
+              (theta2 <= theta2_min && delta_theta2 < 0.0f))) {
+            theta2 += delta_theta2;
+        }
+    }
+
+    // Compute control signal
+    double u_unsat = theta1 * r - theta2 * ommega;
 
     // Saturate control
-    if (r >= 0.0f)
-        u = constrain(u_unsat, 0.0f, 100.0f);
-    else
-        u = constrain(u_unsat, -100.0f, 0.0f);
-
-    // Compute adaptation deltas
-    float delta_theta1 = -T * gamma_adapt * r * e_eff;
-    float delta_theta2 =  T * gamma_adapt * ommega * e_eff;
-
-    // Projection for theta1
-    if ((theta1 >= theta1_max && delta_theta1 > 0.0f) ||
-        (theta1 <= theta1_min && delta_theta1 < 0.0f)) {
-        delta_theta1 = 0.0f;
-    }
-
-    // Projection for theta2
-    if ((theta2 >= theta2_max && delta_theta2 > 0.0f) ||
-        (theta2 <= theta2_min && delta_theta2 < 0.0f)) {
-        delta_theta2 = 0.0f;
-    }
-
-    // Update parameters
-    theta1 += delta_theta1;
-    theta2 += delta_theta2;
-
-    // Recompute u with updated thetas
-    u = theta1 * r - theta2 * ommega;
+    // u = constrain(u_unsat, (r >= 0.0f ? 0.0f : -100.0f), (r >= 0.0f ? 100.0f : 0.0f));
+    u = constrain(u_unsat, -100.0f, 100.0f);
 
     // Apply motor deadzone
-    float u_adj = applyDeadzone(u);
+    double u_adj = applyDeadzone(u);
     Motor::move(MOTOR_RIGHT, u_adj);
 
     // Logging
@@ -136,3 +116,48 @@ void loop() {
         update_adaptive_control();
     }
 }
+
+// #include <Arduino.h>
+// #include "encoder.hpp"
+// #include "motor.hpp"
+// #include "config.h"
+// #include "imu.hpp"
+// #include "state_space_controller.hpp"
+// #include "adaptive_controller.h"
+
+// const unsigned long Ts_us = 20000;
+
+// void setup() {
+//     Serial.begin(115200);
+//     Encoder::setup();
+//     Motor::setup();
+//     IMU::setup();
+//     AdaptiveController::setup();
+//     delay(1000);
+// }
+
+// void loop() {
+//     static double v_ref = 0.1f;
+//     static double w_ref = 0.0f;
+//     static unsigned long last_update_us = 0;
+
+//     unsigned long now = millis();
+//     if (now - last_update_us >= 20) {  // 20ms
+        
+//         StateSpaceController::update(v_ref, w_ref);
+
+//         AdaptiveController::setReferences(
+//             // 5,5
+//             StateSpaceController::getOmegaRefLeft(),
+//             StateSpaceController::getOmegaRefRight()
+//         );
+
+//         AdaptiveController::update();
+//         // AdaptiveController::bypassControl();
+
+//         last_update_us = now;
+//     }
+
+//     // Serial.println("[DEBUG] Loop ativo");
+
+// }
