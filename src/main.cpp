@@ -14,8 +14,8 @@ const double am = exp(-T / tau_m);
 const double bm = 1.0f - am;
 
 // System variables
-double ommega = 0.0f;
-double ommega_m = 0.0f;
+double omega = 0.0f;
+double omega_m = 0.0f;
 double u = 0.0f;
 double r = 0.0f;
 
@@ -52,7 +52,7 @@ void update_adaptive_control() {
 
     // Read encoder
     Encoder::vel vel = Encoder::getMotorSpeeds();
-    ommega = vel.motorRight;
+    omega = vel.motorRight;
 
     // Generate square wave reference
     double t = millis() / 1000.0f;
@@ -63,16 +63,16 @@ void update_adaptive_control() {
     // r = (amplitude / period) * phase;  // Sawtooth ramp from 0 to amplitude
 
     // Reference model
-    ommega_m = am * ommega_m + bm * r;
+    omega_m = am * omega_m + bm * r;
 
     // Compute tracking error
-    double e = ommega - ommega_m;
+    double e = omega - omega_m;
 
     // Apply deadzone method: only adapt if |e| > threshold
     const double deadzone_threshold = 0.15f;
     if (fabs(e) > deadzone_threshold) {
         double delta_theta1 = -T * gamma_adapt * r * e;
-        double delta_theta2 = T * (gamma_adapt * ommega * e - sigma * fabs(e) * theta2);
+        double delta_theta2 = T * (gamma_adapt * omega * e - sigma * fabs(e) * theta2);
 
         // Projection for theta1
         if (!((theta1 >= theta1_max && delta_theta1 > 0.0f) ||
@@ -88,7 +88,7 @@ void update_adaptive_control() {
     }
 
     // Compute control signal
-    double u_unsat = theta1 * r - theta2 * ommega;
+    double u_unsat = theta1 * r - theta2 * omega;
 
     // Saturate control
     // u = constrain(u_unsat, (r >= 0.0f ? 0.0f : -100.0f), (r >= 0.0f ? 100.0f : 0.0f));
@@ -101,8 +101,8 @@ void update_adaptive_control() {
     // Logging
     Serial.print("t:"); Serial.print(t);
     Serial.print(", r:"); Serial.print(r);
-    Serial.print(", ommega:"); Serial.print(ommega);
-    Serial.print(", ommega_m:"); Serial.print(ommega_m);
+    Serial.print(", omega:"); Serial.print(omega);
+    Serial.print(", omega_m:"); Serial.print(omega_m);
     Serial.print(", u:"); Serial.print(u);
     Serial.print(", theta1:"); Serial.print(theta1);
     Serial.print(", theta2:"); Serial.print(theta2);
