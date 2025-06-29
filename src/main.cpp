@@ -5,7 +5,7 @@
 #include "control.hpp"
 
 // === Parameters ===
-const double T = 0.01;               // Sampling time [s]
+const double T = 0.02;               // Sampling time [s]
 const double tau_m = 0.01;           // Reference model time constant [s]
 const double gamma_adapt = 0.05;     // Adaptation gain
 
