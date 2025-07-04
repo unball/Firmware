@@ -5,7 +5,7 @@
 #include "control.hpp"
 
 // === Parameters ===
-const double T = 0.01;               // Sampling time [s]
+const double T = 0.02;               // Sampling time [s]
 const double tau_m = 0.01;           // Reference model time constant [s]
 const double gamma_adapt = 0.05;     // Adaptation gain
 
@@ -28,7 +28,7 @@ void setup() {
     Motor::setup();
 }
 
-double applyDeadzone(double u_in, double dz_positive = 20.0f, double dz_negative = 20.0f) {
+double applyDeadzone(double u_in, double dz_positive = 17.0f, double dz_negative = 17.0f) {
     if (u_in > 0.0f)
         return (u_in > dz_positive) ? u_in : dz_positive;
     else if (u_in < 0.0f)
@@ -42,12 +42,12 @@ void update_adaptive_control() {
     static double theta2 = 0.0;
 
     // Reference limits
-    const double theta1_max = 25.0f;
-    const double theta1_min = -25.0f;
-    const double theta2_max = 3.5f;
-    const double theta2_min = -3.5f;
+    const double theta1_max = 10.0f;
+    const double theta1_min = -10.0f;
+    const double theta2_max = 5.0f;
+    const double theta2_min = -5.0f;
     // E-modification parameter
-    const double sigma = 0.05f;
+    const double sigma = 0.01f;
 
 
     // Read encoder
@@ -69,7 +69,7 @@ void update_adaptive_control() {
     double e = ommega - ommega_m;
 
     // Apply deadzone method: only adapt if |e| > threshold
-    const double deadzone_threshold = 0.15f;
+    const double deadzone_threshold = 0.1f;
     if (fabs(e) > deadzone_threshold) {
         double delta_theta1 = -T * gamma_adapt * r * e;
         double delta_theta2 = T * (gamma_adapt * ommega * e - sigma * fabs(e) * theta2);
