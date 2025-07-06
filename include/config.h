@@ -21,7 +21,7 @@ const int twiddledelay = 10000;
 const float R =	0.02;
 const float L = 0.075;
 const int motor_deadzone = 2;
-const float v_max = 2;
+const float v_max = 1.429;  // 650RPM with 0.021m radius wheel
 const float w_max = 65;
 const double pwm_max = 212;
 

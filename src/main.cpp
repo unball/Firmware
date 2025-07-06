@@ -38,7 +38,7 @@ double applyDeadzone(double u_in, double dz_positive = 17.0f, double dz_negative
 
 void update_adaptive_control() {
     // Adaptive parameters
-    static double theta1 = (pwm_max * R) / 1.0f;
+    static double theta1 = (pwm_max * R) / v_max;
     static double theta2 = 0.0;
 
     // Reference limits
