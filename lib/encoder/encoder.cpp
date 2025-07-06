@@ -7,7 +7,7 @@
 #define beta 0.05
 
 const int watchdog_timer = 500000; // us
-constexpr uint64_t MIN_VALID_T_US = 500;    // Max RPM = 650 -> T_us = 7700us
+constexpr uint64_t MIN_VALID_T_US = 5000;    // Max RPM = 650 -> T_us = 7700us
 
 namespace Encoder {
 
