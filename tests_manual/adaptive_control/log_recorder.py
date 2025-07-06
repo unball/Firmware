@@ -1,13 +1,13 @@
 import serial
-import re
 import csv
-import os
 import time
-from datetime import datetime
+import os
 
-# === Configuration ===
-PORT = 'COM4'           # Set this to your serial port
+# CONFIGURE HERE
+PORT = 'COM3'           # Make sure this is the correct COM port
 BAUDRATE = 115200
+NUM_SAMPLES = 5000       # Change if necessary
+# OUTPUT_FILE = 'motor_log212.csv'
 BASE_FILENAME = 'log_output'
 EXTENSION = '.csv'
 
@@ -22,50 +22,56 @@ def generate_unique_filename(base, ext):
 
 OUTPUT_FILE = generate_unique_filename(BASE_FILENAME, EXTENSION)
 
-# === CSV header ===
-fields = [
-    "t", "r", "ommega", "ommega_m", "u", "theta1", "theta2", "e"
-]
-
-# === Regex pattern to match the logging format ===
-log_pattern = re.compile(
-    r"t:(?P<t>[\d\.\-eE]+),\s*"
-    r"r:(?P<r>[\d\.\-eE]+),\s*"
-    r"ommega:(?P<ommega>[\d\.\-eE]+),\s*"
-    r"ommega_m:(?P<ommega_m>[\d\.\-eE]+),\s*"
-    r"u:(?P<u>[\d\.\-eE]+),\s*"
-    r"theta1:(?P<theta1>[\d\.\-eE]+),\s*"
-    r"theta2:(?P<theta2>[\d\.\-eE]+),\s*"
-    r"e:(?P<e>[\d\.\-eE]+)"
-)
-
-# === Main Logging Loop ===
 def main():
-    with serial.Serial(PORT, BAUDRATE, timeout=1) as ser, open(OUTPUT_FILE, mode='w', newline='') as csvfile:
-        # # === Force ESP reset ===
-        # ser.setRTS(True)    # IO0 HIGH → não entrar em bootloader
-        # ser.setDTR(False)   # EN LOW   → força reset
-        # time.sleep(1)
+    try:
+        print(f"[INFO] Opening serial port {PORT} at {BAUDRATE} bps...")
+        ser = serial.Serial(PORT, BAUDRATE, timeout=1)
+        time.sleep(1)  # ESP32 resets when the serial port is opened
+    except serial.SerialException as e:
+        print(f"[ERROR] Failed to open {PORT}: {e}")
+        return
 
-        # ser.setDTR(True)    # EN HIGH → libera reset
-        # time.sleep(0.1)
-        writer = csv.DictWriter(csvfile, fieldnames=fields)
-        writer.writeheader()
+    print("[INFO] Waiting for data...")
+    lines = []
+    header_found = False
 
-        print(f"[{datetime.now()}] Logging started. Saving to '{OUTPUT_FILE}'...")
+    while True:
+        try:
+            raw = ser.readline()
+            if not raw:
+                continue
 
-        while True:
-            try:
-                line = ser.readline().decode('utf-8', errors='ignore').strip()
-                match = log_pattern.match(line)
-                if match:
-                    writer.writerow(match.groupdict())
-                    print(line)
-            except KeyboardInterrupt:
+            line = raw.decode('utf-8').strip()
+            if not line:
+                continue
+
+            if not header_found:
+                if line.startswith("t:"):
+                    header_found = True
+                    lines.append(line.split(','))
+                    print("[INFO] Header found.")
+            else:
+                parts = line.split(',')
+                if len(parts) == 8:
+                    lines.append(parts)
+                    print(f"{parts}")
+        except KeyboardInterrupt:
+                ser.close()
                 print("\nLogging stopped by user.")
+                print(f"[INFO] Reading complete. Total: {len(lines)-1} samples.")
                 break
-            except Exception as e:
-                print(f"Error: {e}")
+        except Exception as e:
+            print("[ERROR] Failed to read/decode line:", e)
+
+
+    # Saving to CSV
+    try:
+        with open(OUTPUT_FILE, mode='w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerows(lines)
+        print(f"[OK] File saved as '{OUTPUT_FILE}'.")
+    except Exception as e:
+        print("[ERROR] Failed to save file:", e)
 
 if __name__ == '__main__':
     main()
