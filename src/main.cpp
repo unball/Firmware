@@ -42,10 +42,8 @@ void update_adaptive_control() {
     static double theta2 = 0.0;
 
     // Reference limits
-    const double theta1_max = 10.0f;
-    const double theta1_min = -10.0f;
-    const double theta2_max = 5.0f;
-    const double theta2_min = -5.0f;
+    const double theta1_limit = 5.5f;
+    const double theta2_limit = 3.5f;
     // E-modification parameter
     const double sigma = 0.01f;
 
@@ -75,14 +73,14 @@ void update_adaptive_control() {
         double delta_theta2 = T * (gamma_adapt * omega * e - sigma * fabs(e) * theta2);
 
         // Projection for theta1
-        if (!((theta1 >= theta1_max && delta_theta1 > 0.0f) ||
-              (theta1 <= theta1_min && delta_theta1 < 0.0f))) {
+        if (!((theta1 >= theta1_limit && delta_theta1 > 0.0f) ||
+              (theta1 <= -theta1_limit && delta_theta1 < 0.0f))) {
             theta1 += delta_theta1;
         }
 
         // Projection for theta2
-        if (!((theta2 >= theta2_max && delta_theta2 > 0.0f) ||
-              (theta2 <= theta2_min && delta_theta2 < 0.0f))) {
+        if (!((theta2 >= theta2_limit && delta_theta2 > 0.0f) ||
+              (theta2 <= -theta2_limit && delta_theta2 < 0.0f))) {
             theta2 += delta_theta2;
         }
     }
