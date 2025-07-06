@@ -45,7 +45,7 @@ void update_adaptive_control() {
     const double theta1_limit = 5.5f;
     const double theta2_limit = 3.5f;
     // E-modification parameter
-    const double sigma = 0.01f;
+    const double sigma = 0.05f;
 
 
     // Read encoder
@@ -67,7 +67,7 @@ void update_adaptive_control() {
     double e = omega - omega_m;
 
     // Apply deadzone method: only adapt if |e| > threshold
-    const double deadzone_threshold = 0.1f;
+    const double deadzone_threshold = 0.05f;
     if (fabs(e) > deadzone_threshold) {
         double delta_theta1 = -T * (gamma_adapt * r * e - sigma * fabs(e) * theta1);
         double delta_theta2 = T * (gamma_adapt * omega * e - sigma * fabs(e) * theta2);
