@@ -69,7 +69,7 @@ void update_adaptive_control() {
     // Apply deadzone method: only adapt if |e| > threshold
     const double deadzone_threshold = 0.1f;
     if (fabs(e) > deadzone_threshold) {
-        double delta_theta1 = -T * gamma_adapt * r * e;
+        double delta_theta1 = -T * (gamma_adapt * r * e - sigma * fabs(e) * theta1);
         double delta_theta2 = T * (gamma_adapt * omega * e - sigma * fabs(e) * theta2);
 
         // Projection for theta1
