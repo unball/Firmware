@@ -1,4 +1,3 @@
-// File: src/main.cpp
 #include <Arduino.h>
 #include "encoder.hpp"
 #include "motor.hpp"
@@ -6,19 +5,19 @@
 #include "control.hpp"
 
 // === Parameters ===
-const float T = 0.02;               // Sampling time [s]
-const float tau_m = 0.01;           // Reference model time constant [s]
-const float gamma_adapt = 0.05;     // Adaptation gain
+const double T = 0.02;               // Sampling time [s]
+const double tau_m = 0.05;           // Reference model time constant [s]
+const double gamma_adapt = 0.01;     // Adaptation gain
 
 // Reference model coefficients
-const float am = exp(-T / tau_m);
-const float bm = 1.0f - am;
+const double am = exp(-T / tau_m);
+const double bm = 1.0f - am;
 
 // System variables
-float ommega = 0.0f;
-float ommega_m = 0.0f;
-float u = 0.0f;
-float r = 0.0f;
+double omega = 0.0f;
+double omega_m = 0.0f;
+double u = 0.0f;
+double r = 0.0f;
 
 // Timer control
 unsigned long last_time = 0;
@@ -29,7 +28,7 @@ void setup() {
     Motor::setup();
 }
 
-float applyDeadzone(float u_in, float dz_positive = 20.0f, float dz_negative = 20.0f) {
+double applyDeadzone(double u_in, double dz_positive = 17.0f, double dz_negative = 17.0f) {
     if (u_in > 0.0f)
         return (u_in > dz_positive) ? u_in : dz_positive;
     else if (u_in < 0.0f)
@@ -39,66 +38,69 @@ float applyDeadzone(float u_in, float dz_positive = 20.0f, float dz_negative = 2
 
 void update_adaptive_control() {
     // Adaptive parameters
-    static float theta1 = (pwm_max * R) / 1.0f;
-    static float theta2 = 0.0;
+    static double theta1 = (pwm_max * R) / v_max;
+    static double theta2 = 0.0;
 
     // Reference limits
-    const float theta1_max = 25.0f;
-    const float theta1_min = -25.0f;
-    const float theta2_max = 3.5f;
-    const float theta2_min = -3.5f;
+    const double theta1_limit = 5.5f;
+    const double theta2_limit = 3.5f;
+    // E-modification parameter
+    const double sigma = 0.05f;
+
 
     // Read encoder
     Encoder::vel vel = Encoder::getMotorSpeeds();
-    ommega = vel.motorRight;
+    omega = vel.motorRight;
 
     // Generate square wave reference
-    float t = millis() / 1000.0f;
-    float period = 4.0f;
-    float amplitude = 5.0f;
-    float phase = fmod(t, period);
+    double t = millis() / 1000.0f;
+    double period = 4.0f;
+    double amplitude = 5.0f;
+    double phase = fmod(t, period);
     r = (phase < period / 2.0f) ? amplitude : -amplitude;
+    // r = (amplitude / period) * phase;  // Sawtooth ramp from 0 to amplitude
 
     // Reference model
-    ommega_m = am * ommega_m + bm * r;
+    omega_m = am * omega_m + bm * r;
 
     // Compute tracking error
-    float e = ommega - ommega_m;
+    double e = omega - omega_m;
 
     // Apply deadzone method: only adapt if |e| > threshold
-    const float deadzone_threshold = 0.15f;
+    const double deadzone_threshold = 0.05f;
     if (fabs(e) > deadzone_threshold) {
-        float delta_theta1 = -T * gamma_adapt * r * e;
-        float delta_theta2 =  T * gamma_adapt * ommega * e;
+        double delta_theta1 = -T * (gamma_adapt * r * e - sigma * fabs(e) * theta1);
+        double delta_theta2 = T * (gamma_adapt * omega * e - sigma * fabs(e) * theta2);
 
         // Projection for theta1
-        if (!((theta1 >= theta1_max && delta_theta1 > 0.0f) ||
-              (theta1 <= theta1_min && delta_theta1 < 0.0f))) {
+        if (!((theta1 >= theta1_limit && delta_theta1 > 0.0f) ||
+              (theta1 <= -theta1_limit && delta_theta1 < 0.0f))) {
             theta1 += delta_theta1;
         }
 
         // Projection for theta2
-        if (!((theta2 >= theta2_max && delta_theta2 > 0.0f) ||
-              (theta2 <= theta2_min && delta_theta2 < 0.0f))) {
+        if (!((theta2 >= theta2_limit && delta_theta2 > 0.0f) ||
+              (theta2 <= -theta2_limit && delta_theta2 < 0.0f))) {
             theta2 += delta_theta2;
         }
     }
 
     // Compute control signal
-    float u_unsat = theta1 * r - theta2 * ommega;
+    double u_unsat = theta1 * r - theta2 * omega;
 
     // Saturate control
     u = constrain(u_unsat, (r >= 0.0f ? 0.0f : -100.0f), (r >= 0.0f ? 100.0f : 0.0f));
+    // u = constrain(u_unsat, -100.0f, 100.0f);
 
     // Apply motor deadzone
-    float u_adj = applyDeadzone(u);
+    double u_adj = applyDeadzone(u);
     Motor::move(MOTOR_RIGHT, u_adj);
 
     // Logging
     Serial.print("t:"); Serial.print(t);
     Serial.print(", r:"); Serial.print(r);
-    Serial.print(", ommega:"); Serial.print(ommega);
-    Serial.print(", ommega_m:"); Serial.print(ommega_m);
+    Serial.print(", omega:"); Serial.print(omega);
+    Serial.print(", omega_m:"); Serial.print(omega_m);
     Serial.print(", u:"); Serial.print(u);
     Serial.print(", theta1:"); Serial.print(theta1);
     Serial.print(", theta2:"); Serial.print(theta2);
