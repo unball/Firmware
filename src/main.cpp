@@ -89,8 +89,8 @@ void update_adaptive_control() {
     double u_unsat = theta1 * r - theta2 * omega;
 
     // Saturate control
-    // u = constrain(u_unsat, (r >= 0.0f ? 0.0f : -100.0f), (r >= 0.0f ? 100.0f : 0.0f));
-    u = constrain(u_unsat, -100.0f, 100.0f);
+    u = constrain(u_unsat, (r >= 0.0f ? 0.0f : -100.0f), (r >= 0.0f ? 100.0f : 0.0f));
+    // u = constrain(u_unsat, -100.0f, 100.0f);
 
     // Apply motor deadzone
     double u_adj = applyDeadzone(u);
