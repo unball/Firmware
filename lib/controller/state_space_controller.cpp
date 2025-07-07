@@ -3,17 +3,22 @@
 #include "IMU.hpp"
 #include "config.h"
 
-const float R = 0.02f; // Wheel radius in meters
+const float R = 0.021f; // Wheel radius in meters
 const float L = 0.075f; // Distance between wheels in meters
+const float T = 0.02f;   // Sampling time [s]
+const float tau = 0.05f;  // Time constant of motor response [s]
+
+const float alpha = expf(-T / tau);        // ~0.6703
+const float beta = (1.0f - alpha);         // ~0.3297
 
 namespace StateSpaceController {
 
-    const float K[2][2] = {{1.0f, 0.0f},
+    const float K[2][2] = {{3.0f, 0.0f},
                            {0.0f, 3.0f}};
-    const float A[2][2] = {{1.0f, 0.0f},
-                           {0.0f, 1.0f}};
-    const float B[2][2] = {{1.0f, 0.0f},
-                           {0.0f, 1.0f}};
+    const float A[2][2] = {{alpha, 0.0f},
+                           {0.0f, alpha}};
+    const float B[2][2] = {{beta, 0.0f},
+                           {0.0f, beta}};
     const float C[2][2] = {
                            {1.0f / R,  (R * L) / 2.0f},
                            {1.0f / R, -(R * L) / 2.0f}};
