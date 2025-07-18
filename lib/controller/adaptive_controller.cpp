@@ -22,11 +22,13 @@ namespace AdaptiveController {
     const float theta2_max = 3.6f;
     const float theta2_min = -3.6f;
 
+    const float sigma = 0.05f;  // E-modification gain
+
     const float motor_deadzone_c = 20.0f;   // Minimum PWM value to move the motor
     const float deadzone_threshold = 0.15f; // Threshold for adaptation to kick in
 
-    float theta1_L = 0.0f, theta2_L = 0.0f;
-    float theta1_R = 0.0f, theta2_R = 0.0f;
+    float theta1_L = (pwm_max * R)/v_max, theta2_L = 0.0f;
+    float theta1_R = (pwm_max * R)/v_max, theta2_R = 0.0f;
 
     float omega_L = 0.0f, omega_R = 0.0f;
     float omega_m_L = 0.0f, omega_m_R = 0.0f;
@@ -42,11 +44,6 @@ namespace AdaptiveController {
         else if (u_in < 0.0f)
             return (u_in < -dz_neg) ? u_in : -dz_neg;
         return 0.0f;
-    }
-
-    void setup() {
-        theta1_L = pwm_max * R;
-        theta1_R = pwm_max * R;
     }
 
     void setReferences(float omega_L_ref, float omega_R_ref) {
@@ -72,17 +69,18 @@ namespace AdaptiveController {
 
         // Apply deadzone method: only adapt if |e_R| > threshold
         if (fabs(e_R) > deadzone_threshold) {
-            float delta_theta1_R = -T * gamma_adapt * r_R * e_R;
-            float delta_theta2_R =  T * gamma_adapt * omega_R * e_R;
-
+            float delta_theta1_R = -T * (gamma_adapt * r_R * e_R - sigma * fabs(e_R) * theta1_R);
+            float delta_theta2_R =  T * (gamma_adapt * omega_R * e_R - sigma * fabs(e_R) * theta2_R);
+            
             // Projection method for theta1: clamp within limits
             if (!((theta1_R >= theta1_max && delta_theta1_R > 0) || (theta1_R <= theta1_min && delta_theta1_R < 0)))
-                theta1_R += delta_theta1_R;
-
+            theta1_R += delta_theta1_R;
+            
             // Projection method for theta2: clamp within limits
             if (!((theta2_R >= theta2_max && delta_theta2_R > 0) || (theta2_R <= theta2_min && delta_theta2_R < 0)))
                 theta2_R += delta_theta2_R;
         }
+
 
         // Control law
         u_R = theta1_R * r_R - theta2_R * omega_R;
@@ -100,17 +98,18 @@ namespace AdaptiveController {
 
         // Apply deadzone method: only adapt if |e_L| > threshold
         if (fabs(e_L) > deadzone_threshold) {
-            float delta_theta1_L = -T * gamma_adapt * r_L * e_L;
-            float delta_theta2_L =  T * gamma_adapt * omega_L * e_L;
-
+            float delta_theta1_L = -T * (gamma_adapt * r_L * e_L - sigma * fabs(e_L) * theta1_L);
+            float delta_theta2_L =  T * (gamma_adapt * omega_L * e_L - sigma * fabs(e_L) * theta2_L);
+            
             // Projection method for theta1: clamp within limits
             if (!((theta1_L >= theta1_max && delta_theta1_L > 0) || (theta1_L <= theta1_min && delta_theta1_L < 0)))
-                theta1_L += delta_theta1_L;
-
+            theta1_L += delta_theta1_L;
+            
             // Projection method for theta2: clamp within limits
             if (!((theta2_L >= theta2_max && delta_theta2_L > 0) || (theta2_L <= theta2_min && delta_theta2_L < 0)))
                 theta2_L += delta_theta2_L;
         }
+
 
         // Control law
         u_L = theta1_L * r_L - theta2_L * omega_L;
