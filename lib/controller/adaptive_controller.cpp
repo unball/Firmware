@@ -5,6 +5,7 @@
 
 const float pwm_max = 212.0f;
 const float R = 0.021f;
+const float v_max = 1.429;  // 650RPM with 0.021m radius wheel
 const float max_safe_pwm = 50.0f;
 
 namespace AdaptiveController {
@@ -119,6 +120,8 @@ namespace AdaptiveController {
 
         float u_L_adj = applyDeadzone(u_L, motor_deadzone_c, motor_deadzone_c);
         Motor::move(MOTOR_LEFT, u_L_adj);
+
+        
     }
 
     void bypassControl() {

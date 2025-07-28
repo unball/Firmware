@@ -4,7 +4,6 @@
 #include <Arduino.h>
 
 namespace AdaptiveController {
-    void setup();
     void update();
     void bypassControl();
 
