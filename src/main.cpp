@@ -14,13 +14,13 @@ const float u_max =  69.0f;
 
 // === Gains from MATLAB (example with poles = [0.9, 0.9]) ===
 const float K[2][2] = {
-    {238.0952f, -8.9286f},
-    {238.0952f,  8.9286f}
+    {72.6230f, -2.7234},
+    {72.6230f,  2.7234}
 };
 
 const float N[2][2] = {
-    {238.0952f, -8.9286f},
-    {238.0952f,  8.9286f}
+    {120.2421f, -4.5091},
+    {120.2421f,  4.5091}
 };
 
 // === State and reference ===
@@ -33,7 +33,6 @@ void setup() {
     Encoder::setup();
     Motor::setup();
     IMU::setup();
-    AdaptiveController::setup();
     Serial.println("State-space control initialized.");
     // Initialize motors, encoders, etc. here
 }
@@ -70,12 +69,12 @@ void loop() {
         // setMotorSpeed(leftMotor, u_L);
         // setMotorSpeed(rightMotor, u_R);
         AdaptiveController::setReferences(
-          10,10
-          // u_L,
-          // u_R
+           5.0,5.0
+        //  u_L,
+        //  u_R
         );
 
-        AdaptiveController::bypassControl();
+        AdaptiveController::update();
 
         // === Print debug ===
         Serial.print("v: "); Serial.print(v, 4);
@@ -84,5 +83,14 @@ void loop() {
         Serial.print(" | u_R: "); Serial.print(u_R, 2);
         Serial.print(" || omega_L: "); Serial.print(omega_L, 2);
         Serial.print(" | omega_R: "); Serial.println(omega_R, 2);
+
+        // Serial.print("LEFT: w_L "); Serial.print(AdaptiveController::getOmegaLeft(), 4);
+        // Serial.print(" | u_L: "); Serial.print(AdaptiveController::getControlSignalLeft(), 2);
+        // Serial.print(" | theta1_L: "); Serial.print(AdaptiveController::getTheta1Left(), 2);
+        // Serial.print(" | theta2_L: "); Serial.print(AdaptiveController::getTheta2Left(), 2);
+        // Serial.print(" || RIGHT: w_R: "); Serial.print(AdaptiveController::getOmegaRight(), 4);
+        // Serial.print(" | u_R: "); Serial.print(AdaptiveController::getControlSignalRight(), 2);
+        // Serial.print(" | theta1_R: "); Serial.print(AdaptiveController::getTheta1Right(), 2);
+        // Serial.print(" | theta2_R: "); Serial.println(AdaptiveController::getTheta2Right(), 2);
     }
 }
