@@ -22,14 +22,16 @@ namespace Motor {
         pinMode(PWMB_PIN, OUTPUT);
         pinMode(BIN1_PIN, OUTPUT);
         pinMode(BIN2_PIN, OUTPUT);
+
+        analogWriteResolution(10);
     }
 
     void move(uint8_t motor, int32_t power) {
         //Allows current for the motors
         digitalWrite(STBY_PIN, HIGH);
 
-        // Clamp power value to valid PWM range [-255, 255]
-        power = constrain(power, -255, 255);
+        // Clamp power value to valid PWM range [-1023, 1023]
+        power = constrain(power, -1023, 1023);
 
         //Defines motor direction
         motor_direction[motor] = (power > 0 ? FORWARD : BACKWARD);
