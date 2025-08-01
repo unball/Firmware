@@ -17,6 +17,9 @@ namespace AdaptiveController {
     float getOmegaLeft();
     float getOmegaRight();
 
+    float getErrorLeft();
+    float getErrorRight();
+
     float getControlSignalLeft();
     float getControlSignalRight();
 }
