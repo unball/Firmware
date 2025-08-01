@@ -3,11 +3,12 @@
 #include "motor.hpp"
 #include "config.h"
 #include "control.hpp"
+#include "driver/mcpwm.h"
 
 // === Parameters ===
-const double T = 0.02;               // Sampling time [s]
-const double tau_m = 0.05;           // Reference model time constant [s]
-const double gamma_adapt = 0.01;     // Adaptation gain
+const double T = 0.01;               // Sampling time [s]
+const double tau_m = 0.01;           // Reference model time constant [s]
+const double gamma_adapt = 0.05;     // Adaptation gain
 
 // Reference model coefficients
 const double am = exp(-T / tau_m);
@@ -18,6 +19,13 @@ double omega = 0.0f;
 double omega_m = 0.0f;
 double u = 0.0f;
 double r = 0.0f;
+const double deadzone = 73;
+
+// Reference limits
+const double theta1_limit = 250;
+const double theta2_limit = 250;
+// E-modification parameter
+const double sigma = gamma_adapt/2;
 
 // Timer control
 unsigned long last_time = 0;
@@ -38,25 +46,21 @@ double applyDeadzone(double u_in, double dz_positive = 17.0f, double dz_negative
 
 void update_adaptive_control() {
     // Adaptive parameters
-    static double theta1 = (pwm_max * R) / v_max;
-    static double theta2 = 0.0;
-
-    // Reference limits
-    const double theta1_limit = 5.5f;
-    const double theta2_limit = 3.5f;
-    // E-modification parameter
-    const double sigma = 0.05f;
-
+    // static double theta1 = 2*(((pwm_max + 0) * R) / v_max);     // estabilizam
+    // static double theta2 = 0.3*(((pwm_max + 0) * R) / v_max);
+    static double theta1 = ((pwm_max + deadzone) * R) / v_max;
+    static double theta2 = theta1 - 23; // Experimentalmente verificou-se que quando theta1 - theta2 estabilizam, a diferença entre eles é de 23.
 
     // Read encoder
     Encoder::vel vel = Encoder::getMotorSpeeds();
-    omega = vel.motorRight;
+    omega = vel.motorLeft;
 
     // Generate square wave reference
     double t = millis() / 1000.0f;
     double period = 4.0f;
-    double amplitude = 5.0f;
+    double amplitude = 10.0f;
     double phase = fmod(t, period);
+    // r = amplitude;  //step
     r = (phase < period / 2.0f) ? amplitude : -amplitude;
     // r = (amplitude / period) * phase;  // Sawtooth ramp from 0 to amplitude
 
@@ -67,9 +71,9 @@ void update_adaptive_control() {
     double e = omega - omega_m;
 
     // Apply deadzone method: only adapt if |e| > threshold
-    const double deadzone_threshold = 0.05f;
+    const double deadzone_threshold = 0.01f;
     if (fabs(e) > deadzone_threshold) {
-        double delta_theta1 = -T * (gamma_adapt * r * e - sigma * fabs(e) * theta1);
+        double delta_theta1 = -T * (gamma_adapt * r * e + sigma * fabs(e) * theta1);
         double delta_theta2 = T * (gamma_adapt * omega * e - sigma * fabs(e) * theta2);
 
         // Projection for theta1
@@ -89,12 +93,12 @@ void update_adaptive_control() {
     double u_unsat = theta1 * r - theta2 * omega;
 
     // Saturate control
-    u = constrain(u_unsat, (r >= 0.0f ? 0.0f : -100.0f), (r >= 0.0f ? 100.0f : 0.0f));
+    u = constrain(u_unsat, (r >= 0.0f ? 0.0f : -410.0f), (r >= 0.0f ? 410.0f : 0.0f));
     // u = constrain(u_unsat, -100.0f, 100.0f);
 
     // Apply motor deadzone
-    double u_adj = applyDeadzone(u);
-    Motor::move(MOTOR_RIGHT, u_adj);
+    double u_adj = applyDeadzone(u, deadzone, -deadzone);
+    Motor::move(MOTOR_LEFT, u_adj);
 
     // Logging
     Serial.print("t:"); Serial.print(t);
@@ -102,9 +106,9 @@ void update_adaptive_control() {
     Serial.print(", omega:"); Serial.print(omega);
     Serial.print(", omega_m:"); Serial.print(omega_m);
     Serial.print(", u:"); Serial.print(u);
-    Serial.print(", theta1:"); Serial.print(theta1);
-    Serial.print(", theta2:"); Serial.print(theta2);
-    Serial.print(", e:"); Serial.println(e);
+    Serial.print(", theta1:"); Serial.print(theta1, 3);
+    Serial.print(", theta2:"); Serial.print(theta2, 3);
+    Serial.print(", e:"); Serial.println(e, 3);
 }
 
 void loop() {
