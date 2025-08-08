@@ -23,6 +23,7 @@ namespace Wifi{
     bool receiveData(int16_t *v, int16_t *w);
     bool isCommunicationLost();
     void tokenize(const uint8_t *data,int len);
+    void sendFeedback(float v, float w, float u_L, float u_R, float omega_L, float omega_R, float w_L, float w_R, float theta1_L, float theta2_L, float theta1_R, float theta2_R, float e_L, float e_R);
 }
 
 #endif

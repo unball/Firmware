@@ -2,6 +2,26 @@
 
 namespace Wifi{
 
+    typedef struct __attribute__((packed)) {
+        uint32_t timestamp_us;       // 4 bytes
+        float v;                     // 4
+        float w;                     // 4
+        float u_L;                   // 4
+        float u_R;                   // 4
+        float omega_L;              // 4
+        float omega_R;              // 4
+        float w_L;                  // 4
+        float w_R;                  // 4
+        float theta1_L;             // 4
+        float theta2_L;             // 4
+        float theta1_R;             // 4
+        float theta2_R;             // 4
+        float e_L;                  // 4
+        float e_R;                  // 4
+    } FeedbackPacket;
+
+
+
     uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
     rcv_message temp_msg;
@@ -46,7 +66,18 @@ namespace Wifi{
         WiFi.setTxPower(WIFI_POWER_19_5dBm);
         esp_err_t error = esp_wifi_set_channel(14, WIFI_SECOND_CHAN_NONE);
 
-        esp_now_register_recv_cb(esp_now_recv_cb_t(OnDataRecv));            
+        esp_now_register_recv_cb(esp_now_recv_cb_t(OnDataRecv));
+
+        esp_now_peer_info_t peerInfo = {};
+        memcpy(peerInfo.peer_addr, broadcastAddress, 6);  // ou MAC do ESP32 do PC
+        peerInfo.channel = 14;
+        peerInfo.encrypt = false;
+
+        if (esp_now_add_peer(&peerInfo) != ESP_OK) {
+            if (RobotConfig::isDebug()) {
+                Serial.println(F("❌ Failed to add peer"));
+            }
+        }
     }
 
     // Callback function, execute when message is received via Wi-Fi
@@ -118,5 +149,35 @@ namespace Wifi{
 		}
         return false;
     }
+
+    void sendFeedback(float v, float w,
+                        float u_L, float u_R,
+                        float omega_L, float omega_R,
+                        float w_L, float w_R,
+                        float theta1_L, float theta2_L,
+                        float theta1_R, float theta2_R,
+                        float e_L, float e_R) {
+
+        FeedbackPacket packet;
+        packet.timestamp_us = micros();
+        packet.v = v;
+        packet.w = w;
+        packet.u_L = u_L;
+        packet.u_R = u_R;
+        packet.omega_L = omega_L;
+        packet.omega_R = omega_R;
+        packet.w_L = w_L;
+        packet.w_R = w_R;
+        packet.theta1_L = theta1_L;
+        packet.theta2_L = theta2_L;
+        packet.theta1_R = theta1_R;
+        packet.theta2_R = theta2_R;
+        packet.e_L = e_L;
+        packet.e_R = e_R;
+
+        esp_now_send(broadcastAddress, (uint8_t*)&packet, sizeof(packet));
+    }
+
+
 
 }
