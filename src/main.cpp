@@ -2,110 +2,123 @@
 #include "encoder.hpp"
 #include "motor.hpp"
 #include "config.h"
+#include "robot_config.hpp"
+#include "imu.hpp"
+#include "adaptive_controller.h"
+#include "wifi.hpp"
 
-#define PWM_START     0
-#define PWM_END       1023
-#define PWM_STEP      1
-#define SETTLE_TIME   10  // tempo para estabilizar (ms)
-#define SAMPLE_COUNT  10    // número de leituras para média
-#define SAMPLE_DELAY  10    // intervalo entre leituras (ms)
+// === System parameters ===
+// const float R = 0.021f;     // Wheel radius [m]
+// const float L = 0.075f;     // Wheelbase [m]
+const float T = 0.02f;      // Sampling time [s]
+const float u_min = -69.0f; // Control saturation
+const float u_max =  69.0f;
+
+// === Gains from MATLAB (example with poles = [0.9, 0.9]) ===
+const float K[2][2] = {
+    {24.9952, -0.9373},
+    {24.9952,  0.9373}
+};
+
+const float N[2][2] = {
+    {72.1380f, -2.7052},
+    {72.1380f,  2.7052}
+};
+
+// === State and reference ===
+float v = 0.0f, w = 0.0f;                  // Measured linear and angular velocity
+float v_ref = 0.105f, w_ref = 0.0f;          // Reference signals
+float u_L = 0.0f, u_R = 0.0f;              // Control outputs
 
 void setup() {
     Serial.begin(115200);
     Encoder::setup();
     Motor::setup();
-    delay(1000);  // espera inicial
-
-    Serial.println("pwm,omega");  // header do CSV
+    IMU::setup();
+    RobotConfig::setup();
+    Wifi::setup(RobotConfig::getRobotNumber());
+    Serial.println("State-space control initialized.");
+    Serial.print("Robot Number: ");Serial.println(RobotConfig::getRobotNumber());
+    // Initialize motors, encoders, etc. here
 }
 
 void loop() {
-    static int pwm_value = PWM_START;
+    static unsigned long lastTime = 0;
+    if (millis() - lastTime >= T * 1000) {
+        lastTime = millis();
 
-    Motor::move(MOTOR_LEFT, pwm_value);  // aplica PWM fixo
-    delay(SETTLE_TIME);  // espera estabilizar
-
-    // Coleta e calcula média de omega
-    float omega_sum = 0.0f;
-    for (int i = 0; i < SAMPLE_COUNT; i++) {
+        // === Read measured velocities (from encoder/IMU) ===
         Encoder::vel vel = Encoder::getMotorSpeeds();
-        omega_sum += vel.motorLeft;
-        delay(SAMPLE_DELAY);
-    }
+        float omega_L = vel.motorLeft;
+        float omega_R = vel.motorRight;
 
-    float omega_avg = omega_sum / SAMPLE_COUNT;
+        float v = (R / 2.0f) * (omega_R + omega_L);
+        float w = 0.0f;  // velocidade angular do robô
+        float x[2] = {v, w};
+        float r[2] = {v_ref, w_ref};
 
-    // Envia resultado via Serial
-    Serial.print(pwm_value);
-    Serial.print(",");
-    Serial.println(omega_avg, 4);
+        // === Compute control: u = -Kx + Nr ===
+        float u_unsat[2];
+        for (int i = 0; i < 2; i++) {
+            u_unsat[i] = 0.0f;
+            for (int j = 0; j < 2; j++) {
+                u_unsat[i] += -K[i][j] * x[j] + N[i][j] * r[j];
+            }
+        }
 
-    pwm_value += PWM_STEP;
-    if (pwm_value > PWM_END) {
-        Motor::move(MOTOR_LEFT, 0);  // desliga motor
-        while (true);                // fim do experimento
+        // === Apply saturation ===
+        u_L = constrain(u_unsat[0], u_min, u_max);
+        u_R = constrain(u_unsat[1], u_min, u_max);
+
+        // === Send control to motors ===
+        // setMotorSpeed(leftMotor, u_L);
+        // setMotorSpeed(rightMotor, u_R);
+        AdaptiveController::setReferences(
+        //    5.0,5.0
+         u_L,
+         u_R
+        );
+
+        AdaptiveController::update();
+
+        Wifi::sendFeedback(
+            v, w,
+            u_L, u_R,
+            omega_L, omega_R,
+            AdaptiveController::getOmegaLeft(),
+            AdaptiveController::getOmegaRight(),
+            AdaptiveController::getTheta1Left(),
+            AdaptiveController::getTheta2Left(),
+            AdaptiveController::getTheta1Right(),
+            AdaptiveController::getTheta2Right(),
+            AdaptiveController::getErrorLeft(),
+            AdaptiveController::getErrorRight()
+        );
+
+
+
+        // === Print debug ===
+        if (RobotConfig::getRobotNumber() == 0) {
+            Serial.print("v: "); Serial.print(v, 4);
+            Serial.print(" | w: "); Serial.print(w, 4);
+            Serial.print(" || u_L: "); Serial.print(u_L, 2);
+            Serial.print(" | u_R: "); Serial.print(u_R, 2);
+            Serial.print(" || omega_L: "); Serial.print(omega_L, 2);
+            Serial.print(" | omega_R: "); Serial.println(omega_R, 2);
+        } else {
+            Serial.print("ref_L: "); Serial.print(u_L, 2);
+            Serial.print(" | ref_R: "); Serial.print(u_R, 2);
+            Serial.print(" || LEFT: w_L "); Serial.print(AdaptiveController::getOmegaLeft(), 3);
+            Serial.print(" | u_L: "); Serial.print(AdaptiveController::getControlSignalLeft(), 2);
+            Serial.print(" | theta1_L: "); Serial.print(AdaptiveController::getTheta1Left(), 3);
+            Serial.print(" | theta2_L: "); Serial.print(AdaptiveController::getTheta2Left(), 3);
+            Serial.print(" | e_L: "); Serial.print(AdaptiveController::getErrorLeft(), 2);
+            Serial.print("  ||  RIGHT: w_R: "); Serial.print(AdaptiveController::getOmegaRight(), 3);
+            Serial.print(" | u_R: "); Serial.print(AdaptiveController::getControlSignalRight(), 2);
+            Serial.print(" | theta1_R: "); Serial.print(AdaptiveController::getTheta1Right(), 3);
+            Serial.print(" | theta2_R: "); Serial.print(AdaptiveController::getTheta2Right(), 3);
+            Serial.print(" | e_R: "); Serial.println(AdaptiveController::getErrorRight(), 2);
+
+        }
     }
 }
-
-
-
-// pwm,omega
-// 0,0.0000
-// 25,0.0000
-// 50,0.0000
-// 75,0.0000
-// 100,0.0000
-// 125,3.4577
-// 150,4.7559
-// 175,6.1299
-// 200,7.5426
-// 225,8.9273
-// 250,10.3286
-// 275,11.5126
-// 300,12.6886
-// 325,14.2168
-// 350,15.5443
-// 375,16.6602
-// 400,17.7707
-// 425,19.2052
-// 400,17.7707
-// 425,19.2052
-// 425,19.2052
-// 450,20.4493
-// 450,20.4493
-// 475,21.6222
-// 500,22.6500
-// 475,21.6222
-// 500,22.6500
-// 525,24.2357
-// 500,22.6500
-// 525,24.2357
-// 550,25.5093
-// 575,26.7898
-// 525,24.2357
-// 550,25.5093
-// 575,26.7898
-// 550,25.5093
-// 575,26.7898
-// 600,28.0718
-// 575,26.7898
-// 600,28.0718
-// 600,28.0718
-// 625,29.1456
-// 625,29.1456
-// 650,30.5741
-// 650,30.5741
-// 675,31.7709
-// 700,33.1668
-// 725,34.2650
-// 750,35.5424
-// 775,36.8544
-// 800,38.1952
-// 825,39.5716
-// 850,40.6611
-// 875,41.3325
-// 900,43.0175
-// 925,44.2758
-// 950,45.0272
-// 975,46.5109
-// 1000,47.6158
