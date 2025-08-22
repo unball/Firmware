@@ -4,6 +4,8 @@ namespace Wifi{
 
     typedef struct __attribute__((packed)) {
         uint32_t timestamp_us;       // 4 bytes
+        float v_ref;                 // 4
+        float w_ref;                 // 4
         float v;                     // 4
         float w;                     // 4
         float u_L;                   // 4
@@ -150,7 +152,7 @@ namespace Wifi{
         return false;
     }
 
-    void sendFeedback(float v, float w,
+    void sendFeedback(float v, float w, float v_ref, float w_ref,
                         float u_L, float u_R,
                         float omega_L, float omega_R,
                         float w_L, float w_R,
@@ -160,6 +162,8 @@ namespace Wifi{
 
         FeedbackPacket packet;
         packet.timestamp_us = micros();
+        packet.v_ref = v_ref;
+        packet.w_ref = w_ref;
         packet.v = v;
         packet.w = w;
         packet.u_L = u_L;
