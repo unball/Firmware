@@ -27,7 +27,7 @@ const float N[2][2] = {
 
 // === State and reference ===
 float v = 0.0f, w = 0.0f;                  // Measured linear and angular velocity
-float v_ref = 0.105f, w_ref = 0.0f;          // Reference signals
+float v_ref = 0.0f, w_ref = 0.0f;          // Reference signals
 float u_L = 0.0f, u_R = 0.0f;              // Control outputs
 
 void setup() {
@@ -43,6 +43,9 @@ void setup() {
 }
 
 void loop() {
+    static int16_t v_int;
+    static int16_t w_int;
+
     static unsigned long lastTime = 0;
     if (millis() - lastTime >= T * 1000) {
         lastTime = millis();
@@ -51,6 +54,11 @@ void loop() {
         Encoder::vel vel = Encoder::getMotorSpeeds();
         float omega_L = vel.motorLeft;
         float omega_R = vel.motorRight;
+
+        Wifi::receiveData(&v_int, &w_int);
+
+        v_ref = ((float)v_int) * 2.0 / 32767;
+        w_ref  = ((float)w_int) * 64.0 / 32767;
 
         float v = (R / 2.0f) * (omega_R + omega_L);
         float w = 0.0f;  // velocidade angular do robô
@@ -83,6 +91,7 @@ void loop() {
 
         Wifi::sendFeedback(
             v, w,
+            v_ref, w_ref,
             u_L, u_R,
             omega_L, omega_R,
             AdaptiveController::getOmegaLeft(),
