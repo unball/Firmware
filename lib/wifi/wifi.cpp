@@ -179,7 +179,35 @@ namespace Wifi{
         packet.e_L = e_L;
         packet.e_R = e_R;
 
-        esp_now_send(broadcastAddress, (uint8_t*)&packet, sizeof(packet));
+        esp_err_t err = esp_now_send(broadcastAddress, (uint8_t*)&packet, sizeof(packet));
+        if (err != ESP_OK && RobotConfig::isDebug()) {
+            Serial.print(F("❌ Failed to send feedback packet. Error: "));
+            Serial.println(err);
+            switch (err) {
+            case ESP_ERR_ESPNOW_NOT_INIT:
+                Serial.println(F("ESP-NOW is not initialized."));
+                break;
+            case ESP_ERR_ESPNOW_ARG:
+                Serial.println(F("Invalid argument."));
+                break;
+            case ESP_ERR_ESPNOW_INTERNAL:
+                Serial.println(F("Internal error."));
+                break;
+            case ESP_ERR_ESPNOW_NO_MEM:
+                Serial.println(F("Out of memory."));
+                break;
+            case ESP_ERR_ESPNOW_NOT_FOUND:
+                Serial.println(F("Peer not found."));
+                break;
+            case ESP_ERR_ESPNOW_IF:
+                Serial.println(F("Interface error."));
+                break;
+            default:
+                Serial.println(F("Unknown error."));
+                break;
+            }
+        }
+        
     }
 
 
