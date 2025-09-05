@@ -178,12 +178,28 @@ void onDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
 }
 
 // === Send command to the robot ===
-void sendCommand(int id, int v, int w) {
-    char buffer[32];
-    int checksum = v + w;
-    snprintf(buffer, sizeof(buffer), "[%d,%d,%d,%d]", id, v, w, checksum);
-    esp_now_send(robotAddress, (uint8_t*)buffer, strlen(buffer));
+void sendCommand(int id, float v, float w) {
+    char buffer[64];  // aumenta para caber floats com separadores
+    
+    int16_t v_int =(int16_t)( (v * 32767 )/ 2.0);
+    int16_t w_int = (int16_t)( (w * 32767 )/ 64.0);
+
+    int32_t checksum = v_int + w_int;
+    int16_t limitedChecksum = (checksum >= 0) 
+      ? (int16_t)(abs(checksum % 32767)) 
+      : -(int16_t)(abs(checksum % 32767));
+
+
+    snprintf(buffer, sizeof(buffer), "[%d,%d,%d,%d]", id, v_int, w_int, limitedChecksum);
+
+    esp_err_t result = esp_now_send(robotAddress, (uint8_t*)buffer, strlen(buffer));
+
+    if (result != ESP_OK) {
+        Serial.print("[ERROR] Failed to send: ");
+        Serial.println(result);
+    }
 }
+
 
 // === Setup ===
 void setup() {
