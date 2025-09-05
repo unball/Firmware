@@ -10,7 +10,7 @@
 // === System parameters ===
 // const float R = 0.021f;     // Wheel radius [m]
 // const float L = 0.075f;     // Wheelbase [m]
-const float T = 0.02f;      // Sampling time [s]
+const float T = 0.01f;      // Sampling time [s]
 const float u_min = -69.0f; // Control saturation
 const float u_max =  69.0f;
 
@@ -36,7 +36,7 @@ void setup() {
     Motor::setup();
     IMU::setup();
     RobotConfig::setup();
-    Wifi::setup(RobotConfig::getRobotNumber());
+    Wifi::setup(0);
     Serial.println("State-space control initialized.");
     Serial.print("Robot Number: ");Serial.println(RobotConfig::getRobotNumber());
     // Initialize motors, encoders, etc. here
