@@ -6,13 +6,13 @@
 const float pwm_max = 1023.0f;
 const float R = 0.021f;
 const float v_max = 1.429;  // 650RPM with 0.021m radius wheel
-const float max_safe_pwm = 201.0f;
+const float max_safe_pwm = 410.0f;
 
 namespace AdaptiveController {
 
     // === Parameters ===
     const float T = 0.01f;             // Sampling time [s]
-    const float tau_m = 0.05f;         // Reference model time constant [s]
+    const float tau_m = 0.01f;         // Reference model time constant [s]
     const float gamma_adapt = 0.05f;   // Adaptation gain
 
     const float am = exp(-T / tau_m);   
@@ -23,7 +23,7 @@ namespace AdaptiveController {
 
     const float sigma = 0.01f;  // E-modification gain
 
-    const float motor_deadzone_c = 20.0f;   // Minimum PWM value to move the motor
+    const float motor_deadzone_c = 73.0f;   // Minimum PWM value to move the motor
     const float deadzone_threshold = 0.01f; // Threshold for adaptation to kick in
 
     float theta1_L = (pwm_max * R)/v_max, theta2_L = 0.0f;
@@ -97,7 +97,7 @@ namespace AdaptiveController {
 
         // Apply deadzone method: only adapt if |e_L| > threshold
         if (fabs(e_L) > deadzone_threshold) {
-            float delta_theta1_L = -T * (gamma_adapt * r_L * e_L - sigma * fabs(e_L) * theta1_L);
+            float delta_theta1_L = -T * (gamma_adapt * r_L * e_L + sigma * fabs(e_L) * theta1_L);
             float delta_theta2_L =  T * (gamma_adapt * omega_L * e_L - sigma * fabs(e_L) * theta2_L);
             
             // Projection method for theta1: clamp within limits
