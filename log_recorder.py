@@ -52,7 +52,7 @@ fields_transmitter = [
 # === Main Logging Loop ===
 def main():
     with serial.Serial(PORT, BAUDRATE, timeout=1) as ser, open(OUTPUT_FILE, mode='w', newline='') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=fields)
+        writer = csv.DictWriter(csvfile, fieldnames=fields_transmitter)
         writer.writeheader()
 
         print(f"[{datetime.now()}] Logging started. Saving to '{OUTPUT_FILE}'...")
@@ -60,7 +60,7 @@ def main():
         while True:
             try:
                 line = ser.readline().decode('utf-8').strip()
-                match = log_pattern.match(line)
+                match = log_pattern_transmitter.match(line)
                 if match:
                     writer.writerow(match.groupdict())
                     print(line)

@@ -14,12 +14,16 @@ labels = [
 
 # === Variáveis presentes no CSV gerado pelo script de log ===
 all_variables = [
-    "t", "v_ref", "w_ref", "v", "w", "e_v", "e_w",
-    "v_d", "w_d", "omega_L_d", "omega_R_d", "omega_L", "omega_R"
+    "t", "v_ref", "w_ref", "v", "w",
+    "omega_L", "omega_R", "u_L", "u_R",
+    "w_L", "w_R",
+    "theta1_L", "theta2_L", "theta1_R", "theta2_R",
+    "e_L", "e_R"
 ]
 
+
 # === Variáveis que deseja visualizar ===
-variables_to_plot = ["v", "v_ref", "e_v", "omega_L", "omega_L_d"]
+variables_to_plot = ["v", "v_ref", "u_L", "omega_L", "theta1_L", "e_L"]
 
 # === Cores para as curvas ===
 colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown']
@@ -37,6 +41,7 @@ for idx, (file, label) in enumerate(zip(log_files, labels)):
 
     try:
         df = pd.read_csv(file)
+        df["t"] = df["t"] / 1_000_000  # converte microssegundos para segundos
     except Exception as e:
         print(f"[!] Erro ao ler {file}: {e}")
         continue
