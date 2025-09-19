@@ -3,6 +3,7 @@ import re
 import csv
 import os
 from datetime import datetime
+import time
 
 # === Configuration ===
 PORT = 'COM4'           # Change to your serial port (e.g. '/dev/ttyUSB0' on Linux)
@@ -51,7 +52,18 @@ fields_transmitter = [
 
 # === Main Logging Loop ===
 def main():
-    with serial.Serial(PORT, BAUDRATE, timeout=1) as ser, open(OUTPUT_FILE, mode='w', newline='') as csvfile:
+    print(f"[{datetime.now()}] Waiting for port {PORT}...")
+
+    ser = None
+    while True:
+        try:
+            ser = serial.Serial(PORT, BAUDRATE, timeout=1)
+            print(f"[{datetime.now()}] Connected to {PORT}")
+            break
+        except serial.SerialException:
+            pass  # Continua tentando
+
+    with ser, open(OUTPUT_FILE, mode='w', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=fields_transmitter)
         writer.writeheader()
 
@@ -64,11 +76,21 @@ def main():
                 if match:
                     writer.writerow(match.groupdict())
                     print(line)
+
+            except serial.SerialException:
+                print(f"\n[{datetime.now()}] Logging stopped by disconnection.")
+                break
+
             except KeyboardInterrupt:
                 print("\nLogging stopped by user.")
                 break
+
             except Exception as e:
                 print(f"Error: {e}")
+
+        print(f"[{datetime.now()}] Log file saved to '{OUTPUT_FILE}'.")
+
+
 
 if __name__ == '__main__':
     main()

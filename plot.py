@@ -5,7 +5,7 @@ import os
 
 # === Arquivos de log e rótulos ===
 log_files = [
-    "log_output.csv"
+    "onda_quadrada.csv"
 ]
 
 labels = [
@@ -23,7 +23,7 @@ all_variables = [
 
 
 # === Variáveis que deseja visualizar ===
-variables_to_plot = ["v", "v_ref", "u_L", "omega_L", "theta1_L", "e_L"]
+variables_to_plot = ["v", "w", "omega_L", "omega_R", "u_L", "u_R"]
 
 # === Cores para as curvas ===
 colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown']
