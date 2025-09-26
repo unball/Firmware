@@ -24,8 +24,8 @@ namespace StateSpaceController {
     }
 
     // Obtém as referências de velocidade angular para as rodas esquerda e direita
-    float getOmegaRefLeft();
-    float getOmegaRefRight();
+    float getControlLeft();
+    float getControlRight();
 
 }
 

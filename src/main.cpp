@@ -7,29 +7,15 @@
 #include "adaptive_controller.h"
 #include "wifi.hpp"
 #include "control.hpp"
+#include "state_space_controller.hpp"
 
-// === System parameters ===
-const float R = 0.0215f;     // Wheel radius [m]
-const float L = 0.0825f;     // Wheelbase [m]
-const float T = 0.02f;      // Sampling time [s]
-const float u_min = -69.0f; // Control saturation
-const float u_max =  69.0f;
 
-// === Gains from MATLAB (example with poles = [0.97, 0.97]) ===
-const float K[2][2] = {
-    {24.9952, -0.9373},
-    {24.9952,  0.9373}
-};
 
-const float N[2][2] = {
-    {72.1380f, -2.7052},
-    {72.1380f,  2.7052}
-};
+
+
 
 // === State and reference ===
-float v = 0.0f, w = 0.0f;                  // Measured linear and angular velocity
-float v_ref = 0.0f, w_ref = 0.0f;          // Reference signals
-float u_L = 0.0f, u_R = 0.0f;              // Control outputs
+float v_ref = 0.0f, w_ref = 0.0f;
 
 void setup() {
     Serial.begin(115200);
@@ -47,97 +33,68 @@ void loop() {
     static int16_t v_int;
     static int16_t w_int;
 
-    static unsigned long lastTime = 0;
-    if (millis() - lastTime >= T * 1000) {
-        lastTime = millis();
+    // === Receive references from Wi-Fi ===
+    Wifi::receiveData(&v_int, &w_int);
 
-        // === Read measured velocities (from encoder/IMU) ===
-        Encoder::vel vel = Encoder::getMotorSpeeds();
-        float omega_L = vel.motorLeft;
-        float omega_R = vel.motorRight;
+    v_ref = ((float)v_int) * 2.0f / 32767;
+    w_ref = ((float)w_int) * 64.0f / 32767;
 
-        Wifi::receiveData(&v_int, &w_int);
+    // === Update state-space controller (runs every T internally) ===
+    StateSpaceController::update(v_ref, w_ref);
 
-        v_ref = ((float)v_int) * 2.0 / 32767;
-        w_ref  = ((float)w_int) * 64.0 / 32767;
+    // === Send reference to adaptive controller ===
+    AdaptiveController::setReferences(
+        StateSpaceController::getControlLeft(),
+        StateSpaceController::getControlRight()
+    );
 
-        float v = (R / 2.0f) * (omega_R + omega_L);
-        float w = IMU::get_w(); // usar giroscópio para velocidade angular
-        float x[2] = {v, w};
-        float r[2] = {v_ref, w_ref};
+    AdaptiveController::update();
 
-        // === Compute control: u = -Kx + Nr ===
-        float u_unsat[2];
-        if (v_ref == 0 && w_ref == 0){
-            u_unsat[0] = 0.0f;
-            u_unsat[1] = 0.0f;
-            Motor::stop();
-        } else {
+    // === Collect measurements ===
+    Encoder::vel vel = Encoder::getMotorSpeeds();
+    float omega_L = vel.motorLeft;
+    float omega_R = vel.motorRight;
+    float v = (R / 2.0f) * (omega_R + omega_L);
+    float w = IMU::get_w();
 
-            for (int i = 0; i < 2; i++) {
-                u_unsat[i] = 0.0f;
-                for (int j = 0; j < 2; j++) {
-                    u_unsat[i] += -K[i][j] * x[j] + N[i][j] * r[j];
-                }
-            }
-            
-        }
+    // === Send feedback ===
+    Wifi::sendFeedback(
+        v, w,
+        v_ref, w_ref,
+        StateSpaceController::getControlLeft(),
+        StateSpaceController::getControlRight(),
+        omega_L, omega_R,
+        AdaptiveController::getOmegaLeft(),
+        AdaptiveController::getOmegaRight(),
+        AdaptiveController::getTheta1Left(),
+        AdaptiveController::getTheta2Left(),
+        AdaptiveController::getTheta1Right(),
+        AdaptiveController::getTheta2Right(),
+        AdaptiveController::getErrorLeft(),
+        AdaptiveController::getErrorRight()
+    );
 
-        // === Apply saturation ===
-        u_L = constrain(u_unsat[0], u_min, u_max);
-        u_R = constrain(u_unsat[1], u_min, u_max);
-
-        // === Send control to motors ===
-        // setMotorSpeed(leftMotor, u_L);
-        // setMotorSpeed(rightMotor, u_R);
-        AdaptiveController::setReferences(
-        //    5.0,5.0
-         u_L,
-         u_R
-        );
-
-        AdaptiveController::update();
-
-        Wifi::sendFeedback(
-            v, w,
-            v_ref, w_ref,
-            u_L, u_R,
-            omega_L, omega_R,
-            AdaptiveController::getOmegaLeft(),
-            AdaptiveController::getOmegaRight(),
-            AdaptiveController::getTheta1Left(),
-            AdaptiveController::getTheta2Left(),
-            AdaptiveController::getTheta1Right(),
-            AdaptiveController::getTheta2Right(),
-            AdaptiveController::getErrorLeft(),
-            AdaptiveController::getErrorRight()
-        );
-
-
-
-        // === Print debug ===
-        if (RobotConfig::getRobotNumber() == 0) {
-            Serial.print("v: "); Serial.print(v, 4);
-            Serial.print(" | w: "); Serial.print(w, 4);
-            Serial.print(" || u_L: "); Serial.print(u_L, 2);
-            Serial.print(" | u_R: "); Serial.print(u_R, 2);
-            Serial.print(" || omega_L: "); Serial.print(omega_L, 2);
-            Serial.print(" | omega_R: "); Serial.println(omega_R, 2);
-        } else {
-            Serial.print("ref_L: "); Serial.print(u_L, 2);
-            Serial.print(" | ref_R: "); Serial.print(u_R, 2);
-            Serial.print(" || LEFT: w_L "); Serial.print(AdaptiveController::getOmegaLeft(), 3);
-            Serial.print(" | u_L: "); Serial.print(AdaptiveController::getControlSignalLeft(), 2);
-            Serial.print(" | theta1_L: "); Serial.print(AdaptiveController::getTheta1Left(), 3);
-            Serial.print(" | theta2_L: "); Serial.print(AdaptiveController::getTheta2Left(), 3);
-            Serial.print(" | e_L: "); Serial.print(AdaptiveController::getErrorLeft(), 2);
-            Serial.print("  ||  RIGHT: w_R: "); Serial.print(AdaptiveController::getOmegaRight(), 3);
-            Serial.print(" | u_R: "); Serial.print(AdaptiveController::getControlSignalRight(), 2);
-            Serial.print(" | theta1_R: "); Serial.print(AdaptiveController::getTheta1Right(), 3);
-            Serial.print(" | theta2_R: "); Serial.print(AdaptiveController::getTheta2Right(), 3);
-            Serial.print(" | e_R: "); Serial.println(AdaptiveController::getErrorRight(), 2);
-
-        }
+    // === Print debug ===
+    if (RobotConfig::getRobotNumber() == 0) {
+        Serial.print("v: "); Serial.print(v, 4);
+        Serial.print(" | w: "); Serial.print(w, 4);
+        Serial.print(" || u_L: "); Serial.print(StateSpaceController::getControlLeft(), 2);
+        Serial.print(" | u_R: "); Serial.print(StateSpaceController::getControlRight(), 2);
+        Serial.print(" || omega_L: "); Serial.print(omega_L, 2);
+        Serial.print(" | omega_R: "); Serial.println(omega_R, 2);
+    } else {
+        Serial.print("ref_L: "); Serial.print(StateSpaceController::getControlLeft(), 2);
+        Serial.print(" | ref_R: "); Serial.print(StateSpaceController::getControlRight(), 2);
+        Serial.print(" || LEFT: w_L "); Serial.print(AdaptiveController::getOmegaLeft(), 3);
+        Serial.print(" | u_L: "); Serial.print(AdaptiveController::getControlSignalLeft(), 2);
+        Serial.print(" | theta1_L: "); Serial.print(AdaptiveController::getTheta1Left(), 3);
+        Serial.print(" | theta2_L: "); Serial.print(AdaptiveController::getTheta2Left(), 3);
+        Serial.print(" | e_L: "); Serial.print(AdaptiveController::getErrorLeft(), 2);
+        Serial.print("  ||  RIGHT: w_R: "); Serial.print(AdaptiveController::getOmegaRight(), 3);
+        Serial.print(" | u_R: "); Serial.print(AdaptiveController::getControlSignalRight(), 2);
+        Serial.print(" | theta1_R: "); Serial.print(AdaptiveController::getTheta1Right(), 3);
+        Serial.print(" | theta2_R: "); Serial.print(AdaptiveController::getTheta2Right(), 3);
+        Serial.print(" | e_R: "); Serial.println(AdaptiveController::getErrorRight(), 2);
     }
 }
 
@@ -259,7 +216,7 @@ void loop() {
 
 //         // Parâmetros da onda quadrada
 //         float period = 4.0f;       // segundos
-//         float amplitude = 0.1f;    // valor máximo da referência (v_ref)
+//         float amplitude = 0.5f;    // valor máximo da referência (v_ref)
 
 //         // Calcula fase e gera a onda
 //         float phase = fmod(t, period);
