@@ -15,7 +15,7 @@ const float T = 0.02f;      // Sampling time [s]
 const float u_min = -69.0f; // Control saturation
 const float u_max =  69.0f;
 
-// === Gains from MATLAB (example with poles = [0.9, 0.9]) ===
+// === Gains from MATLAB (example with poles = [0.97, 0.97]) ===
 const float K[2][2] = {
     {24.9952, -0.9373},
     {24.9952,  0.9373}
@@ -58,13 +58,10 @@ void loop() {
 
         Wifi::receiveData(&v_int, &w_int);
 
-        // v_ref = ((float)v_int) * 2.0 / 32767;
-        // w_ref  = ((float)w_int) * 64.0 / 32767;
-        v_ref = 0.1;
-        w_ref  = 0;
+        v_ref = ((float)v_int) * 2.0 / 32767;
+        w_ref  = ((float)w_int) * 64.0 / 32767;
 
         float v = (R / 2.0f) * (omega_R + omega_L);
-        // float w = 0.0f;  // velocidade angular do robô
         float w = IMU::get_w(); // usar giroscópio para velocidade angular
         float x[2] = {v, w};
         float r[2] = {v_ref, w_ref};
@@ -77,17 +74,12 @@ void loop() {
             Motor::stop();
         } else {
 
-            // for (int i = 0; i < 2; i++) {
-            //     u_unsat[i] = 0.0f;
-            //     for (int j = 0; j < 2; j++) {
-            //         u_unsat[i] += -K[i][j] * x[j] + N[i][j] * r[j];
-            //     }
-            double eW = w_ref - w;
-            double w_control = Control::PID(0, eW);
-            Serial.print("w_control: "); Serial.println(w_control, 4);
-
-            u_unsat[0] = (v + (L/2)*w_control) / R;
-            u_unsat[1] = (v - (L/2)*w_control) / R;
+            for (int i = 0; i < 2; i++) {
+                u_unsat[i] = 0.0f;
+                for (int j = 0; j < 2; j++) {
+                    u_unsat[i] += -K[i][j] * x[j] + N[i][j] * r[j];
+                }
+            }
             
         }
 
