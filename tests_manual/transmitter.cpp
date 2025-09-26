@@ -99,8 +99,19 @@ void setup() {
 // === Loop: send test command every 100 ms ===
 unsigned long lastSend = 0;
 void loop() {
-    if (millis() - lastSend >= 100) {        
-        sendCommand(0, 0.1, 0);
+    if (millis() - lastSend >= 100) {
+        // Calcula tempo atual em segundos
+        float t = millis() / 1000.0f;
+
+        // Parâmetros da onda quadrada
+        float period = 4.0f;       // segundos
+        float amplitude = 0.1f;    // valor máximo da referência (v_ref)
+
+        // Calcula fase e gera a onda
+        float phase = fmod(t, period);
+        float v_ref = (phase < period / 2.0f) ? amplitude : -amplitude;
+
+        sendCommand(0, v_ref, 0.0);  // id = 0, v = onda, w = 0
         lastSend = millis();
     }
 }
