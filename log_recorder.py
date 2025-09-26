@@ -4,6 +4,8 @@ import csv
 import os
 from datetime import datetime
 import time
+import threading
+import msvcrt  # para capturar teclas no Windows
 
 # === Configuration ===
 PORT = 'COM4'           # Change to your serial port (e.g. '/dev/ttyUSB0' on Linux)
@@ -49,6 +51,57 @@ fields_transmitter = [
     "e_L", "e_R"
 ]
 
+# === Variáveis globais para controle ===
+v_ref = 0.0
+w_ref = 0.0
+step_v = 0.05
+step_w = 0.2
+
+# === Thread de controle por teclado (WASD) ===
+def keyboard_control(ser):
+    global v_ref, w_ref
+    print("🔁 Keyboard control enabled. Use W A S D (space = stop, Q = quit)")
+
+    while True:
+        if msvcrt.kbhit():  # verifica se uma tecla foi pressionada
+            key = msvcrt.getch().decode('utf-8').lower()
+
+            if key == 'q':
+                print("[INFO] Exiting by user command.")
+                os._exit(0)
+            elif key == 'w':
+                v_ref += step_v
+                v_ref = max(min(v_ref, 1.5), -1.5)   # limita v_ref entre -1.5 e +1.5
+            elif key == 's':
+                v_ref -= step_v
+                v_ref = max(min(v_ref, 1.5), -1.5)
+            elif key == 'a':
+                w_ref += step_w
+                w_ref = max(min(w_ref, 30.0), -30.0) # limita w_ref entre -30 e +30
+            elif key == 'd':
+                w_ref -= step_w
+                w_ref = max(min(w_ref, 30.0), -30.0)
+            elif key == ' ':
+                v_ref = 0.0
+                w_ref = 0.0             
+
+            checksum = int(v_ref + w_ref)
+            message = f"{v_ref:.2f},{w_ref:.2f}\n"
+            try:
+                ser.write(message.encode())
+                print(f"[TX] {message.strip()}")
+            except Exception as e:
+                print(f"[ERROR] Failed to send: {e}")
+                break
+
+def send_stop(ser):
+    try:
+        message = "0.00,0.00\n"
+        ser.write(message.encode())
+        print("[TX] STOP command sent (v=0, w=0)")
+    except Exception as e:
+        print(f"[ERROR] Failed to send stop command: {e}")
+
 
 # === Main Logging Loop ===
 def main():
@@ -61,7 +114,10 @@ def main():
             print(f"[{datetime.now()}] Connected to {PORT}")
             break
         except serial.SerialException:
-            pass  # Continua tentando
+            pass  # Continua tentando até conectar
+
+    # Inicia a thread do teclado
+    # threading.Thread(target=keyboard_control, args=(ser,), daemon=True).start()
 
     with ser, open(OUTPUT_FILE, mode='w', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=fields_transmitter)
@@ -79,17 +135,19 @@ def main():
 
             except serial.SerialException:
                 print(f"\n[{datetime.now()}] Logging stopped by disconnection.")
+                send_stop(ser)
                 break
 
             except KeyboardInterrupt:
                 print("\nLogging stopped by user.")
+                send_stop(ser)
                 break
 
             except Exception as e:
+                send_stop(ser)
                 print(f"Error: {e}")
 
         print(f"[{datetime.now()}] Log file saved to '{OUTPUT_FILE}'.")
-
 
 
 if __name__ == '__main__':
