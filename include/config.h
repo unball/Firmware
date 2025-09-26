@@ -16,10 +16,9 @@ const float MAX_POWER = 10.0;
 const int controlLoopInterval= 200;   // actuation interval in ms
 const int twiddledelay = 10000;
 
-
 /* Robot parameters */
-const float R =	0.02;
-const float L = 0.075;
+const float R =	0.0215;
+const float L = 0.0825;
 const int motor_deadzone = 2;
 const float v_max = 1.429;  // 650RPM with 0.021m radius wheel
 const float w_max = 65;
