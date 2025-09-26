@@ -9,9 +9,9 @@
 #include "control.hpp"
 
 // === System parameters ===
-// const float R = 0.021f;     // Wheel radius [m]
-// const float L = 0.075f;     // Wheelbase [m]
-const float T = 0.01f;      // Sampling time [s]
+const float R = 0.0215f;     // Wheel radius [m]
+const float L = 0.0825f;     // Wheelbase [m]
+const float T = 0.02f;      // Sampling time [s]
 const float u_min = -69.0f; // Control saturation
 const float u_max =  69.0f;
 
