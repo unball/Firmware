@@ -10,10 +10,10 @@
 namespace PIDController {
 
     // === Twiddle parameters ===
-    static float dk[3] = {0.5f, 0.05f, 0.05f};  // initial deltas
-    static float ksi = 0.3f;                    // learning rate
-    static float epsilon = 1e-3f;               // stop threshold
-    static int maxIterations = 30;              // safety limit
+    static float dk[3] = {0.5f, 0.05f, 0.01f};  // initial deltas
+    static float ksi = 0.2f;                    // learning rate
+    static float epsilon = 1e-2f;               // stop threshold
+    static int maxIterations = 4;              // safety limit
 
     // === Internal variable for error tracking ===
     static float maxError = 0.0f;
@@ -22,9 +22,9 @@ namespace PIDController {
     static constexpr float T = 0.02f;     // Sampling period [s]
 
     // === PID gains ===
-    static float Kp = 1.5f;
-    static float Ki = 0.05f;
-    static float Kd = -0.05f;
+    static float Kp = 1.02f;
+    static float Ki = 0.1f;
+    static float Kd = 0.00f;
 
     // === Internal variables ===
     static float integral = 0.0f;
@@ -58,15 +58,16 @@ namespace PIDController {
         }
         lastTime = now;
 
-        // if(Wifi::isCommunicationLost()){
-        //     reset();
-        //     Motor::stop();
-        // }
+        if(Wifi::isCommunicationLost()){
+            reset();
+            Motor::stop();
+        }
         
-        // if (v_ref == 0 && w_ref == 0) {
-        //     Motor::stop();
-        //     reset();
-        // }
+        if (v_ref == 0 && w_ref == 0) {
+            Motor::stop();
+            // reset();
+            return;
+        }
 
         // === Measure angular velocity from IMU ===
         float w_meas = IMU::get_w();
@@ -92,55 +93,47 @@ namespace PIDController {
         float k[3] = {Kp, Ki, Kd};
         float bestError = testRoutine();
 
-        for (int i = 0; i < 3; i++) {
-            // Serial.print("Tuning parameter ");
-            Serial.print(i);
-            k[i] += dk[i];
-            setGains(k[0], k[1], k[2]);
-            float err = testRoutine();
-
-            if (err < bestError) {
-                bestError = err;
-                dk[i] *= (1 + ksi);
-            } else {
-                k[i] -= 2 * dk[i];
+        for (int iter = 0; iter < maxIterations; iter++) {
+            for (int i = 0; i < 3; i++) {
+                k[i] += dk[i];
                 setGains(k[0], k[1], k[2]);
-                err = testRoutine();
+                float err = testRoutine();
 
                 if (err < bestError) {
                     bestError = err;
                     dk[i] *= (1 + ksi);
                 } else {
-                    k[i] += dk[i]; // restore
-                    dk[i] *= (1 - ksi);
+                    k[i] -= 2 * dk[i];
+                    setGains(k[0], k[1], k[2]);
+                    err = testRoutine();
+
+                    if (err < bestError) {
+                        bestError = err;
+                        dk[i] *= (1 + ksi);
+                    } else {
+                        k[i] += dk[i]; // restore
+                        dk[i] *= (1 - ksi);
+                    }
                 }
             }
-        }
 
-        // Keep running with tuned gains and send results
-        while (true) {
-            update(0.0f, 0.0f);
-            AdaptiveController::setReferences(
-                PIDController::getOmegaLeft(),
-                PIDController::getOmegaRight()
-            );
-            AdaptiveController::update();
-
-            // Send tuned gains as feedback packet
+            // === Send feedback of current best gains ===
             Wifi::sendFeedback(
                 Kd,        // use "v" field to carry Kp
                 0.0f,        // use "w" field to carry Ki
-                Kp,        // use "v_ref" field to carry Kd
+                Kp,        // use "v_ref" field to carry Kp
                 Ki,      // w_ref
-                0.0f, 0.0f, // u_L, u_R
-                0.0f, 0.0f, // omega_L, omega_R
-                0.0f, 0.0f, // w_L, w_R
+                bestError, 0.0f, // u_L, u_R
+                dk[0], dk[1], // omega_L, omega_R
+                dk[2], 0.0f, // w_L, w_R
                 0.0f, 0.0f, // theta1_L, theta2_L
                 0.0f, 0.0f, // theta1_R, theta2_R
                 0.0f, 0.0f  // e_L, e_R
             );
 
-            delay(500);
+            // === Stop if improvements are very small ===
+            float sumDk = dk[0] + dk[1] + dk[2];
+            if (sumDk < epsilon) break;
         }
     }
 
@@ -160,23 +153,27 @@ namespace PIDController {
             previous_t = millis();
             while ((t = millis()) - previous_t < 350) {
                 v_ref = 0.5f; w_ref = 0.0f;
-                float w_meas = IMU::get_w();
-                accumulatedError += fabs(w_ref - w_meas);
-                steps++;
+
                 update(v_ref, w_ref);
                 AdaptiveController::setReferences(getOmegaLeft(), getOmegaRight());
                 AdaptiveController::update();
+
+                float w_meas = IMU::get_w();
+                accumulatedError += fabs(w_ref - w_meas);
+                steps++;
             }
             // Turn right
             previous_t = millis();
             while ((t = millis()) - previous_t < 314) {
                 v_ref = 0.0f; w_ref = 5.0f;
-                float w_meas = IMU::get_w();
-                accumulatedError += fabs(w_ref - w_meas);
-                steps++;
+                
                 update(v_ref, w_ref);
                 AdaptiveController::setReferences(getOmegaLeft(), getOmegaRight());
                 AdaptiveController::update();
+
+                float w_meas = IMU::get_w();
+                accumulatedError += fabs(w_ref - w_meas);
+                steps++;
             }
         }
 
@@ -184,12 +181,14 @@ namespace PIDController {
         previous_t = millis();
         while ((t = millis()) - previous_t < 300) {
             v_ref = 0.0f; w_ref = 0.0f;
-            float w_meas = IMU::get_w();
-            accumulatedError += fabs(w_ref - w_meas);
-            steps++;
+            
             update(v_ref, w_ref);
             AdaptiveController::setReferences(getOmegaLeft(), getOmegaRight());
             AdaptiveController::update();
+
+            float w_meas = IMU::get_w();
+            accumulatedError += fabs(w_ref - w_meas);
+            steps++;
         }
 
         // === Square backward ===
@@ -198,40 +197,47 @@ namespace PIDController {
             previous_t = millis();
             while ((t = millis()) - previous_t < 350) {
                 v_ref = -0.5f; w_ref = 0.0f;
-                float w_meas = IMU::get_w();
-                accumulatedError += fabs(w_ref - w_meas);
-                steps++;
+
                 update(v_ref, w_ref);
                 AdaptiveController::setReferences(getOmegaLeft(), getOmegaRight());
                 AdaptiveController::update();
+
+                float w_meas = IMU::get_w();
+                accumulatedError += fabs(w_ref - w_meas);
+                steps++;
             }
             // Turn left
             previous_t = millis();
             while ((t = millis()) - previous_t < 314) {
                 v_ref = 0.0f; w_ref = -5.0f;
-                float w_meas = IMU::get_w();
-                accumulatedError += fabs(w_ref - w_meas);
-                steps++;
+                
                 update(v_ref, w_ref);
                 AdaptiveController::setReferences(getOmegaLeft(), getOmegaRight());
                 AdaptiveController::update();
+
+                float w_meas = IMU::get_w();
+                accumulatedError += fabs(w_ref - w_meas);
+                steps++;
             }
             // Stop
             previous_t = millis();
             while ((t = millis()) - previous_t < 300) {
                 v_ref = 0.0f; w_ref = 0.0f;
-                float w_meas = IMU::get_w();
-                accumulatedError += fabs(w_ref - w_meas);
-                steps++;
+                
                 update(v_ref, w_ref);
                 AdaptiveController::setReferences(getOmegaLeft(), getOmegaRight());
                 AdaptiveController::update();
+                
+                float w_meas = IMU::get_w();
+                accumulatedError += fabs(w_ref - w_meas);
+                steps++;
             }
         }
 
         Motor::stop();
         return (steps > 0) ? (accumulatedError / steps) : 1e9f; // return mean error
     }   
+
     float getOmegaLeft()  { return omega_L_ref; }
     float getOmegaRight() { return omega_R_ref; }
 
