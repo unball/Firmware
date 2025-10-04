@@ -6,31 +6,32 @@
 #include <Arduino.h>
 #include "adaptive_controller.h"    
 
-// === Twiddle parameters ===
-static float dk[3] = {0.5f, 0.05f, 0.05f};  // initial deltas
-static float ksi = 0.3f;                    // learning rate
-
-// === Internal variable for error tracking ===
-static float maxError = 0.0f;
-
-// === Robot parameters ===
-static constexpr float T = 0.02f;     // Sampling period [s]
-
-// === PID gains ===
-static float Kp = 1.5f;
-static float Ki = 0.05f;
-static float Kd = -0.05f;
-
-// === Internal variables ===
-static float integral = 0.0f;
-static float lastError = 0.0f;
-static unsigned long lastTime = 0;
-
-// === Wheel references ===
-static float omega_L_ref = 0.0f;
-static float omega_R_ref = 0.0f;
 
 namespace PIDController {
+
+    // === Twiddle parameters ===
+    static float dk[3] = {0.5f, 0.05f, 0.05f};  // initial deltas
+    static float ksi = 0.3f;                    // learning rate
+
+    // === Internal variable for error tracking ===
+    static float maxError = 0.0f;
+
+    // === Robot parameters ===
+    static constexpr float T = 0.02f;     // Sampling period [s]
+
+    // === PID gains ===
+    static float Kp = 1.5f;
+    static float Ki = 0.05f;
+    static float Kd = -0.05f;
+
+    // === Internal variables ===
+    static float integral = 0.0f;
+    static float lastError = 0.0f;
+    static unsigned long lastTime = 0;
+
+    // === Wheel references ===
+    static float omega_L_ref = 0.0f;
+    static float omega_R_ref = 0.0f;
 
     void reset() {
         integral = 0.0f;
