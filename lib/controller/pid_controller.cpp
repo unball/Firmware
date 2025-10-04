@@ -12,6 +12,8 @@ namespace PIDController {
     // === Twiddle parameters ===
     static float dk[3] = {0.5f, 0.05f, 0.05f};  // initial deltas
     static float ksi = 0.3f;                    // learning rate
+    static float epsilon = 1e-3f;               // stop threshold
+    static int maxIterations = 30;              // safety limit
 
     // === Internal variable for error tracking ===
     static float maxError = 0.0f;
@@ -146,8 +148,8 @@ namespace PIDController {
     float testRoutine() {
         float v_ref = 0.0f;
         float w_ref = 0.0f;
-        float error = 0.0f;
-        maxError = 0.0f;
+        float accumulatedError = 0.0f;
+        int steps = 0;
 
         static unsigned long previous_t;
         unsigned long t;
@@ -157,51 +159,37 @@ namespace PIDController {
             // Move forward
             previous_t = millis();
             while ((t = millis()) - previous_t < 350) {
-                v_ref = 0.4f;
-                w_ref = 0.0f;
+                v_ref = 0.5f; w_ref = 0.0f;
                 float w_meas = IMU::get_w();
+                accumulatedError += fabs(w_ref - w_meas);
+                steps++;
                 update(v_ref, w_ref);
-                AdaptiveController::setReferences(
-                    PIDController::getOmegaLeft(),
-                    PIDController::getOmegaRight()
-                );
+                AdaptiveController::setReferences(getOmegaLeft(), getOmegaRight());
                 AdaptiveController::update();
-
-                error = fabs(w_ref - w_meas);
-                if (error > maxError) maxError = error;
             }
-
             // Turn right
             previous_t = millis();
             while ((t = millis()) - previous_t < 314) {
-                v_ref = 0.0f;
-                w_ref = 4.0f;
+                v_ref = 0.0f; w_ref = 5.0f;
                 float w_meas = IMU::get_w();
+                accumulatedError += fabs(w_ref - w_meas);
+                steps++;
                 update(v_ref, w_ref);
-                AdaptiveController::setReferences(
-                    PIDController::getOmegaLeft(),
-                    PIDController::getOmegaRight()
-                );
+                AdaptiveController::setReferences(getOmegaLeft(), getOmegaRight());
                 AdaptiveController::update();
-                error = fabs(w_ref - w_meas);
-                if (error > maxError) maxError = error;
             }
         }
 
         // Stop
         previous_t = millis();
         while ((t = millis()) - previous_t < 300) {
-            v_ref = 0.0f;
-            w_ref = 0.0f;
+            v_ref = 0.0f; w_ref = 0.0f;
             float w_meas = IMU::get_w();
+            accumulatedError += fabs(w_ref - w_meas);
+            steps++;
             update(v_ref, w_ref);
-            AdaptiveController::setReferences(
-                PIDController::getOmegaLeft(),
-                PIDController::getOmegaRight()
-            );
+            AdaptiveController::setReferences(getOmegaLeft(), getOmegaRight());
             AdaptiveController::update();
-            error = fabs(w_ref - w_meas);
-            if (error > maxError) maxError = error;
         }
 
         // === Square backward ===
@@ -209,56 +197,41 @@ namespace PIDController {
             // Move backward
             previous_t = millis();
             while ((t = millis()) - previous_t < 350) {
-                v_ref = -0.4f;
-                w_ref = 0.0f;
+                v_ref = -0.5f; w_ref = 0.0f;
                 float w_meas = IMU::get_w();
+                accumulatedError += fabs(w_ref - w_meas);
+                steps++;
                 update(v_ref, w_ref);
-                AdaptiveController::setReferences(
-                    PIDController::getOmegaLeft(),
-                    PIDController::getOmegaRight()
-                );
+                AdaptiveController::setReferences(getOmegaLeft(), getOmegaRight());
                 AdaptiveController::update();
-                error = fabs(w_ref - w_meas);
-                if (error > maxError) maxError = error;
             }
-
             // Turn left
             previous_t = millis();
             while ((t = millis()) - previous_t < 314) {
-                v_ref = 0.0f;
-                w_ref = -4.0f;
+                v_ref = 0.0f; w_ref = -5.0f;
                 float w_meas = IMU::get_w();
+                accumulatedError += fabs(w_ref - w_meas);
+                steps++;
                 update(v_ref, w_ref);
-                AdaptiveController::setReferences(
-                    PIDController::getOmegaLeft(),
-                    PIDController::getOmegaRight()
-                );
+                AdaptiveController::setReferences(getOmegaLeft(), getOmegaRight());
                 AdaptiveController::update();
-                error = fabs(w_ref - w_meas);
-                if (error > maxError) maxError = error;
             }
-
             // Stop
             previous_t = millis();
             while ((t = millis()) - previous_t < 300) {
-                v_ref = 0.0f;
-                w_ref = 0.0f;
+                v_ref = 0.0f; w_ref = 0.0f;
                 float w_meas = IMU::get_w();
+                accumulatedError += fabs(w_ref - w_meas);
+                steps++;
                 update(v_ref, w_ref);
-                AdaptiveController::setReferences(
-                    PIDController::getOmegaLeft(),
-                    PIDController::getOmegaRight()
-                );
+                AdaptiveController::setReferences(getOmegaLeft(), getOmegaRight());
                 AdaptiveController::update();
-                error = fabs(w_ref - w_meas);
-                if (error > maxError) maxError = error;
             }
         }
 
         Motor::stop();
-        return maxError;
-    }
-    
+        return (steps > 0) ? (accumulatedError / steps) : 1e9f; // return mean error
+    }   
     float getOmegaLeft()  { return omega_L_ref; }
     float getOmegaRight() { return omega_R_ref; }
 
