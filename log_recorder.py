@@ -8,7 +8,7 @@ import threading
 import msvcrt  # para capturar teclas no Windows
 
 # === Configuration ===
-PORT = 'COM4'           # Change to your serial port (e.g. '/dev/ttyUSB0' on Linux)
+PORT = 'COM3'           # Change to your serial port (e.g. '/dev/ttyUSB0' on Linux)
 BAUDRATE = 115200
 BASE_FILENAME = 'log_output'
 EXTENSION = '.csv'
@@ -22,7 +22,11 @@ def generate_unique_filename(base, ext):
         counter += 1
     return filename
 
-OUTPUT_FILE = generate_unique_filename(BASE_FILENAME, EXTENSION)
+# === Ensure "logs" folder exists and generate output file inside it ===
+LOG_DIR = "logs"
+os.makedirs(LOG_DIR, exist_ok=True)  # cria a pasta se não existir
+OUTPUT_FILE = os.path.join(LOG_DIR, generate_unique_filename(BASE_FILENAME, EXTENSION))
+
 
 # === Log regex pattern ===
 log_pattern = re.compile(
