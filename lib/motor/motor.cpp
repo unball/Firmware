@@ -54,6 +54,8 @@ namespace Motor {
 
     //Stops current for the motors
     void stop() {
+        Motor::move(MOTOR_RIGHT, 0);
+        Motor::move(MOTOR_LEFT, 0);
         digitalWrite(STBY_PIN, LOW);
     }
 }
