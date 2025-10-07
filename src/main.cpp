@@ -4,6 +4,7 @@
 #include "config.h"
 #include "robot_config.hpp"
 #include "imu.hpp"
+#include "pid_controller.hpp"
 #include "adaptive_controller.h"
 #include "wifi.hpp"
 #include "control.hpp"
@@ -23,13 +24,28 @@ void setup() {
     Motor::setup();
     IMU::setup();
     RobotConfig::setup();
-    Wifi::setup(0);
+    Wifi::setup(RobotConfig::getRobotNumber());
+    // PIDController::setGains(2.0f, 0.1f, 0.001f);
+    PIDController::setGains(1.02f, 0.1f, 0.00f);
+    // PIDController::setGains(0.4683f, 0.0f, 0.0282);
+
     Serial.println("State-space control initialized.");
     Serial.print("Robot Number: ");Serial.println(RobotConfig::getRobotNumber());
     // Initialize motors, encoders, etc. here
 }
 
 void loop() {
+    // Se for o robô 1, executa Twiddle ao invés da rotina normal
+    if (RobotConfig::getRobotNumber() == 1) {
+        
+        Serial.println("Starting Twiddle algorithm...");
+        delay(1000);
+        PIDController::twiddle();
+        Motor::stop();
+        while (1);
+        return;
+    }
+
     static int16_t v_int;
     static int16_t w_int;
 
@@ -39,14 +55,22 @@ void loop() {
     v_ref = ((float)v_int) * 2.0f / 32767;
     w_ref = ((float)w_int) * 64.0f / 32767;
 
-    // === Update state-space controller (runs every T internally) ===
-    StateSpaceController::update(v_ref, w_ref);
+    // // === Update state-space controller (runs every T internally) ===
+    // StateSpaceController::update(v_ref, w_ref);
+
+    PIDController::update(v_ref, w_ref);
 
     // === Send reference to adaptive controller ===
     AdaptiveController::setReferences(
-        StateSpaceController::getControlLeft(),
-        StateSpaceController::getControlRight()
+        PIDController::getOmegaLeft(),
+        PIDController::getOmegaRight()
     );
+
+    //     // === Send reference to adaptive controller ===
+    // AdaptiveController::setReferences(
+    //     ((v_ref - (L/2)*w_ref) / R),
+    //     ((v_ref + (L/2)*w_ref) / R)
+    // );
 
     AdaptiveController::update();
 
@@ -61,8 +85,8 @@ void loop() {
     Wifi::sendFeedback(
         v, w,
         v_ref, w_ref,
-        StateSpaceController::getControlLeft(),
-        StateSpaceController::getControlRight(),
+        PIDController::getOmegaLeft(),
+        PIDController::getOmegaRight(),
         omega_L, omega_R,
         AdaptiveController::getOmegaLeft(),
         AdaptiveController::getOmegaRight(),
@@ -145,9 +169,9 @@ void loop() {
 //         FeedbackPacket p;
 //         memcpy(&p, data, sizeof(FeedbackPacket));
 
-//         Serial.printf("t:%lu, v_ref:%.2f, w_ref:%.2f, v:%.2f, w:%.2f, omega_L:%.2f, omega_R:%.2f, u_L:%.2f, u_R:%.2f, ",
+//         Serial.printf("t:%lu, v_ref:%.6f, w_ref:%.6f, v:%.6f, w:%.1f, omega_L:%.4f, omega_R:%.1f, u_L:%.4f, u_R:%.4f, ",
 //                       p.timestamp_us, p.v_ref, p.w_ref, p.v, p.w, p.omega_L, p.omega_R, p.u_L, p.u_R);
-//         Serial.printf("w_L:%.2f, w_R:%.2f, theta1_L:%.2f, theta2_L:%.2f, theta1_R:%.2f, theta2_R:%.2f, e_L:%.2f, e_R:%.2f\n",
+//         Serial.printf("w_L:%.4f, w_R:%.1f, theta1_L:%.1f, theta2_L:%.1f, theta1_R:%.1f, theta2_R:%.1f, e_L:%.1f, e_R:%.1f\n",
 //                       p.w_L, p.w_R,
 //                       p.theta1_L, p.theta2_L,
 //                       p.theta1_R, p.theta2_R,
@@ -216,7 +240,7 @@ void loop() {
 
 //         // Parâmetros da onda quadrada
 //         float period = 4.0f;       // segundos
-//         float amplitude = 0.5f;    // valor máximo da referência (v_ref)
+//         float amplitude = 0.2f;    // valor máximo da referência (v_ref)
 
 //         // Calcula fase e gera a onda
 //         float phase = fmod(t, period);
