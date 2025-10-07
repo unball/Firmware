@@ -13,19 +13,25 @@ BAUDRATE = 115200
 BASE_FILENAME = 'log_output'
 EXTENSION = '.csv'
 
-# === Generate unique output filename ===
-def generate_unique_filename(base, ext):
+# === Generate unique output filename in a specific directory ===
+def generate_unique_filename(base: str, ext: str, directory: str) -> str:
     counter = 1
+    # first candidate
     filename = f"{base}{ext}"
-    while os.path.exists(filename):
+    path = os.path.join(directory, filename)
+    # bump while a file with that name exists in the *directory*
+    while os.path.exists(path):
         filename = f"{base}_{counter}{ext}"
+        path = os.path.join(directory, filename)
         counter += 1
-    return filename
+    return path  # return full path inside the directory
+
 
 # === Ensure "logs" folder exists and generate output file inside it ===
 LOG_DIR = "logs"
-os.makedirs(LOG_DIR, exist_ok=True)  # cria a pasta se não existir
-OUTPUT_FILE = os.path.join(LOG_DIR, generate_unique_filename(BASE_FILENAME, EXTENSION))
+os.makedirs(LOG_DIR, exist_ok=True)
+
+OUTPUT_FILE = generate_unique_filename(BASE_FILENAME, EXTENSION, LOG_DIR)
 
 
 # === Log regex pattern ===
