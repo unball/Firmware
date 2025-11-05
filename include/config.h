@@ -14,7 +14,7 @@ const int resetTimeout = 4000000;
 const float MAX_POWER = 10.0;
 
 /* Control */
-const int controlLoopInterval= 200;   // actuation interval in ms
+const int controlLoopInterval= 5;   // actuation interval in ms
 const int twiddledelay = 10000;
 
 
