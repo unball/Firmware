@@ -43,7 +43,9 @@ namespace StateSpaceController {
         float omega_R = vel.motorRight;
 
         float v = (R / 2.0f) * (omega_R + omega_L);
-        float w = IMU::get_w();
+        // float w = IMU::get_w();
+        float w_encoders = Encoder::getAngularVelocity(R, L);
+        float w = IMU::get_w_filtered(w_encoders , 0.98f);
 
         float x[2] = {v, w};
         float r[2] = {v_ref, w_ref};
