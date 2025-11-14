@@ -95,4 +95,15 @@ namespace Encoder {
 
         return result;
     }
+
+    float getAngularVelocity(float R, float L) {
+        vel speeds = getMotorSpeeds();
+        
+        // Convert angular velocities of wheels to linear velocities
+        float v_right = speeds.motorRight * R;
+        float v_left = speeds.motorLeft * R;
+        
+        // Calculate robot's angular velocity: w = (v_right - v_left) / L
+        return (v_right - v_left) / L;
+    }
 }

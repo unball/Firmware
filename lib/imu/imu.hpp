@@ -13,7 +13,10 @@ namespace IMU {
     extern Adafruit_LSM6DS3TRC imu;
 
     void setup();
-    float get_w(); // Angular velocity around Z axis in rad/s
+    float get_w(); // Angular velocity around Z axis in rad/s (raw from gyro)
+    
+    // Complementary filter for angular velocity
+    float get_w_filtered(float w_encoders, float alpha = 0.98);
 
 }
 
