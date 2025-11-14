@@ -1,14 +1,14 @@
-#include <Arduino.h>
-#include "encoder.hpp"
-#include "motor.hpp"
-#include "config.h"
-#include "robot_config.hpp"
-#include "imu.hpp"
-#include "pid_controller.hpp"
-#include "adaptive_controller.h"
-#include "wifi.hpp"
-#include "control.hpp"
-#include "state_space_controller.hpp"
+// #include <Arduino.h>
+// #include "encoder.hpp"
+// #include "motor.hpp"
+// #include "config.h"
+// #include "robot_config.hpp"
+// #include "imu.hpp"
+// #include "pid_controller.hpp"
+// #include "adaptive_controller.h"
+// #include "wifi.hpp"
+// #include "control.hpp"
+// #include "state_space_controller.hpp"
 
 
 
@@ -60,19 +60,25 @@
 //     // // === Update state-space controller (runs every T internally) ===
 //     // StateSpaceController::update(v_ref, w_ref);
 
-//     PIDController::update(v_ref, w_ref);
+//     // PIDController::update(v_ref, w_ref);
 
 //     // === Send reference to adaptive controller ===
-//     AdaptiveController::setReferences(
-//         PIDController::getOmegaLeft(),
-//         PIDController::getOmegaRight()
-//     );
-
-//     //     // === Send reference to adaptive controller ===
 //     // AdaptiveController::setReferences(
-//     //     ((v_ref - (L/2)*w_ref) / R),
-//     //     ((v_ref + (L/2)*w_ref) / R)
+//     //     PIDController::getOmegaLeft(),
+//     //     PIDController::getOmegaRight()
 //     // );
+
+//     // === Send reference to adaptive controller ===
+//     // AdaptiveController::setReferences(
+//     //     StateSpaceController::getControlLeft(),
+//     //     StateSpaceController::getControlRight()
+//     // );
+
+//         // === Send reference to adaptive controller ===
+//     AdaptiveController::setReferences(
+//         ((v_ref - (L/2)*w_ref) / R),
+//         ((v_ref + (L/2)*w_ref) / R)
+//     );
 
 //     AdaptiveController::update();
 
@@ -81,7 +87,9 @@
 //     float omega_L = vel.motorLeft;
 //     float omega_R = vel.motorRight;
 //     float v = (R / 2.0f) * (omega_R + omega_L);
-//     float w = IMU::get_w();
+//     // float w = IMU::get_w();
+//     float w_encoders = Encoder::getAngularVelocity(R, L);
+//     float w = IMU::get_w_filtered(w_encoders , 0.98f);
 
 //     // === Send feedback ===
 //     Wifi::sendFeedback(
@@ -137,6 +145,21 @@
 
 
 
+
+
+
+
+#include <Arduino.h>
+#include "encoder.hpp"
+#include "motor.hpp"
+#include "config.h"
+#include "robot_config.hpp"
+#include "imu.hpp"
+#include "pid_controller.hpp"
+#include "adaptive_controller.h"
+#include "wifi.hpp"
+#include "control.hpp"
+#include "state_space_controller.hpp"
 #include <WiFi.h>
 #include <esp_now.h>
 
@@ -233,177 +256,43 @@ void setup() {
     Serial.println("✅ Ready to communicate with robot");
 }
 
-
-// === Sequenced tests with command-reversal returns (no odometry, no Serial prints) ===
-// Phases:
-// 0 idle, 1 in-place (square on v), 2 return of phase 1,
-// 3 idle, 4 figure-eight, 5 return of phase 4,
-// 6 idle, 7 square path, 8 return of phase 7,
-// 9 idle after, 10 done.
+// === Loop: Envia um degrau para o Teste de Identificação ===
+unsigned long lastSend = 0;
+float t_start = millis() / 1000.0f; // Tempo de início
 
 void loop() {
-    // Persistent state
-    static bool inited = false;
-    static unsigned long t0 = 0, lastSend = 0;
-    static int phase = 0;
+    if (millis() - lastSend >= 100) { // Envia a cada 100ms
+        float t = (millis() / 1000.0f) - t_start;
 
-    // Command history for reversing
-    static const int MAX_SAMPLES = 400;  // 400 samples @100 ms = 40 s
-    static float v_hist[MAX_SAMPLES];
-    static float w_hist[MAX_SAMPLES];
-    static int hist_len = 0;
-    static int hist_play_idx = -1;
+        float v_cmd = 0.0f;
+        float w_cmd = 0.0f;
 
-    // Timing
-    const unsigned long SEND_PERIOD_MS = 100;
-    const float DUR_IDLE_BEFORE   = 5.0f;   // phase 0
-    const float DUR_REF_INPLACE   = 16.0f;  // phase 1
-    const float DUR_IDLE_BETWEEN1 = 8.0f;   // phase 3
-    const float DUR_FIGURE_EIGHT  = 28.0f;  // phase 4
-    const float DUR_IDLE_BETWEEN2 = 8.0f;   // phase 6
-    const float DUR_SQUARE_PATH   = 20.0f;  // phase 7
-    const float DUR_IDLE_AFTER    = 8.0f;   // phase 9
+        // DURAÇÃO TOTAL DO EXPERIMENTO: 10 segundos
+        // if (t < 10.0f) {
+        //     // Aplica um degrau de v_ref = 0.2
+        //     // entre t=2s e t=7s
+        //     if (t > 2.0f && t <= 5.0f) {
+        //         v_cmd = 0.5f; // [O VALOR DO DEGRAU]
+        //     } else {
+        //         v_cmd = 0.0f;
+        //     }
+        // } else {
+        //     // Fim do experimento, mantenha parado
+        //     v_cmd = 0.0f;
+        // }
 
-    // Limits
-    const float V_MAX   = 0.35f;
-    const float W_MAX   = 3.0f;
-    const float SCALE_V = 0.6f;
-    const float SCALE_W = 0.8f;
-
-    auto clampf = [](float x, float a, float b){ return x < a ? a : (x > b ? b : x); };
-
-    if (!inited) {
-        inited = true;
-        t0 = millis();
-        lastSend = 0;
-        phase = 0;
-        hist_len = 0;
-        hist_play_idx = -1;
-    }
-
-    unsigned long now = millis();
-    if (now - lastSend < SEND_PERIOD_MS) return;
-
-    float tg = (now - t0) / 1000.0f;
-
-    // Phase schedule
-    float acc = 0.0f;
-    int newPhase = phase;
-    if      (tg < (acc += DUR_IDLE_BEFORE))               newPhase = 0;
-    else if (tg < (acc += DUR_REF_INPLACE))               newPhase = 1;
-    else if (tg < (acc += 0.0f))                          newPhase = 2;
-    else if (tg < (acc += DUR_IDLE_BETWEEN1))             newPhase = 3;
-    else if (tg < (acc += DUR_FIGURE_EIGHT))              newPhase = 4;
-    else if (tg < (acc += 0.0f))                          newPhase = 5;
-    else if (tg < (acc += DUR_IDLE_BETWEEN2))             newPhase = 6;
-    else if (tg < (acc += DUR_SQUARE_PATH))               newPhase = 7;
-    else if (tg < (acc += 0.0f))                          newPhase = 8;
-    else if (tg < (acc += DUR_IDLE_AFTER))                newPhase = 9;
-    else                                                  newPhase = 10;
-
-    static float phaseStartTime = 0.0f;
-    if (newPhase != phase) {
-        phase = newPhase;
-        phaseStartTime = tg;
-
-        if (phase == 1 || phase == 4 || phase == 7) {
-            hist_len = 0;
-            hist_play_idx = -1;
-        }
-        if (phase == 2 || phase == 5 || phase == 8) {
-            hist_play_idx = hist_len - 1;
-        }
-    }
-
-    float v_ref = 0.0f;
-    float w_ref = 0.0f;
-
-    switch (phase) {
-        case 1: { // In-place: square wave
-            float t_local = tg - DUR_IDLE_BEFORE;
-            const float period = 3.0f;
-            const float amp_v  = 0.12f;
-            float ph = fmodf(t_local, period);
-            v_ref = (ph < 0.5f * period) ? amp_v : -amp_v;
-            w_ref = 0.0f;
-            v_ref = clampf(v_ref * SCALE_V, -V_MAX, V_MAX);
-            w_ref = clampf(w_ref * SCALE_W, -W_MAX, W_MAX);
-            if (hist_len < MAX_SAMPLES) {
-                v_hist[hist_len] = v_ref;
-                w_hist[hist_len] = w_ref;
-                hist_len++;
-            }
-        } break;
-
-        case 2: { // Return for phase 1
-            if (hist_play_idx >= 0) {
-                v_ref = -v_hist[hist_play_idx];
-                w_ref = -w_hist[hist_play_idx];
-                hist_play_idx--;
-            }
-        } break;
-
-        case 4: { // Figure-eight
-            float t_local = tg - (DUR_IDLE_BEFORE + DUR_REF_INPLACE);
-            const float v_base = 0.15f;
-            const float w_amp  = 1.6f;
-            const float w_freq = 0.7f;
-            v_ref = v_base;
-            w_ref = w_amp * sinf(w_freq * t_local);
-            v_ref = clampf(v_ref * SCALE_V, -V_MAX, V_MAX);
-            w_ref = clampf(w_ref * SCALE_W, -W_MAX, W_MAX);
-            if (hist_len < MAX_SAMPLES) {
-                v_hist[hist_len] = v_ref;
-                w_hist[hist_len] = w_ref;
-                hist_len++;
-            }
-        } break;
-
-        case 5: { // Return for phase 4
-            if (hist_play_idx >= 0) {
-                v_ref = -v_hist[hist_play_idx];
-                w_ref = -w_hist[hist_play_idx];
-                hist_play_idx--;
-            }
-        } break;
-
-        case 7: { // Square path
-            float t_local = tg - (DUR_IDLE_BEFORE + DUR_REF_INPLACE + DUR_IDLE_BETWEEN1 + DUR_FIGURE_EIGHT);
-            const float side_cycle = 2.0f; // 1.2 s straight + 0.8 s turn
-            float ph = fmodf(t_local, side_cycle);
-            if (ph < 1.2f) {
-                v_ref = 0.15f;
-                w_ref = 0.0f;
+        // // Para testar o 'alpha' de 'w', comente o bloco acima
+        // // e descomente este:
+        if (t < 10.0f) {
+            if (t > 2.0f && t <= 7.0f) {
+                w_cmd = 5.0f; // [DEGRAU EM W]
             } else {
-                v_ref = 0.0f;
-                w_ref = 1.2f;
+                w_cmd = 0.0f;
             }
-            v_ref = clampf(v_ref * SCALE_V, -V_MAX, V_MAX);
-            w_ref = clampf(w_ref * SCALE_W, -W_MAX, W_MAX);
-            if (hist_len < MAX_SAMPLES) {
-                v_hist[hist_len] = v_ref;
-                w_hist[hist_len] = w_ref;
-                hist_len++;
-            }
-        } break;
+        }
 
-        case 8: { // Return for phase 7
-            if (hist_play_idx >= 0) {
-                v_ref = -v_hist[hist_play_idx];
-                w_ref = -w_hist[hist_play_idx];
-                hist_play_idx--;
-            }
-        } break;
-
-        default:
-            v_ref = 0.0f;
-            w_ref = 0.0f;
-        break;
+        sendCommand(0, v_cmd, w_cmd);
+        lastSend = millis();
     }
-
-    v_ref = clampf(v_ref, -V_MAX, V_MAX);
-    w_ref = clampf(w_ref, -W_MAX, W_MAX);
-    sendCommand(0, v_ref, w_ref);
-
-    lastSend = now;
 }
+
