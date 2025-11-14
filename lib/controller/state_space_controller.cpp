@@ -15,13 +15,13 @@ const float u_max =  69.0f;
 
 // === Gains from MATLAB ===
 const float K[2][2] = {
-    {24.9952f, -0.9373f},
-    {24.9952f,  0.9373f}
+    {126.3576f, 5.1305f},
+    {126.3576f, -5.1305f}
 };
 
 const float N[2][2] = {
-    {72.1380f, -2.7052f},
-    {72.1380f,  2.7052f}
+    {238.1948f, -2.4948f},
+    {238.1948f,  2.4948f}
 };
 
 namespace StateSpaceController {
