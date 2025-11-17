@@ -27,8 +27,8 @@ namespace AdaptiveController {
     const float deadzone_threshold = 0.01f; // Threshold for adaptation to kick in
 
     // Initial adaptive parameters theta(0)
-    float theta1_L = 17.53f, theta1_R = 17.53f;
-    float theta2_L = 14.24f, theta2_R = 14.24f;
+    float theta1_L = (pwm_max * R)/v_max, theta2_L = 0.0f;
+    float theta1_R = (pwm_max * R)/v_max, theta2_R = 0.0f;
 
     float omega_L = 0.0f, omega_R = 0.0f;
     float omega_m_L = 0.0f, omega_m_R = 0.0f;
