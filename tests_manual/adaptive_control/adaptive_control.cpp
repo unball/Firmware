@@ -8,7 +8,7 @@
 // === Parameters ===
 const double T = 0.01;               // Sampling time [s]
 const double tau_m = 0.01;           // Reference model time constant [s]
-const double gamma_adapt = 0.05;     // Adaptation gain
+const double gamma_adapt = 0.005;     // Adaptation gain
 
 // Reference model coefficients
 const double am = exp(-T / tau_m);
