@@ -1,12 +1,8 @@
-
-
-
 #include "encoder.hpp"
+
 
 const int watchdog_timer = 500000; // us
 constexpr uint64_t MIN_VALID_T_US = 5000;    // Max RPM = 650 -> T_us = 7700us
-constexpr float ALPHA = 0.3f;  // Low-pass filter coefficient (0 < alpha <= 1)
-                               // Lower values = more smoothing, higher values = faster response
 
 namespace Encoder {
 
@@ -15,8 +11,6 @@ namespace Encoder {
 
     volatile float present_speed_A;
     volatile float present_speed_B;
-    volatile float filtered_speed_A;
-    volatile float filtered_speed_B;
 
     void IRAM_ATTR Ext_INT1_ISR() {
         detachInterrupt(ENC_MOTOR_A_CHA_PIN);
@@ -30,10 +24,7 @@ namespace Encoder {
 
         // Filters out unrealistically short pulses caused by noise or startup
         if (T_us >= MIN_VALID_T_US) {
-            float raw_speed = (direction)*(2*PI)/(12*(T_us*1e-6));
-            // Apply 1st order IIR low-pass filter: y[n] = alpha * x[n] + (1 - alpha) * y[n-1]
-            filtered_speed_A = ALPHA * raw_speed + (1 - ALPHA) * filtered_speed_A;
-            present_speed_A = filtered_speed_A;
+            present_speed_A = (direction)*(2*PI)/(12*(T_us*1e-6));
         }
 
         timerRestart(Timer0_Cfg);
@@ -52,10 +43,7 @@ namespace Encoder {
         
         // Filters out unrealistically short pulses caused by noise or startup.
         if (T_us >= MIN_VALID_T_US) {
-            float raw_speed = (direction)*(2*PI)/(12*(T_us*1e-6));
-            // Apply 1st order IIR low-pass filter: y[n] = alpha * x[n] + (1 - alpha) * y[n-1]
-            filtered_speed_B = ALPHA * raw_speed + (1 - ALPHA) * filtered_speed_B;
-            present_speed_B = filtered_speed_B;
+            present_speed_B = (direction)*(2*PI)/(12*(T_us*1e-6));
         }
 
         timerRestart(Timer1_Cfg);
@@ -66,8 +54,6 @@ namespace Encoder {
     void setup() {
         present_speed_A = 0;
         present_speed_B = 0;
-        filtered_speed_A = 0;
-        filtered_speed_B = 0;
 
         // Motor A
         pinMode(ENC_MOTOR_A_CHA_PIN, INPUT);
