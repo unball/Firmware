@@ -50,24 +50,34 @@ for idx, (file, label) in enumerate(zip(log_files, labels)):
             print(f"[!] Variable '{var}' not found in {file}")
             continue
 
-        # Plot main variable
-        axs[i].plot(df["t"], df[var], label=f"{label} {var}", color=colors[idx % len(colors)])
+        # Plot main variable with proper labels
+        if var == "v":
+            axs[i].plot(df["t"], df[var], label="v medido", color=colors[idx % len(colors)])
+        elif var == "w":
+            axs[i].plot(df["t"], df[var], label=r"$\omega$ medido", color=colors[idx % len(colors)])
+        else:
+            axs[i].plot(df["t"], df[var], label=f"{label} {var}", color=colors[idx % len(colors)])
 
         # Add v_ref to the same subplot as v, dashed line
         if var == "v" and "v_ref" in df.columns:
-            axs[i].plot(df["t"], df["v_ref"], "--", color="black", label="v_ref")
+            axs[i].plot(df["t"], df["v_ref"], "--", color="black", label="v referência")
 
         # Add w_ref to the same subplot as w, dashed line
         if var == "w" and "w_ref" in df.columns:
-            axs[i].plot(df["t"], df["w_ref"], "--", color="black", label="w_ref")
+            axs[i].plot(df["t"], df["w_ref"], "--", color="black", label=r"$\omega$ referência")
 
 # === Aesthetics for the plots ===
 for i, var in enumerate(variables_to_plot):
-    axs[i].set_ylabel(var)
+    if var == "v":
+        axs[i].set_ylabel("v (m/s)")
+    elif var == "w":
+        axs[i].set_ylabel(r"$\omega$ (rad/s)")
+    else:
+        axs[i].set_ylabel(var)
     axs[i].grid(True)
     axs[i].legend()
 
-axs[-1].set_xlabel("Time [s]")
-fig.suptitle("Log Plots - State Space + MRAC", fontsize=14)
+axs[-1].set_xlabel("Tempo [s]")
+# fig.suptitle("Identificação do sistema caixa cinza", fontsize=14)
 plt.tight_layout(rect=[0, 0, 1, 0.96])
 plt.show()
