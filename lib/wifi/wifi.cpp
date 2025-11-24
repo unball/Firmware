@@ -90,14 +90,6 @@ namespace Wifi{
         if(temp_msg.checksum == temp_msg.v + temp_msg.w){
             msg = temp_msg;
         }
-        else{
-            if (RobotConfig::isDebug) {
-                Serial.println(F("###################"));
-                Serial.println(F("CHECKSUM ERROR"));
-                Serial.println(F("###################"));
-            }
-        }
-        // TODO: lastReceived deveria estar aqui ou em receiveData?
     }
 
     void tokenize(const uint8_t *data,int len){ //função para tokenizar a string que recebemos do transmissor 
