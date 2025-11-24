@@ -8,6 +8,11 @@
 
 
 namespace PIDController {
+    
+        // === PID gains ===
+        static float Kp = 1.02f;
+        static float Ki = 0.1f;
+        static float Kd = 0.001f;
 
     // === Twiddle parameters ===
     // Better starting steps (≈ 20–25% of K)
@@ -34,11 +39,6 @@ namespace PIDController {
 
     // Utility to convert seconds to milliseconds
     static inline unsigned long sec_to_ms(float s) { return (unsigned long)(s * 1000.0f); }
-
-    // === PID gains ===
-    static float Kp = 1.02f;
-    static float Ki = 0.1f;
-    static float Kd = 0.008f;
     
 
     // === Robot parameters ===
@@ -59,12 +59,6 @@ namespace PIDController {
         // omega_L_ref = 0.0f;
         // omega_R_ref = 0.0f;
         // lastTime = millis();
-    }
-
-    void setGains(float kp, float ki, float kd) {
-        Kp = kp;
-        Ki = ki;
-        Kd = kd;
     }
 
     void update(float v_ref, float w_ref) {
@@ -261,7 +255,7 @@ namespace PIDController {
         for (int iter = 0; iter < maxIterations; iter++) {
             for (int i = 0; i < 3; i++) {
                 k[i] += dk[i];
-                setGains(k[0], k[1], k[2]);
+                Kp = k[0]; Ki = k[1]; Kd = k[2];
                 float err = testRoutine_circleDual();
 
                 if (err < bestError) {
@@ -269,7 +263,7 @@ namespace PIDController {
                     dk[i] *= (1 + ksi);
                 } else {
                     k[i] -= 2 * dk[i];
-                    setGains(k[0], k[1], k[2]);
+                    Kp = k[0]; Ki = k[1]; Kd = k[2];
                     err = testRoutine_circleDual();
 
                     if (err < bestError) {
@@ -287,7 +281,7 @@ namespace PIDController {
             k[2] = constrain(k[2], 0.0f, 1.0f);  // Kd
 
             // Apply the corrected gains
-            setGains(k[0], k[1], k[2]);
+            Kp = k[0]; Ki = k[1]; Kd = k[2];
 
             Wifi::sendFeedback(
                 Kd,        // use "v" field to carry Kp
