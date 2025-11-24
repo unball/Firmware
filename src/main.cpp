@@ -21,7 +21,7 @@ void setup() {
     RobotConfig::setup();
     Wifi::setup(RobotConfig::getRobotNumber());
     // PIDController::setGains(2.0f, 0.1f, 0.001f);
-    PIDController::setGains(1.02f, 0.1f, 0.00f);
+    // PIDController::setGains(1.02f, 0.1f, 0.00f);
     // PIDController::setGains(0.4683f, 0.0f, 0.0282);
 
     Serial.println("State-space control initialized.");
@@ -46,30 +46,19 @@ void loop() {
 
     // === Receive references from Wi-Fi ===
     Wifi::receiveData(&v_int, &w_int);
-    
+
     v_ref = ((float)v_int) * 2.0f / 32767;
     w_ref = ((float)w_int) * 64.0f / 32767;
-    
-    // if(Wifi::isCommunicationLost()){
-    //     v_ref = 0;
-    //     w_ref = 0;
-    //     Motor::move(MOTOR_RIGHT, v_ref);
-    //     Motor::move(MOTOR_LEFT, v_ref);
-    // }
 
-    // === Update state-space controller (runs every T internally) ===
     StateSpaceController::update(v_ref, w_ref);
-
     // PIDController::update(v_ref, w_ref);
 
     // === Send reference to adaptive controller ===
-    // AdaptiveController::setReferences(
-    //     PIDController::getOmegaLeft(),
-    //     PIDController::getOmegaRight()
-    // );
-
-    // === Send reference to adaptive controller ===
     AdaptiveController::setReferences(
+        // ((v_ref - (L/2)*w_ref) / R),
+        // ((v_ref + (L/2)*w_ref) / R)
+        // PIDController::getOmegaLeft(),
+        // PIDController::getOmegaRight()
         StateSpaceController::getControlLeft(),
         StateSpaceController::getControlRight()
     );
