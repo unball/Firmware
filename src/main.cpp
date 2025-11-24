@@ -80,43 +80,44 @@ void loop() {
     float w_encoders = Encoder::getAngularVelocity(R, L);
     float w = IMU::get_w_filtered(w_encoders , 0.98f);
 
-    // === Send feedback ===
-    Wifi::sendFeedback(
-        v, w,
-        v_ref, w_ref,
-        StateSpaceController::getControlLeft(),
-        StateSpaceController::getControlRight(),
-        omega_L, omega_R,
-        AdaptiveController::getOmegaLeft(),
-        AdaptiveController::getOmegaRight(),
-        AdaptiveController::getTheta1Left(),
-        AdaptiveController::getTheta2Left(),
-        AdaptiveController::getTheta1Right(),
-        AdaptiveController::getTheta2Right(),
-        AdaptiveController::getErrorLeft(),
-        AdaptiveController::getErrorRight()
-    );
+    // === Send feedback (throttled to 50 Hz) ===
+    static unsigned long lastFeedback = 0;
+    if (millis() - lastFeedback >= 10) {
+        Wifi::sendFeedback(
+            v, w,
+            v_ref, w_ref,
+            // ((v_ref - (L/2)*w_ref) / R), ((v_ref + (L/2)*w_ref) / R),
+            // PIDController::getOmegaLeft(),                                                              // omega_ref_L // PIDController::getOmegaRight(),  // omega_ref_R
+            StateSpaceController::getControlLeft(), StateSpaceController::getControlRight(),                                                     //  // omega_ref_R
+            omega_L, omega_R,                                                                           // omega L measured by main, omega R measured by main
+            AdaptiveController::getControlSignalLeft(), AdaptiveController::getControlSignalRight(),    // u_R = theta1_R * r_R - theta2_R * omega_R
+            AdaptiveController::getTheta1Left(), AdaptiveController::getTheta2Left(),
+            AdaptiveController::getTheta1Right(), AdaptiveController::getTheta2Right(), 
+            AdaptiveController::getErrorLeft(), AdaptiveController::getErrorRight()
+        );
+        lastFeedback = millis();
+    }
 
-    // // === Print debug ===
-    // if (RobotConfig::getRobotNumber() == 0) {
-    //     Serial.print("v: "); Serial.print(v, 4);
-    //     Serial.print(" | w: "); Serial.print(w, 4);
-    //     Serial.print(" || u_L: "); Serial.print(StateSpaceController::getControlLeft(), 2);
-    //     Serial.print(" | u_R: "); Serial.print(StateSpaceController::getControlRight(), 2);
-    //     Serial.print(" || omega_L: "); Serial.print(omega_L, 2);
-    //     Serial.print(" | omega_R: "); Serial.println(omega_R, 2);
-    // } else {
-    //     Serial.print("ref_L: "); Serial.print(StateSpaceController::getControlLeft(), 2);
-    //     Serial.print(" | ref_R: "); Serial.print(StateSpaceController::getControlRight(), 2);
-    //     Serial.print(" || LEFT: w_L "); Serial.print(AdaptiveController::getOmegaLeft(), 3);
-    //     Serial.print(" | u_L: "); Serial.print(AdaptiveController::getControlSignalLeft(), 2);
-    //     Serial.print(" | theta1_L: "); Serial.print(AdaptiveController::getTheta1Left(), 3);
-    //     Serial.print(" | theta2_L: "); Serial.print(AdaptiveController::getTheta2Left(), 3);
-    //     Serial.print(" | e_L: "); Serial.print(AdaptiveController::getErrorLeft(), 2);
-    //     Serial.print("  ||  RIGHT: w_R: "); Serial.print(AdaptiveController::getOmegaRight(), 3);
-    //     Serial.print(" | u_R: "); Serial.print(AdaptiveController::getControlSignalRight(), 2);
-    //     Serial.print(" | theta1_R: "); Serial.print(AdaptiveController::getTheta1Right(), 3);
-    //     Serial.print(" | theta2_R: "); Serial.print(AdaptiveController::getTheta2Right(), 3);
-    //     Serial.print(" | e_R: "); Serial.println(AdaptiveController::getErrorRight(), 2);
-    // }
+    // === Print debug ===
+    if (!RobotConfig::getRobotNumber() == 0) {
+        Serial.print(F("v: ")); Serial.print(v, 4);
+        Serial.print(F(" | w: ")); Serial.print(w, 4);
+        Serial.print(F(" || u_L: ")); Serial.print(AdaptiveController::getControlSignalLeft(), 2);
+        Serial.print(F(" | u_R: ")); Serial.print(AdaptiveController::getControlSignalRight(), 2);
+        Serial.print(F(" || omega_L: ")); Serial.print(omega_L, 2);
+        Serial.print(F(" | omega_R: ")); Serial.println(omega_R, 2);
+    } else {
+        Serial.print(F("ref_L: ")); Serial.print(((v_ref - (L/2)*w_ref) / R), 2);
+        Serial.print(F(" | ref_R: ")); Serial.print(((v_ref + (L/2)*w_ref) / R), 2);
+        Serial.print(F(" || LEFT: w_L ")); Serial.print(AdaptiveController::getOmegaLeft(), 3);
+        Serial.print(F(" | u_L: ")); Serial.print(AdaptiveController::getControlSignalLeft(), 2);
+        Serial.print(F(" | theta1_L: ")); Serial.print(AdaptiveController::getTheta1Left(), 3);
+        Serial.print(F(" | theta2_L: ")); Serial.print(AdaptiveController::getTheta2Left(), 3);
+        Serial.print(F(" | e_L: ")); Serial.print(AdaptiveController::getErrorLeft(), 2);
+        Serial.print(F("  ||  RIGHT: w_R: ")); Serial.print(AdaptiveController::getOmegaRight(), 3);
+        Serial.print(F(" | u_R: ")); Serial.print(AdaptiveController::getControlSignalRight(), 2);
+        Serial.print(F(" | theta1_R: ")); Serial.print(AdaptiveController::getTheta1Right(), 3);
+        Serial.print(F(" | theta2_R: ")); Serial.print(AdaptiveController::getTheta2Right(), 3);
+        Serial.print(F(" | e_R: ")); Serial.println(AdaptiveController::getErrorRight(), 2);
+    }
 }
