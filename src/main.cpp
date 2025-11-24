@@ -63,12 +63,6 @@ void loop() {
         StateSpaceController::getControlRight()
     );
 
-    //    === Send reference to adaptive controller ===
-    AdaptiveController::setReferences(
-        ((v_ref - (L/2)*w_ref) / R),
-        ((v_ref + (L/2)*w_ref) / R)
-    );
-
     AdaptiveController::update();
 
     // === Collect measurements ===
