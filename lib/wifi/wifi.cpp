@@ -152,6 +152,23 @@ namespace Wifi{
         return false;
     }
 
+    /// @brief 
+    /// @param v Measured robot linear velocity
+    /// @param w Measured robot angular velocity
+    /// @param v_ref Reference for robot's linear velocity
+    /// @param w_ref Reference for robot's angular velocity
+    /// @param u_L Control signal send to adaptive controller left wheel
+    /// @param u_R Control signal send to adaptive controller right wheel
+    /// @param omega_L Left wheel speed from main
+    /// @param omega_R Right wheel speed from main
+    /// @param w_L Left wheel speed from adaptive controller
+    /// @param w_R Right wheel speed from adaptive controller
+    /// @param theta1_L 
+    /// @param theta2_L 
+    /// @param theta1_R 
+    /// @param theta2_R 
+    /// @param e_L Error from adaptive controller left wheel
+    /// @param e_R Error from adaptive controller right wheel
     void sendFeedback(float v, float w, float v_ref, float w_ref,
                         float u_L, float u_R,
                         float omega_L, float omega_R,
