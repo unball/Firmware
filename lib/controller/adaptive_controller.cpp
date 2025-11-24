@@ -77,7 +77,7 @@ namespace AdaptiveController {
                 theta1_R += delta_theta1_R;
             
             // Projection method for theta2: clamp within limits
-            if (!((theta2_R >= theta2_limit && delta_theta2_R > 0) || (theta2_R <= -theta2_limit && delta_theta2_R < 0)))
+            if (!((theta2_R >= theta2_limit && delta_theta2_R > 0) || (theta2_R <= 0.0f && delta_theta2_R < 0)))
                 theta2_R += delta_theta2_R;
         }
 
@@ -85,8 +85,10 @@ namespace AdaptiveController {
         // Control law
         u_R = theta1_R * r_R - theta2_R * omega_R;
         
-        // Constrain control signal to safe PWM limits and sign based on reference
-        u_R = constrain(u_R, (r_R >= 0 ? 0.0f : -max_safe_pwm), (r_R >= 0 ? max_safe_pwm : 0.0f));
+        if (r_R == 0.0f) u_R = 0.0f;
+
+        // Constrain control signal to safe PWM limits
+        u_R = constrain(u_R, -max_safe_pwm, max_safe_pwm);
 
         float u_R_adj = applyDeadzone(u_R, motor_deadzone_c, motor_deadzone_c);
         Motor::move(MOTOR_RIGHT, u_R_adj);
@@ -106,7 +108,7 @@ namespace AdaptiveController {
             theta1_L += delta_theta1_L;
             
             // Projection method for theta2: clamp within limits
-            if (!((theta2_L >= theta2_limit && delta_theta2_L > 0) || (theta2_L <= -theta2_limit && delta_theta2_L < 0)))
+            if (!((theta2_L >= theta2_limit && delta_theta2_L > 0) || (theta2_L <= 0.0f && delta_theta2_L < 0)))
                 theta2_L += delta_theta2_L;
         }
 
@@ -114,8 +116,10 @@ namespace AdaptiveController {
         // Control law
         u_L = theta1_L * r_L - theta2_L * omega_L;
 
-        // Constrain control signal to safe PWM limits and sign based on reference
-        u_L = constrain(u_L, (r_L >= 0 ? 0.0f : -max_safe_pwm), (r_L >= 0 ? max_safe_pwm : 0.0f));
+        if (r_L == 0.0f) u_L = 0.0f;
+
+        // Constrain control signal to safe PWM limits
+        u_L = constrain(u_L, -max_safe_pwm, max_safe_pwm);
 
         float u_L_adj = applyDeadzone(u_L, motor_deadzone_c, motor_deadzone_c);
         Motor::move(MOTOR_LEFT, u_L_adj);
