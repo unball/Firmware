@@ -4,8 +4,12 @@ import re
 import os
 
 # === Log files and labels ===
+# Resolve path relative to this script directory (portable)
+base_dir = os.path.dirname(os.path.abspath(__file__))
+logs_dir = os.path.join(base_dir, "logs")
+
 log_files = [
-    "onda_quadrada.csv"
+    os.path.join(logs_dir, "log_mrac_2.csv")
 ]
 
 labels = [
@@ -22,7 +26,7 @@ all_variables = [
 ]
 
 # === Variables to be plotted ===
-variables_to_plot = ["v", "w", "omega_L", "omega_R", "u_L", "u_R"]
+variables_to_plot = ["omega_L", "omega_R", "w_L", "w_R",]
 
 # === Colors for the curves ===
 colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown']
