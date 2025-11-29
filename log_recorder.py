@@ -41,7 +41,7 @@ log_pattern = re.compile(
 
 log_pattern_transmitter = re.compile(
     r"t:(?P<t>\d+), v_ref:(?P<v_ref>[-\d.]+), w_ref:(?P<w_ref>[-\d.]+), v:(?P<v>[-\d.]+), w:(?P<w>[-\d.]+), "
-    r"omega_L:(?P<omega_L>[-\d.]+), omega_R:(?P<omega_R>[-\d.]+), u_L:(?P<u_L>[-\d.]+), u_R:(?P<u_R>[-\d.]+), "
+    r"u_L:(?P<u_L>[-\d.]+), u_R:(?P<u_R>[-\d.]+), omega_L:(?P<omega_L>[-\d.]+), omega_R:(?P<omega_R>[-\d.]+), "
     r"w_L:(?P<w_L>[-\d.]+), w_R:(?P<w_R>[-\d.]+), theta1_L:(?P<theta1_L>[-\d.]+), theta2_L:(?P<theta2_L>[-\d.]+), "
     r"theta1_R:(?P<theta1_R>[-\d.]+), theta2_R:(?P<theta2_R>[-\d.]+), e_L:(?P<e_L>[-\d.]+), e_R:(?P<e_R>[-\d.]+)"
 )
@@ -55,7 +55,7 @@ fields = [
 
 fields_transmitter = [
     "t", "v_ref", "w_ref", "v", "w",
-    "omega_L", "omega_R", "u_L", "u_R",
+    "u_L", "u_R", "omega_L", "omega_R",
     "w_L", "w_R",
     "theta1_L", "theta2_L", "theta1_R", "theta2_R",
     "e_L", "e_R"
