@@ -151,10 +151,10 @@ namespace Wifi{
     /// @param w_ref Reference for robot's angular velocity
     /// @param u_L Control signal send to adaptive controller left wheel
     /// @param u_R Control signal send to adaptive controller right wheel
-    /// @param omega_L Left wheel speed from main
-    /// @param omega_R Right wheel speed from main
-    /// @param w_L Left wheel speed from adaptive controller
-    /// @param w_R Right wheel speed from adaptive controller
+    /// @param omega_L Left wheel measured speed from main
+    /// @param omega_R Right wheel measured speed from main
+    /// @param u_w_L Control signal calculated with adaptive controller left wheel = theta1_L * r_L - theta2_L * omega_L
+    /// @param u_w_R Control signal calculated with adaptive controller right wheel = theta1_R * r_R - theta2_R * omega_R
     /// @param theta1_L 
     /// @param theta2_L 
     /// @param theta1_R 
