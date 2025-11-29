@@ -20,13 +20,6 @@ void setup() {
     IMU::setup();
     RobotConfig::setup();
     Wifi::setup(RobotConfig::getRobotNumber());
-    // PIDController::setGains(2.0f, 0.1f, 0.001f);
-    // PIDController::setGains(1.02f, 0.1f, 0.00f);
-    // PIDController::setGains(0.4683f, 0.0f, 0.0282);
-
-    Serial.println("State-space control initialized.");
-    Serial.print("Robot Number: ");Serial.println(RobotConfig::getRobotNumber());
-    // Initialize motors, encoders, etc. here
 }
 
 void loop() {
@@ -50,17 +43,17 @@ void loop() {
     v_ref = ((float)v_int) * 2.0f / 32767;
     w_ref = ((float)w_int) * 64.0f / 32767;
 
-    StateSpaceController::update(v_ref, w_ref);
+    // StateSpaceController::update(v_ref, w_ref);
     // PIDController::update(v_ref, w_ref);
 
     // === Send reference to adaptive controller ===
     AdaptiveController::setReferences(
-        // ((v_ref - (L/2)*w_ref) / R),
-        // ((v_ref + (L/2)*w_ref) / R)
+        ((v_ref - (L/2)*w_ref) / R),
+        ((v_ref + (L/2)*w_ref) / R)
         // PIDController::getOmegaLeft(),
         // PIDController::getOmegaRight()
-        StateSpaceController::getControlLeft(),
-        StateSpaceController::getControlRight()
+        // StateSpaceController::getControlLeft(),
+        // StateSpaceController::getControlRight()
     );
 
     AdaptiveController::update();
@@ -80,9 +73,9 @@ void loop() {
         Wifi::sendFeedback(
             v, w,
             v_ref, w_ref,
-            // ((v_ref - (L/2)*w_ref) / R), ((v_ref + (L/2)*w_ref) / R),
+            ((v_ref - (L/2)*w_ref) / R), ((v_ref + (L/2)*w_ref) / R),
             // PIDController::getOmegaLeft(),                                                              // omega_ref_L // PIDController::getOmegaRight(),  // omega_ref_R
-            StateSpaceController::getControlLeft(), StateSpaceController::getControlRight(),                                                     //  // omega_ref_R
+            // StateSpaceController::getControlLeft(), StateSpaceController::getControlRight(),                                                     //  // omega_ref_R
             omega_L, omega_R,                                                                           // omega L measured by main, omega R measured by main
             AdaptiveController::getControlSignalLeft(), AdaptiveController::getControlSignalRight(),    // u_R = theta1_R * r_R - theta2_R * omega_R
             AdaptiveController::getTheta1Left(), AdaptiveController::getTheta2Left(),
