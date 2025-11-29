@@ -1,7 +1,7 @@
 #include "encoder.hpp"
 
 
-const int watchdog_timer = 500000; // us
+const int watchdog_timer = 50000; // us
 constexpr uint64_t MIN_VALID_T_US = 5000;    // Max RPM = 650 -> T_us = 7700us
 
 namespace Encoder {
