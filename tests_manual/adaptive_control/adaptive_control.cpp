@@ -22,10 +22,10 @@ double r = 0.0f;
 const double deadzone = 73;
 
 // Reference limits
-const double theta1_limit = 250;
-const double theta2_limit = 250;
+const double theta1_limit = 25;
+const double theta2_limit = 25;
 // E-modification parameter
-const double sigma = gamma_adapt/2;
+const double sigma = 0.001;
 
 // Timer control
 unsigned long last_time = 0;
@@ -36,7 +36,7 @@ void setup() {
     Motor::setup();
 }
 
-double applyDeadzone(double u_in, double dz_positive = 17.0f, double dz_negative = 17.0f) {
+double applyDeadzone(double u_in, double dz_positive = 73.0f, double dz_negative = 73.0f) {
     if (u_in > 0.0f)
         return (u_in > dz_positive) ? u_in : dz_positive;
     else if (u_in < 0.0f)
@@ -49,7 +49,7 @@ void update_adaptive_control() {
     // static double theta1 = 2*(((pwm_max + 0) * R) / v_max);     // estabilizam
     // static double theta2 = 0.3*(((pwm_max + 0) * R) / v_max);
     static double theta1 = ((pwm_max + deadzone) * R) / v_max;
-    static double theta2 = theta1 - 23; // Experimentalmente verificou-se que quando theta1 - theta2 estabilizam, a diferença entre eles é de 23.
+    static double theta2 = 0; // Experimentalmente verificou-se que quando theta1 - theta2 estabilizam, a diferença entre eles é de 23.
 
     // Read encoder
     Encoder::vel vel = Encoder::getMotorSpeeds();
@@ -93,7 +93,8 @@ void update_adaptive_control() {
     double u_unsat = theta1 * r - theta2 * omega;
 
     // Saturate control
-    u = constrain(u_unsat, (r >= 0.0f ? 0.0f : -410.0f), (r >= 0.0f ? 410.0f : 0.0f));
+    if (r == 0.0f) u_unsat = 0.0f;
+    u = constrain(u_unsat, -700.0f, 700.0f);
     // u = constrain(u_unsat, -100.0f, 100.0f);
 
     // Apply motor deadzone
