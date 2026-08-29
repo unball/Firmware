@@ -25,7 +25,7 @@ dependencies:
       require: private
       version: '*'
     source:
-      registry_url: https://components.espressif.com
+      registry_url: https://components.espressif.com/
       type: service
     targets:
     - esp32
@@ -70,8 +70,9 @@ dependencies:
       type: idf
     version: 6.0.1
 direct_dependencies:
+- esp-idf-lib/i2cdev
 - esp-idf-lib/mpu6050
 - idf
-manifest_hash: 555befbc35f7160bcfad0b8961e2bbca4bfb6b90242eecc7749fe036d221aa41
+manifest_hash: 4408f55d2f95817a0ae6ac580cdc89341d581ceeb45eb94b5d323878f8abe3b1
 target: esp32
 version: 3.0.0
